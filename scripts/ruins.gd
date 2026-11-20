@@ -239,6 +239,7 @@ func _collect_drops() -> void:
 
 func _equip_next_soul() -> void:
 	if collected_souls.is_empty():
+		_notice("目前沒有可裝備的靈魂。先狩獵滑翔蜥蜴，取得蜥翼之魂。", 2.8)
 		return
 	var slot := collected_souls.find(hunter.equipped_soul)
 	hunter.equipped_soul = collected_souls[(slot + 1) % collected_souls.size()]

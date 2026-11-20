@@ -9,6 +9,7 @@ const WALK_SPEED := 115.0
 const CROUCH_SPEED := 64.0
 const KNIFE_DURATION := 0.29
 const BOW_DURATION := 0.39
+const ATTACK_BUFFER := 0.22
 const LAND_DURATION := 0.15
 const HURT_DURATION := 0.23
 const STANDING_HEIGHT := 48.0
@@ -27,6 +28,7 @@ var bow_level := 0
 var stolen_blade := false
 var gliding := false
 var attack_left := 0.0
+var attack_buffer_left := 0.0
 var invincible_left := 0.0
 var crouching := false
 var walking := false
@@ -53,11 +55,17 @@ func _ready() -> void:
 	add_child(collider)
 
 
+func _input(event: InputEvent) -> void:
+	if is_physics_processing() and health > 0 and event.is_action_pressed("hunt_attack"):
+		attack_buffer_left = ATTACK_BUFFER
+
+
 func _physics_process(delta: float) -> void:
 	if health <= 0:
 		return
 
 	attack_left = maxf(attack_left - delta, 0)
+	attack_buffer_left = maxf(attack_buffer_left - delta, 0)
 	landing_left = maxf(landing_left - delta, 0)
 	rise_left = maxf(rise_left - delta, 0)
 	hurt_left = maxf(hurt_left - delta, 0)
@@ -104,9 +112,11 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor() and not grounded and fall_speed > 245.0:
 		landing_left = LAND_DURATION
 	animation_time += delta
-	if Input.is_action_just_pressed("hunt_switch") and not attack_queued:
+	if Input.is_action_just_pressed("hunt_switch"):
 		with_bow = not with_bow
-	if Input.is_action_pressed("hunt_attack") and attack_left <= 0 and hurt_left <= 0:
+	var wants_attack := attack_buffer_left > 0 or Input.is_action_pressed("hunt_attack")
+	if wants_attack and attack_left <= 0 and hurt_left <= 0:
+		attack_buffer_left = 0.0
 		attack_with_bow = with_bow
 		attack_left = BOW_DURATION if with_bow else KNIFE_DURATION
 		attack_queued = true
@@ -150,6 +160,7 @@ func hurt(source_x: float) -> void:
 	invincible_left = 0.9
 	hurt_left = HURT_DURATION
 	attack_left = 0.0
+	attack_buffer_left = 0.0
 	attack_queued = false
 	velocity = Vector2(signf(position.x - source_x) * 270, -240)
 
@@ -161,6 +172,7 @@ func respawn(at: Vector2) -> void:
 	rise_left = 0.0
 	hurt_left = 0.0
 	attack_left = 0.0
+	attack_buffer_left = 0.0
 	attack_queued = false
 	velocity = Vector2.ZERO
 	health = MAX_HEALTH
