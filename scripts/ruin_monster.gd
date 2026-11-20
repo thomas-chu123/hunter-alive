@@ -1,4 +1,4 @@
-extends Node2D
+extends CharacterBody2D
 
 signal felled(monster: Node2D)
 signal disarmed(monster: Node2D)
@@ -9,7 +9,17 @@ const HP := {"spider": 5, "lizard": 6, "treant": 20}
 const SIZE := {"spider": Vector2(76, 42), "lizard": Vector2(92, 70), "treant": Vector2(110, 120)}
 const ART_ROWS := {"spider": 0, "lizard": 1, "treant": 2}
 const ART_SCALES := {"spider": 0.30, "lizard": 0.33, "treant": 0.46}
-const STRIKE_DURATION := 0.30
+enum State { PATROL, CHASE, WINDUP, STRIKE, RECOVER, RETURN }
+
+const GRAVITY := 1380.0
+const PROFILES := {
+	"spider": {"speed": 148.0, "sight": 390.0, "leash": 575.0, "jump": 545.0,
+		"reach": 112.0, "tell": 0.32, "strike": 0.46, "recover": 0.47},
+	"lizard": {"speed": 126.0, "sight": 445.0, "leash": 660.0, "jump": 615.0,
+		"reach": 188.0, "tell": 0.43, "strike": 0.59, "recover": 0.67},
+	"treant": {"speed": 96.0, "sight": 480.0, "leash": 510.0, "jump": 0.0,
+		"reach": 148.0, "tell": 0.78, "strike": 0.34, "recover": 0.92},
+}
 
 var species: String
 var target: CharacterBody2D
@@ -22,9 +32,13 @@ var flash := 0.0
 var recovery := 0.0
 var windup := 0.0
 var strike := 0.0
-var stagger := 0.0
 var can_hit := false
-var attack_range := 0.0
+var profile: Dictionary
+var state := State.PATROL
+var jump_delay := 0.0
+var lost_sight := 0.0
+var patrol_dir := -1.0
+var dive_lift := 0.0
 var walking := false
 
 
@@ -35,7 +49,19 @@ func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
 	target = hunter
 	health = HP[species]
 	armed = species == "treant"
-	attack_range = 145.0 if armed else 74.0
+	profile = PROFILES[species]
+
+
+func _ready() -> void:
+	collision_layer = 0
+	collision_mask = 1
+	var shape := RectangleShape2D.new()
+	# Keep the movement collider near the feet; combat uses the full sprite hitbox.
+	shape.size = Vector2(38, 58) if species == "treant" else Vector2(28, 29)
+	var feet := CollisionShape2D.new()
+	feet.shape = shape
+	feet.position.y = -shape.size.y / 2.0
+	add_child(feet)
 
 
 func _physics_process(delta: float) -> void:
@@ -43,47 +69,164 @@ func _physics_process(delta: float) -> void:
 		return
 	age += delta
 	flash = maxf(flash - delta, 0)
-	stagger = maxf(stagger - delta, 0)
-	recovery = maxf(recovery - delta, 0)
-	var before_x := position.x
+	jump_delay = maxf(jump_delay - delta, 0)
+	velocity.y = minf(velocity.y + GRAVITY * delta, 850.0)
+
 	var offset := target.position - position
-	var alert := absf(offset.x) < 345 and absf(offset.y) < 155
-	if windup > 0:
-		windup -= delta
-		if windup <= 0:
-			strike = STRIKE_DURATION
-			can_hit = true
-	elif strike > 0:
-		strike -= delta
-		_resolve_attack(delta)
-		if strike <= 0:
-			recovery = 1.0 if species == "treant" else 0.68
-	elif stagger <= 0 and alert:
-		if absf(offset.x) > 8:
-			facing = signf(offset.x)
-		if absf(offset.x) <= attack_range and absf(offset.y) < 85 and recovery <= 0:
-			windup = 0.82 if species == "treant" else 0.44
-		elif absf(offset.x) > attack_range * 0.78:
-			var speed := 116.0 if species == "spider" else 72.0
-			position.x = clampf(position.x + facing * speed * delta, home.x - 205, home.x + 205)
-	elif stagger <= 0 and not alert:
-		var destination := home.x + sin(age * 0.9) * 52.0
-		facing = -1.0 if destination < position.x else 1.0
-		position.x = move_toward(position.x, destination, 54.0 * delta)
+	var visible := absf(offset.x) < float(profile.sight) and absf(offset.y) < 255.0
+	lost_sight = 0.0 if visible else lost_sight + delta
+	match state:
+		State.PATROL:
+			if visible:
+				state = State.CHASE
+			else:
+				if absf(position.x - home.x) >= 61 or _wall_ahead(patrol_dir) or not _floor_ahead(patrol_dir):
+					patrol_dir = -patrol_dir
+				_move(patrol_dir * 48.0)
+		State.CHASE:
+			_chase(offset)
+		State.WINDUP:
+			_move(0)
+			windup = maxf(0, windup - delta)
+			if windup <= 0:
+				_start_strike(offset)
+		State.STRIKE:
+			strike = maxf(0, strike - delta)
+			_strike(delta)
+			if strike <= 0:
+				_start_recovery(float(profile.recover))
+		State.RECOVER:
+			_move(0)
+			recovery = maxf(0, recovery - delta)
+			if recovery <= 0 and is_on_floor():
+				state = State.CHASE
+		State.RETURN:
+			_return_home()
+
+	var before_x := position.x
+	move_and_slide()
 	walking = absf(position.x - before_x) > 0.25
+	if state == State.STRIKE and can_hit:
+		_try_hit()
+	if position.y > home.y + 250.0:
+		position = home
+		velocity = Vector2.ZERO
+		state = State.PATROL
+		strike = 0.0
+		windup = 0.0
 	queue_redraw()
 
 
-func _resolve_attack(delta: float) -> void:
-	var speed := 265.0 if species == "lizard" else 130.0
-	position.x = clampf(position.x + facing * speed * delta, home.x - 205, home.x + 205)
-	if species == "lizard":
-		var flight := clampf(strike / STRIKE_DURATION, 0.0, 1.0)
-		position.y = home.y - sin(PI * flight) * 52.0
+func _chase(offset: Vector2) -> void:
+	if absf(position.x - home.x) > profile.leash or lost_sight > 1.65:
+		state = State.RETURN
+		_move(0)
+		return
+	if absf(offset.x) > 8.0:
+		facing = signf(offset.x)
+	var reach := 86.0 if species == "treant" and not armed else float(profile.reach)
+	var max_height := 92.0 if species == "lizard" else 64.0
+	if is_on_floor() and absf(offset.x) <= reach and absf(offset.y) <= max_height and _clear_to_target():
+		state = State.WINDUP
+		windup = float(profile.tell)
+		if species == "treant" and not armed:
+			windup = 0.45
+		_move(0)
+	else:
+		_navigate(facing, float(profile.speed), offset.y < -35.0 and absf(offset.x) < 175.0,
+			offset.y > 35.0)
+
+
+func _return_home() -> void:
+	var offset := home - position
+	if absf(offset.x) < 17.0 and is_on_floor():
+		state = State.PATROL
+		_move(0)
+		return
+	var direction := signf(offset.x) if absf(offset.x) > 10 else facing
+	_navigate(direction, float(profile.speed) * 0.85, offset.y < -35.0, offset.y > 35.0)
+
+
+func _navigate(direction: float, speed: float, climb: bool, descend: bool) -> void:
+	if not is_on_floor():
+		_move(direction * speed)
+		return
+	var wall := _wall_ahead(direction)
+	var edge := not _floor_ahead(direction)
+	var jump_speed: float = profile.jump
+	# Only jump a gap if a nearby landing is in reach. The west chasm stays a boundary.
+	var crosses_gap := edge and not _terrain_ray(Vector2(direction * 45, -8), Vector2(direction * 150, 70)).is_empty()
+	var safe_drop := edge and descend and jump_speed > 0 and not _terrain_ray(
+		Vector2(direction * 38, -6), Vector2(direction * 38, 210)).is_empty()
+	if jump_speed > 0 and jump_delay <= 0 and (wall or climb or (crosses_gap and not safe_drop)):
+		velocity.y = -jump_speed
+		jump_delay = 0.35
+		_move(direction * speed)
+	else:
+		_move(0 if wall or (edge and not safe_drop) else direction * speed)
+
+
+func _move(speed: float) -> void:
+	velocity.x = speed
+	if absf(speed) > 1:
+		facing = signf(speed)
+
+
+func _floor_ahead(direction: float) -> bool:
+	return not _terrain_ray(Vector2(direction * 24, -7), Vector2(direction * 24, 31)).is_empty()
+
+
+func _wall_ahead(direction: float) -> bool:
+	return not _terrain_ray(Vector2(0, -18), Vector2(direction * 28, -18)).is_empty()
+
+
+func _clear_to_target() -> bool:
+	return _terrain_ray(Vector2(0, -29), target.position - position - Vector2(0, 24)).is_empty()
+
+
+func _terrain_ray(from: Vector2, to: Vector2) -> Dictionary:
+	var query := PhysicsRayQueryParameters2D.create(global_position + from, global_position + to, 1)
+	return get_world_2d().direct_space_state.intersect_ray(query)
+
+
+func _start_strike(offset: Vector2) -> void:
+	state = State.STRIKE
+	strike = float(profile.strike)
+	can_hit = true
+	match species:
+		"spider":
+			_move(facing * 300.0)
+			velocity.y = -253.0 if offset.y > -25.0 else -425.0
+		"lizard":
+			dive_lift = 0.16
+			_move(facing * 159.0)
+			velocity.y = -430.0
+		"treant":
+			_move(facing * (92.0 if armed else 231.0))
+
+
+func _strike(delta: float) -> void:
+	if species == "lizard" and dive_lift > 0:
+		dive_lift -= delta
+		if dive_lift <= 0:
+			velocity.y = 320.0
+			_move(facing * 346.0)
+	if is_on_floor() and not _floor_ahead(facing):
+		_move(0)
+
+
+func _try_hit() -> void:
 	var offset := target.position - position
-	if can_hit and facing * offset.x >= -22 and absf(offset.x) < attack_range + 25 and absf(offset.y) < 84:
+	var reach := 128.0 if armed else (85.0 if species == "treant" else 47.0)
+	if facing * offset.x >= -25.0 and absf(offset.x) <= reach and absf(offset.y) < 78.0 and _clear_to_target():
 		can_hit = false
 		target.hurt(position.x)
+
+
+func _start_recovery(seconds: float) -> void:
+	state = State.RECOVER
+	recovery = seconds
+	_move(0)
 
 
 func body_hitbox() -> Rect2:
@@ -101,10 +244,8 @@ func receive_hit(damage: int, weapon_hit: bool) -> void:
 	flash = 0.15
 	if weapon_hit and armed and windup > 0:
 		armed = false
-		attack_range = 91.0
 		windup = 0.0
-		stagger = 0.50
-		recovery = 0.50
+		_start_recovery(0.50)
 		disarmed.emit(self)
 		return
 	health = maxi(0, health - damage)
@@ -121,6 +262,8 @@ func _draw() -> void:
 		torso_motion = 0
 	if strike > 0:
 		pose = 3 if species != "treant" or not armed else 1
+		if species == "lizard" and dive_lift > 0.0:
+			pose = 2
 		torso_motion = 0
 	if species == "treant" and not armed:
 		pose = 3
