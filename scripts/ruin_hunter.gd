@@ -3,7 +3,16 @@ extends CharacterBody2D
 signal attacked(origin: Vector2, facing: float, ranged: bool, damage: int)
 signal defeated
 
-const WALK_SPEED := 250.0
+const HunterAnimation := preload("res://scripts/hunter_animation.gd")
+const RUN_SPEED := 250.0
+const WALK_SPEED := 115.0
+const CROUCH_SPEED := 64.0
+const KNIFE_DURATION := 0.29
+const BOW_DURATION := 0.39
+const LAND_DURATION := 0.15
+const HURT_DURATION := 0.23
+const STANDING_HEIGHT := 48.0
+const CROUCH_HEIGHT := 28.0
 const GLIDE_SPEED := 337.0
 const GRAVITY := 1530.0
 const JUMP_SPEED := 525.0
@@ -19,7 +28,16 @@ var stolen_blade := false
 var gliding := false
 var attack_left := 0.0
 var invincible_left := 0.0
-var step_phase := 0.0
+var crouching := false
+var walking := false
+var crouch_time := 0.0
+var rise_left := 0.0
+var landing_left := 0.0
+var hurt_left := 0.0
+var attack_queued := false
+var attack_with_bow := false
+var collider: CollisionShape2D
+var animation_time := 0.0
 var wall_holding := false
 var jump_grace := 0.0
 
@@ -28,10 +46,10 @@ func _ready() -> void:
 	collision_layer = 0
 	collision_mask = 1
 	var shape := RectangleShape2D.new()
-	shape.size = Vector2(24, 48)
-	var collider := CollisionShape2D.new()
+	shape.size = Vector2(24, STANDING_HEIGHT)
+	collider = CollisionShape2D.new()
 	collider.shape = shape
-	collider.position.y = -24
+	collider.position.y = -STANDING_HEIGHT / 2.0
 	add_child(collider)
 
 
@@ -40,6 +58,13 @@ func _physics_process(delta: float) -> void:
 		return
 
 	attack_left = maxf(attack_left - delta, 0)
+	landing_left = maxf(landing_left - delta, 0)
+	rise_left = maxf(rise_left - delta, 0)
+	hurt_left = maxf(hurt_left - delta, 0)
+	var grounded := is_on_floor()
+	_update_crouch(grounded and Input.is_action_pressed("hunt_crouch"))
+	crouch_time = crouch_time + delta if crouching else 0.0
+	walking = Input.is_action_pressed("hunt_walk")
 	invincible_left = maxf(invincible_left - delta, 0)
 	jump_grace = 0.08 if is_on_floor() else maxf(jump_grace - delta, 0)
 	var direction := Input.get_axis("hunt_left", "hunt_right")
@@ -56,7 +81,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y = minf(velocity.y + GRAVITY * delta, 950.0)
 
 	var jumped := Input.is_action_just_pressed("hunt_jump")
-	if jumped and (jump_grace > 0.0 or wall_holding):
+	if jumped and not crouching and (jump_grace > 0.0 or wall_holding):
 		velocity.y = -JUMP_SPEED
 		jump_grace = 0.0
 		wall_holding = false
@@ -68,17 +93,51 @@ func _physics_process(delta: float) -> void:
 	if gliding:
 		velocity.y = minf(velocity.y, 58.0)
 
-	var speed := GLIDE_SPEED if gliding else WALK_SPEED
+	var speed := WALK_SPEED if walking else RUN_SPEED
+	if gliding:
+		speed = GLIDE_SPEED
+	elif crouching:
+		speed = CROUCH_SPEED
 	velocity.x = move_toward(velocity.x, direction * speed, 2100.0 * delta)
+	var fall_speed := velocity.y
 	move_and_slide()
-	step_phase += absf(velocity.x) * delta * 0.062
-	if Input.is_action_just_pressed("hunt_switch"):
+	if is_on_floor() and not grounded and fall_speed > 245.0:
+		landing_left = LAND_DURATION
+	animation_time += delta
+	if Input.is_action_just_pressed("hunt_switch") and not attack_queued:
 		with_bow = not with_bow
-	if Input.is_action_pressed("hunt_attack") and attack_left <= 0:
-		attack_left = 0.39 if with_bow else 0.29
-		var damage := 1 + bow_level if with_bow else 2 + knife_level + int(stolen_blade)
-		attacked.emit(position + Vector2(facing * 14, -30), facing, with_bow, damage)
+	if Input.is_action_pressed("hunt_attack") and attack_left <= 0 and hurt_left <= 0:
+		attack_with_bow = with_bow
+		attack_left = BOW_DURATION if with_bow else KNIFE_DURATION
+		attack_queued = true
+	var hit_at := BOW_DURATION * 0.26 if attack_with_bow else KNIFE_DURATION * 0.74
+	if attack_queued and attack_left <= hit_at:
+		attack_queued = false
+		var damage := 1 + bow_level if attack_with_bow else 2 + knife_level + int(stolen_blade)
+		var height := 21.0 if crouching else 30.0
+		attacked.emit(position + Vector2(facing * 14, -height), facing, attack_with_bow, damage)
 	queue_redraw()
+
+
+func _update_crouch(requested: bool, force_stand: bool = false) -> void:
+	if requested == crouching:
+		return
+	var height := CROUCH_HEIGHT if requested else STANDING_HEIGHT
+	if not requested and not force_stand:
+		var clearance := RectangleShape2D.new()
+		clearance.size = Vector2(23, STANDING_HEIGHT - CROUCH_HEIGHT)
+		var query := PhysicsShapeQueryParameters2D.new()
+		query.shape = clearance
+		query.transform = Transform2D(0.0, global_position - Vector2(0, (STANDING_HEIGHT + CROUCH_HEIGHT) / 2.0))
+		query.collision_mask = collision_mask
+		if not get_world_2d().direct_space_state.intersect_shape(query, 1).is_empty():
+			return
+	var shape := collider.shape as RectangleShape2D
+	shape.size.y = height
+	collider.position.y = -height / 2.0
+	crouching = requested
+	if not requested and not force_stand:
+		rise_left = 0.08
 
 
 func hurt(source_x: float) -> void:
@@ -89,11 +148,20 @@ func hurt(source_x: float) -> void:
 		defeated.emit()
 		return
 	invincible_left = 0.9
+	hurt_left = HURT_DURATION
+	attack_left = 0.0
+	attack_queued = false
 	velocity = Vector2(signf(position.x - source_x) * 270, -240)
 
 
 func respawn(at: Vector2) -> void:
 	position = at
+	_update_crouch(false, true)
+	landing_left = 0.0
+	rise_left = 0.0
+	hurt_left = 0.0
+	attack_left = 0.0
+	attack_queued = false
 	velocity = Vector2.ZERO
 	health = MAX_HEALTH
 	invincible_left = 0.9
@@ -103,46 +171,44 @@ func respawn(at: Vector2) -> void:
 
 
 func _draw() -> void:
-	if invincible_left > 0 and int(invincible_left * 16) % 2 == 0:
+	if invincible_left > 0 and hurt_left <= 0 and int(invincible_left * 16) % 2 == 0:
 		return
 
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2(facing, 1))
-	var swing := sin(step_phase) * 10.0 if is_on_floor() and absf(velocity.x) > 15 else 2.0
-	var ink := Color("#16272a")
-	var gold := Color("#d8b888")
-	var cloth := Color("#b9603e")
-	var mantle := Color("#d48654")
-	if gliding:
-		draw_colored_polygon(
-			PackedVector2Array([Vector2(-44, -34), Vector2(0, -51), Vector2(38, -30),
-				Vector2(16, -24), Vector2(-3, -29), Vector2(-23, -22)]),
-			Color("#8cdec4")
-		)
-		draw_line(Vector2(-41, -34), Vector2(0, -49), Color("#d6f7c4"), 2, true)
-	else:
-		var cape_width := -22.0 - minf(absf(velocity.x) / 20.0, 11.0)
-		draw_colored_polygon(PackedVector2Array([Vector2(-5, -48), Vector2(9, -40),
-			Vector2(-10, -16), Vector2(cape_width, -9), Vector2(-20, -27)]), cloth)
-		draw_line(Vector2(-11, -26), Vector2(cape_width, -10), mantle, 2, true)
+	var action := "idle"
+	var frame := int(animation_time * 5) % HunterAnimation.FRAME_COUNT
+	if hurt_left > 0:
+		action = "hurt"
+		frame = _timed_frame(hurt_left, HURT_DURATION)
+	elif attack_left > 0:
+		action = "bow_attack" if attack_with_bow else "knife_attack"
+		frame = _timed_frame(attack_left, BOW_DURATION if attack_with_bow else KNIFE_DURATION)
+	elif gliding:
+		action = "glide"
+		frame = int(animation_time * 9) % HunterAnimation.FRAME_COUNT
+	elif not is_on_floor():
+		action = "jump"
+		if velocity.y < -385:
+			frame = 0
+		elif velocity.y < -85:
+			frame = 1
+		elif velocity.y < 135:
+			frame = 2
+		else:
+			frame = 3
+	elif crouching:
+		action = "crouch"
+		frame = 0 if crouch_time < 0.08 else (2 if absf(velocity.x) > 12 else 1)
+	elif rise_left > 0:
+		action = "crouch"
+		frame = 3
+	elif landing_left > 0:
+		action = "land"
+		frame = _timed_frame(landing_left, LAND_DURATION)
+	elif absf(velocity.x) > 18:
+		action = "walk" if walking else "run"
+		frame = int(animation_time * (9 if walking else 14)) % HunterAnimation.FRAME_COUNT
+	HunterAnimation.draw_frame(self, action, frame, facing)
 
-	draw_line(Vector2(-7, -21), Vector2(-7 - swing, -3), ink, 8, true)
-	draw_line(Vector2(5, -21), Vector2(8 + swing, -3), ink, 8, true)
-	draw_line(Vector2(7 + swing, -3), Vector2(13 + swing, -3), gold, 2, true)
-	draw_colored_polygon(PackedVector2Array([Vector2(-9, -45), Vector2(10, -43),
-		Vector2(14, -21), Vector2(-10, -20)]), Color("#3d5149"))
-	draw_line(Vector2(-8, -24), Vector2(13, -25), gold, 3, true)
-	draw_colored_polygon(PackedVector2Array([Vector2(-15, -45), Vector2(-7, -60),
-		Vector2(5, -62), Vector2(14, -53), Vector2(9, -43)]), cloth)
-	draw_colored_polygon(PackedVector2Array([Vector2(3, -55), Vector2(14, -52),
-		Vector2(9, -44), Vector2(2, -48)]), gold)
-	draw_line(Vector2(-14, -45), Vector2(7, -59), mantle, 2, true)
-	draw_line(Vector2(3, -39), Vector2(17, -32), ink, 6, true)
 
-	if with_bow:
-		draw_arc(Vector2(14, -33), 16, -1.05, 1.05, 14, gold, 3, true)
-		draw_line(Vector2(22, -47), Vector2(22, -19), Color("#ece0bf"), 1, true)
-	elif attack_left > 0.13:
-		draw_arc(Vector2(17, -31), 39, -0.88, 0.68, 20, Color("#f8e8b9"), 3, true)
-		draw_line(Vector2(12, -32), Vector2(36, -42), gold, 4, true)
-	else:
-		draw_line(Vector2(14, -32), Vector2(27, -25), gold, 3, true)
+func _timed_frame(remaining: float, duration: float) -> int:
+	return clampi(int((1.0 - remaining / duration) * HunterAnimation.FRAME_COUNT), 0, HunterAnimation.FRAME_COUNT - 1)

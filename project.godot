@@ -61,6 +61,15 @@ hunt_interact={
 "events": [Object(InputEventKey,"physical_keycode":69)]
 }
 
+hunt_walk={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194326)]
+}
+hunt_crouch={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":83), Object(InputEventKey,"physical_keycode":4194322)]
+}
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

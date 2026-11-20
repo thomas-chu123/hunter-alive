@@ -389,7 +389,7 @@ func _build_hud() -> void:
 	prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	footer_rows.add_child(prompt_label)
 	var help := _label(15, Color("#b6c9bc"))
-	help.text = "A / D 移動　　空白鍵 跳躍　　J 攻擊　　Q 切換武器　　F 裝備靈魂　　Shift 魂技　　E 互動"
+	help.text = "A / D 跑步　 Ctrl 慢走　 S 蹲下　 空白鍵 跳躍　 J 攻擊　 Q 換武器　 F 裝魂　 Shift 魂技　 E 互動"
 	help.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	footer_rows.add_child(help)
 
@@ -541,4 +541,4 @@ func _update_hud() -> void:
 	elif hunter.position.x > 677 and hunter.position.x < 805:
 		prompt_label.text = "斷橋　／　裝備蜥翼，跳起後按住 Shift 滑翔"
 	elif hunter.position.x > 2560 and not guardian_felled:
-		prompt_label.text = "樹靈舉起木刃時，攻擊發光的刃身可以繳械"
+		prompt_label.text = "樹靈舉起木刃時，攻擊握刃處的亮點可以繳械"
