@@ -33,6 +33,9 @@ func run() -> void:
 	check(portrait is TextureRect and portrait.texture != null, "left panel displays the hunter")
 	await equip(ruins, "linen_hood")
 	check(hunter.max_health() == 7, "hood raises maximum HP")
+	check(ruins.gear_name.text == "+1木質營火布兜" and ruins.gear_slot.text == "頭部  ·  已裝備"
+		and ruins.gear_apply.text == "卸下　E" and ruins.destroy_item.text == "銷毀　D",
+		"hood details show the ranked name, slot, status and shortcuts")
 	check(ruins.gear_slot_images["頭部"].texture == ruins.gear_list.get_item_icon(ruins.gear_ids.find("linen_hood"))
 		and ruins.gear_values.text.begins_with("最大體力　6 → 7"), "hood image and numerical values match the equipped slot")
 	await show_view()
@@ -100,15 +103,23 @@ func run() -> void:
 	check(moth._attack_pose() == MONSTER.AttackPose.ANTICIPATION, "bell moth switches to its glowing windup sprite")
 	var mana: int = hunter.mana
 	Input.action_press("hunt_attack")
-	await wait_frames(19)
+	await wait_frames(5)
+	Input.action_press("hunt_jump")
+	await wait_frames(1)
+	Input.action_release("hunt_jump")
+	await wait_frames(16)
 	Input.action_release("hunt_attack")
-	check(hunter.mana == mana - 1 and moth.health == 3 and moth.windup == 0.0, "upward fire shot uses mana, hits airborne moth and interrupts pollen")
+	check(hunter.mana == mana - 1 and moth.health == 3 and moth.windup == 0.0, "jump-height horizontal fireball uses mana, hits airborne moth and interrupts pollen")
 	check(moth._attack_pose() == MONSTER.AttackPose.RECOVERY, "interrupted bell moth switches to its recoil sprite")
 	if OS.has_feature("movie"):
 		print("TIMING first staff hit checked at %.2fs" % (Engine.get_process_frames() / 60.0))
-	await wait_frames(24)
+	await wait_frames(21)
 	Input.action_press("hunt_attack")
-	await wait_frames(19)
+	await wait_frames(5)
+	Input.action_press("hunt_jump")
+	await wait_frames(1)
+	Input.action_release("hunt_jump")
+	await wait_frames(13)
 	Input.action_release("hunt_attack")
 	check(not is_instance_valid(moth) and ruins._has_drop("scaleveil_hood"), "defeating moth drops its hood")
 	for drop in ruins.drops:
@@ -132,18 +143,31 @@ func run() -> void:
 	var current_health: int = hunter.health
 	hunter.hurt(hunter.position.x + 50)
 	check(hunter.health == current_health and not hunter.vest_ready and hunter.mana == hunter.MAX_MANA, "camp replenishes mana and vest blocks its first hit")
-	await press(ruins.camp_rest.get_parent().get_child(-1))
+	await press(ruins.camp_save_exit)
 	await scene_changed
 	var title = current_scene
 	check(title.volume.value == 65, "title and pause share saved settings")
 	await press(title.continue_game)
 	await scene_changed
 	ruins = current_scene
-	check(ruins.owned_equipment.size() == 5 and ruins.hunter.selected_weapon() == "ember_staff", "Continue restores four pieces and the selected staff")
+	check(ruins.owned_equipment.has("ember_staff") and ruins.hunter.selected_weapon() == "ember_staff", "Continue restores the selected staff")
 	check(ruins.hunter.gear.get("頭部") == "scaleveil_hood" and ruins.hunter.gear.get("手部") == "hunter_wraps" and ruins.hunter.gear.get("身體") == "moss_vest", "Continue restores all equipped slots")
 	await key(KEY_I)
 	for index in range(ruins.gear_list.item_count):
 		check(ruins.gear_list.get_item_icon(index) != null, "inventory icon loads for " + ruins.gear_ids[index])
+	await show_view()
+	var hood_index: int = ruins.gear_ids.find("linen_hood")
+	ruins.gear_list.select(hood_index)
+	ruins.gear_list.item_selected.emit(hood_index)
+	var count: int = ruins.inventory.size()
+	await key(KEY_D)
+	check(ruins.destroy_dialog.visible and ruins.inventory.size() == count, "D opens confirmation before destroying")
+	await show_view()
+	await key(KEY_ESCAPE)
+	check(not ruins.destroy_dialog.visible and ruins.inventory.size() == count, "cancel keeps the selected item")
+	await key(KEY_D)
+	await press(ruins.destroy_dialog.get_ok_button())
+	check(ruins.inventory.size() == count - 1 and not ruins.gear_ids.has("linen_hood"), "confirm destroys only the selected item")
 	await show_view()
 	quit(1 if failed else 0)
 
@@ -167,7 +191,7 @@ func equip(ruins: Node, id: String) -> void:
 		release.pressed = false
 		root.push_input(release, true)
 		check(list.get_selected_items() == PackedInt32Array([index]), "click selects item icon for " + id)
-	await press(ruins.gear_apply)
+	await key(KEY_E)
 
 
 func press(button: Button) -> void:

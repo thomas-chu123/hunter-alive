@@ -608,7 +608,7 @@ func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false, source
 		return HitResult.BLOCKED
 
 	var before := health
-	var minimum := 1 if species == "lantern_crab" and armed else 0
+	var minimum := 0
 	var triggers_seal := species == "seal_keeper" and not second_phase and health - damage <= 13
 	if triggers_seal:
 		minimum = 13

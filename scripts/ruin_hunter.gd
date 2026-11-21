@@ -123,7 +123,7 @@ func _physics_process(delta: float) -> void:
 
 	wall_holding = (
 		equipped_soul == "spider" and Input.is_action_pressed("hunt_soul")
-		and is_on_wall_only() and direction != 0
+		and direction != 0 and _can_grip_wall(direction)
 	)
 	if wall_holding:
 		velocity.y = -135.0
@@ -184,7 +184,8 @@ func _physics_process(delta: float) -> void:
 		attack_queued = false
 		if attack_with_staff:
 			mana -= STAFF_MANA_COST
-			cast.emit(position + Vector2(facing * 22, -37), facing, attack_weapon)
+			var focus := ember_focus() if attack_weapon == "ember_staff" else Vector2(facing * 22, -37)
+			cast.emit(position + focus, facing, attack_weapon)
 		else:
 			var damage := weapon_damage(attack_weapon)
 			var height := 21.0 if crouching else 30.0
@@ -196,6 +197,17 @@ func _physics_process(delta: float) -> void:
 				blade_chain_weapon = attack_weapon
 			attacked.emit(position + origin, facing, attack_with_bow, damage, attack_weapon)
 	queue_redraw()
+
+
+func _can_grip_wall(direction: float) -> bool:
+	if not is_on_wall_only() or get_wall_normal().x * direction >= 0.0:
+		return false
+	for index in range(get_slide_collision_count()):
+		var contact := get_slide_collision(index)
+		if contact.get_normal().x * direction < 0.0:
+			var surface := contact.get_collider() as Node
+			return surface != null and not surface.is_in_group("unclimbable")
+	return false
 
 
 func _update_crouch(requested: bool, force_stand: bool = false) -> void:
@@ -365,6 +377,11 @@ func _draw() -> void:
 	if invincible_left > 0 and hurt_left <= 0 and int(invincible_left * 16) % 2 == 0:
 		return
 
+	if wall_holding and hurt_left <= 0.0:
+		var climb_frame := int(animation_time * 12.0) % HunterAnimation.FRAME_COUNT
+		HunterAnimation.draw_climb(self, climb_frame, facing)
+		return
+
 	var action := "idle"
 	var frame := int(animation_time * 5) % HunterAnimation.FRAME_COUNT
 	if hurt_left > 0:
@@ -399,7 +416,17 @@ func _draw() -> void:
 	elif absf(velocity.x) > 18:
 		action = "walk" if walking else "run"
 		frame = int(animation_time * (9 if walking else 14)) % HunterAnimation.FRAME_COUNT
-	if action == "knife_attack" and attack_weapon in SHORT_BLADES:
+	var staff := attack_weapon if attack_with_staff and attack_left > 0.0 else selected_weapon()
+	if staff == "ember_staff":
+		var bob := _held_weapon_bob()
+		HunterAnimation.draw_ember_pose(self, facing, bob)
+		if attack_with_staff and attack_queued:
+			var glow := 1.0 - attack_left / attack_duration
+			draw_circle(ember_focus(), 5.0 + glow * 25.0, Color(1.0, 0.40, 0.10, 0.20 + glow), true, -1, true)
+		return
+	if with_bow and action not in ["bow_attack", "knife_attack"]:
+		HunterAnimation.draw_frame(self, "bow_attack", 0, facing, _held_weapon_bob())
+	elif action == "knife_attack" and attack_weapon in SHORT_BLADES:
 		HunterAnimation.draw_short_blade(self, frame, facing)
 	else:
 		HunterAnimation.draw_frame(self, action, frame, facing)
@@ -410,6 +437,16 @@ func _draw() -> void:
 		draw_circle(tip, 4, Color("#ffc779"))
 		if attack_with_staff and attack_left > 0:
 			draw_circle(tip, 10, Color(1.0, 0.50, 0.16, 0.28))
+
+
+func _held_weapon_bob() -> float:
+	if crouching:
+		return 10.0
+	return sin(animation_time * 18.0) * 1.5 if absf(velocity.x) > 18 else 0.0
+
+
+func ember_focus() -> Vector2:
+	return HunterAnimation.EMBER_GEM * Vector2(facing, 1.0) + Vector2(0, _held_weapon_bob())
 
 
 func _timed_frame(remaining: float, duration: float) -> int:

@@ -22,7 +22,7 @@ size = Vector2(360, 220)
 size = Vector2(1140, 220)
 
 [sub_resource type="RectangleShape2D" id="Floor_4"]
-size = Vector2(94, 18)
+size = Vector2(39, 18)
 
 [sub_resource type="RectangleShape2D" id="Floor_5"]
 size = Vector2(100, 16)
@@ -43,11 +43,11 @@ size = Vector2(145, 18)
 size = Vector2(111, 18)
 
 [sub_resource type="RectangleShape2D" id="LightGate"]
-size = Vector2(20, 240)
+size = Vector2(20, 720)
 
 [sub_resource type="Gradient" id="DarknessGradient"]
 offsets = PackedFloat32Array(0, 0.18, 0.83, 1)
-colors = PackedColorArray(0.023, 0.098, 0.113, 0, 0.023, 0.098, 0.113, 0.7, 0.023, 0.098, 0.113, 0.7, 0.023, 0.098, 0.113, 0)
+colors = PackedColorArray(0.023, 0.098, 0.113, 0, 0.023, 0.098, 0.113, 0.34, 0.023, 0.098, 0.113, 0.34, 0.023, 0.098, 0.113, 0)
 
 [sub_resource type="GradientTexture2D" id="DarknessTexture"]
 gradient = SubResource("DarknessGradient")
@@ -308,23 +308,23 @@ texture = ExtResource("tile")
 modulate = Color(0.69, 0.88, 0.83, 1)
 
 [node name="Platform4" type="StaticBody2D" parent="Landscape/Terrain"]
-position = Vector2(1475, 472)
+position = Vector2(1530, 472)
 
 [node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform4"]
-position = Vector2(47.0, 9.0)
+position = Vector2(19.5, 9.0)
 shape = SubResource("Floor_4")
 
 [node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform4"]
 color = Color(0.115, 0.186, 0.184, 1)
-polygon = PackedVector2Array(0, 0, 94, 0, 94, 18, 0, 18)
+polygon = PackedVector2Array(0, 0, 39, 0, 39, 18, 0, 18)
 
 [node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform4"]
 color = Color(0.459, 0.578, 0.435, 1)
-polygon = PackedVector2Array(0, 0, 94, 0, 94, 4, 0, 4)
+polygon = PackedVector2Array(0, 0, 39, 0, 39, 4, 0, 4)
 
 [node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform4"]
-position = Vector2(47.00, 6)
-scale = Vector2(0.303, 0.14)
+position = Vector2(19.5, 6)
+scale = Vector2(0.126, 0.14)
 texture = ExtResource("tile")
 modulate = Color(0.69, 0.88, 0.83, 1)
 
@@ -523,21 +523,22 @@ offset = Vector2(0, -78)
 texture = ExtResource("cache")
 
 [node name="Darkness" type="Sprite2D" parent="Landscape"]
-z_index = 5
+z_index = -1
 position = Vector2(1365, -50)
 scale = Vector2(4.9, 11.4)
 texture = SubResource("DarknessTexture")
 centered = false
 
-[node name="LightGate" type="StaticBody2D" parent="Landscape"]
+[node name="LightGate" type="StaticBody2D" parent="Landscape" groups=["unclimbable"]]
 position = Vector2(1450, 420)
 
 [node name="Collision" type="CollisionShape2D" parent="Landscape/LightGate"]
+position = Vector2(0, -240)
 shape = SubResource("LightGate")
 
 [node name="Bar" type="Node2D" parent="Landscape/LightGate"]
 
-[node name="Arch" type="Sprite2D" parent="Landscape/LightGate/Bar"]
+[node name="Arch" type="Sprite2D" parent="Landscape/LightGate"]
 position = Vector2(0, 120)
 scale = Vector2(0.37, 0.37)
 offset = Vector2(0, -139)

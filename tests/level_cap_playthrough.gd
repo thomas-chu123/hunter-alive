@@ -92,10 +92,7 @@ func reach_cap() -> bool:
 
 func leave_court_camp() -> bool:
 	if ruins.camp_menu.visible:
-		for child in ruins.camp_rest.get_parent().get_children():
-			if child is Button and child.text.begins_with("返回探索"):
-				await click(child)
-				break
+		await click(ruins.camp_leave)
 	await frames(8)
 	return verify(not ruins.camp_menu.visible, "left court camp through its return button")
 
@@ -148,7 +145,7 @@ func purchase_at_camp() -> bool:
 
 
 func select_camp_item(id: String, sell_extra: bool) -> bool:
-	var list: OptionButton = ruins.camp_rank_items
+	var list: ItemList = ruins.camp_rank_items
 	var wanted := -1
 	for index in range(list.item_count):
 		var entry: Dictionary = ruins._inventory_item(int(list.get_item_metadata(index)))
@@ -160,17 +157,17 @@ func select_camp_item(id: String, sell_extra: bool) -> bool:
 			break
 	if wanted < 0:
 		return false
-	if list.selected != wanted:
+	if not list.is_selected(wanted):
 		# Select only the visible control's entry; the salvage/upgrade button still
 		# drives the transaction through the game's input and camp handlers.
 		list.select(wanted)
 		list.item_selected.emit(wanted)
 		await process_frame
-	return list.selected == wanted
+	return list.is_selected(wanted)
 
 
 func reload_court() -> bool:
-	await click(ruins.camp_rest.get_parent().get_child(-1))
+	await click(ruins.camp_save_exit)
 	for _frame in range(150):
 		if is_instance_valid(current_scene) and current_scene.scene_file_path == "res://scenes/title.tscn":
 			await frames(8)

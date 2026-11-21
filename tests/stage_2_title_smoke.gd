@@ -37,8 +37,7 @@ func run() -> void:
 		await press(ruins.camp_rest)
 		check(CampSave.read().get("state", {}).get("materials", 0) == 7, "Rest writes the checkpoint")
 		await hold_view()
-		var camp_actions = ruins.camp_rest.get_parent()
-		await press(camp_actions.get_child(-1))
+		await press(ruins.camp_save_exit)
 		await scene_changed
 		title = current_scene
 	if not check(not title.continue_game.disabled and title.volume.value == 65, "checkpoint and settings reload"):

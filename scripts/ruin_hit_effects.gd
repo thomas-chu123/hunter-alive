@@ -3,11 +3,15 @@ extends Node2D
 const DURATION := 0.23
 const SLASH_DURATION := 0.115
 const SPARK_DURATION := 0.17
+const FIRE_DURATION := 0.38
 const SAMPLE_RATE := 22050
 
 var bursts: Array[Dictionary] = []
 var slashes: Array[Dictionary] = []
 var sparks: Array[Dictionary] = []
+var explosions: Array[Dictionary] = []
+var fire_voice: AudioStreamPlayer
+var bow_voice: AudioStreamPlayer
 var slash_layer: Node2D
 var camera: Camera2D
 var shake: Tween
@@ -31,6 +35,8 @@ func _ready() -> void:
 	disarm_voice = _make_voice(_make_sound(true))
 	swing_voice = _make_voice(_make_blade_sound(false))
 	finisher_voice = _make_voice(_make_blade_sound(true))
+	fire_voice = _make_voice(_make_projectile_sound(true))
+	bow_voice = _make_voice(_make_projectile_sound(false))
 
 
 func _make_voice(stream: AudioStream) -> AudioStreamPlayer:
@@ -48,7 +54,7 @@ func _exit_tree() -> void:
 
 
 func _stop_audio() -> void:
-	for voice: AudioStreamPlayer in [hit_voice, disarm_voice, swing_voice, finisher_voice]:
+	for voice: AudioStreamPlayer in [hit_voice, disarm_voice, swing_voice, finisher_voice, fire_voice, bow_voice]:
 		if is_instance_valid(voice):
 			voice.stop()
 
@@ -56,6 +62,16 @@ func _stop_audio() -> void:
 func impact(point: Vector2, direction: float, disarm: bool) -> void:
 	bursts.append({"point": point, "direction": direction, "disarm": disarm, "age": 0.0})
 	_play(disarm_voice if disarm else hit_voice)
+	queue_redraw()
+
+
+func release_arrow() -> void:
+	_play(bow_voice)
+
+
+func fire_impact(point: Vector2) -> void:
+	explosions.append({"point": point, "age": 0.0, "angle": randf() * TAU})
+	_play(fire_voice, -1.0)
 	queue_redraw()
 
 
@@ -136,6 +152,7 @@ func clear() -> void:
 	bursts.clear()
 	slashes.clear()
 	sparks.clear()
+	explosions.clear()
 	_end_hitstop()
 	_end_shake()
 	_stop_audio()
@@ -144,9 +161,10 @@ func clear() -> void:
 
 
 func _process(delta: float) -> void:
-	if not bursts.is_empty() or not sparks.is_empty():
+	if not bursts.is_empty() or not sparks.is_empty() or not explosions.is_empty():
 		_age_effects(bursts, delta, DURATION)
 		_age_effects(sparks, delta, SPARK_DURATION)
+		_age_effects(explosions, delta, FIRE_DURATION)
 		queue_redraw()
 	if not slashes.is_empty():
 		_age_effects(slashes, delta, SLASH_DURATION)
@@ -186,6 +204,20 @@ func _draw() -> void:
 			var tip := point + ray * (0.014 + (1.0 - exp(-age * 13.0)) / 13.0)
 			draw_line(tip - ray.normalized() * (3.0 + ray.length() * 0.023) * fade, tip,
 				color, maxf(1.0, 2.7 * fade), true)
+
+	for blast: Dictionary in explosions:
+		var point: Vector2 = blast.point
+		var t: float = blast.age / FIRE_DURATION
+		var alpha := 1.0 - t
+		var spread := 1.0 - pow(alpha, 2.6)
+		draw_circle(point, 8.0 + 24.0 * spread, Color(1.0, 0.30, 0.07, 0.28 * alpha), true, -1, true)
+		draw_arc(point, 6.0 + spread * 29.0, 0, TAU, 30, Color(1.0, 0.58, 0.19, 0.72 * alpha * alpha), 2, true)
+		for ember in range(12):
+			var ray := Vector2.from_angle(blast.angle + TAU * ember / 12.0)
+			var tip := point + ray * spread * (19 + (ember % 4) * 8) + Vector2(0, -6 * t)
+			draw_line(tip - ray * (4.0 + 7.0 * alpha), tip, Color(1.0, 0.43 + alpha * 0.35, 0.13, alpha), 1.0 + alpha * 2.0, true)
+		if t < 0.23:
+			draw_circle(point, 9.0 + 16.0 * t, Color(1, 0.92, 0.64, 1.0 - t / 0.23), true, -1, true)
 
 
 func _draw_slashes() -> void:
@@ -260,6 +292,33 @@ func _make_blade_sound(heavy: bool) -> AudioStreamWAV:
 			var weight := sin(TAU * (112.0 * time - 130.0 * time * time)) * exp(-time * 22.0)
 			wave += (0.62 * weight + noise * 0.26 * exp(-time * 100.0)) * minf(time * 2300.0, 1.0)
 		data.encode_s16(index * 2, int(clampf(wave, -1.0, 1.0) * 32767.0))
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = SAMPLE_RATE
+	stream.data = data
+	return stream
+
+
+
+func _make_projectile_sound(fire: bool) -> AudioStreamWAV:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 219
+	var data := PackedByteArray()
+	var count := int(SAMPLE_RATE * (0.32 if fire else 0.16))
+	data.resize(count * 2)
+	var filtered := 0.0
+	for index in range(count):
+		var t := float(index) / SAMPLE_RATE
+		var noise := rng.randf_range(-1.0, 1.0)
+		filtered = lerpf(filtered, noise, 0.18)
+		var wave: float
+		if fire:
+			wave = 0.67 * sin(TAU * (112.0 * t - 115.0 * t * t)) * exp(-17.0 * t)
+			wave += (0.8 * filtered + 0.17 * noise) * exp(-22.0 * t)
+		else:
+			wave = (0.41 * sin(TAU * (294.0 * t - 290.0 * t * t))
+				+ 0.15 * sin(TAU * 881.0 * t)) * exp(-35.0 * t) + 0.3 * noise * exp(-84.0 * t)
+		data.encode_s16(index * 2, int(clampf(wave * minf(1.0, t * 1500), -1.0, 1.0) * 32767.0))
 	var stream := AudioStreamWAV.new()
 	stream.format = AudioStreamWAV.FORMAT_16_BITS
 	stream.mix_rate = SAMPLE_RATE

@@ -67,7 +67,13 @@ var elapsed := 0.0
 var rng := RandomNumberGenerator.new()
 
 var health_label: Label
-var loadout_label: Label
+var level_label: Label
+var health_hearts := preload("res://scripts/ruin_health_hearts.gd").new()
+var weapon_status: Label
+var soul_status: Label
+var spirit_status: Label
+var mana_status: Label
+var status_flags: Label
 var objective_label: Label
 var prompt_label: Label
 var notice_label: Label
@@ -79,7 +85,10 @@ var camp_rest: Button
 var camp_knife: Button
 var camp_bow: Button
 var camp_level_up: Button
-var camp_rank_items: OptionButton
+var camp_rank_items: ItemList
+var camp_selected_item: Label
+var camp_leave: Button
+var camp_save_exit: Button
 var camp_rank_up: Button
 var camp_salvage: Button
 var pause_menu: CenterContainer
@@ -89,7 +98,9 @@ var gear_menu: CenterContainer
 var gear_list: ItemList
 var gear_slot_images: Dictionary = {}
 var gear_name: Label
+var gear_slot: Label
 var gear_values: Label
+var gear_armor: Label
 var gear_detail: Label
 var gear_apply: Button
 var gear_ids: Array[String] = []
@@ -176,6 +187,16 @@ func _physics_process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if gear_menu.visible and not destroy_dialog.visible and event is InputEventKey and event.pressed:
+		var key: Key = event.physical_keycode if event.physical_keycode != KEY_NONE else event.keycode
+		if key == KEY_E or key == KEY_D:
+			get_viewport().set_input_as_handled()
+			if not event.echo:
+				if key == KEY_E and not gear_apply.disabled:
+					_apply_gear()
+				elif key == KEY_D and not destroy_item.disabled:
+					_ask_destroy_item()
+			return
 	if not completed and not restarting and not camp_menu.visible and not pause_menu.visible:
 		if event.is_action_pressed("hunt_gear") or (gear_menu.visible and event.is_action_pressed("ui_cancel")):
 			_set_gear_open(not gear_menu.visible)
@@ -227,6 +248,7 @@ func _add_monster(species: String, x: float) -> void:
 
 func _attack(origin: Vector2, direction: float, ranged: bool, damage: int, weapon: String) -> void:
 	if ranged:
+		hit_effects.release_arrow()
 		arrows.append({"at": origin, "direction": direction, "damage": damage, "left": 0.55,
 			"weapon": weapon, "pierce": int(weapon == "thorn_bow"), "hit_ids": []})
 		return
@@ -298,7 +320,7 @@ func _update_arrows(delta: float) -> void:
 		var spell: bool = arrow.get("spell", false)
 		var hostile: String = arrow.get("hostile", "")
 		var speed: float = arrow.get("speed", 850.0)
-		var velocity := Vector2(arrow.direction * 710.0, -245.0) if spell else Vector2(arrow.direction * speed, 0)
+		var velocity := Vector2(arrow.direction * (710.0 if spell else speed), 0)
 		var to := from + velocity * delta
 		var ray := PhysicsRayQueryParameters2D.create(from, to, 1)
 		var wall := get_world_2d().direct_space_state.intersect_ray(ray)
@@ -306,7 +328,7 @@ func _update_arrows(delta: float) -> void:
 			to = wall.position
 		var hitbox := Rect2(Vector2(minf(from.x, to.x), from.y - 4), Vector2(absf(to.x - from.x), 8))
 		if spell:
-			hitbox = Rect2(from, Vector2.ZERO).expand(to).grow(5)
+			hitbox = Rect2(Vector2(minf(from.x, to.x), from.y - 6), Vector2(absf(to.x - from.x), 12))
 		var hit := false
 		if not hostile.is_empty():
 			var height := Hunter.CROUCH_HEIGHT if hunter.crouching else Hunter.STANDING_HEIGHT
@@ -327,6 +349,8 @@ func _update_arrows(delta: float) -> void:
 				hit = false
 		arrow.left -= delta
 		if hit or not wall.is_empty() or arrow.left <= 0:
+			if spell and not hit and not wall.is_empty():
+				hit_effects.fire_impact(to)
 			arrows.remove_at(index)
 		else:
 			arrow.at = to
@@ -343,6 +367,8 @@ func _arrow_hits_monster(hitbox: Rect2, arrow: Dictionary) -> int:
 			continue
 		var weapon_hit := monster.armed and monster.windup > 0 and hitbox.intersects(monster.weapon_hitbox())
 		var bounds := monster.weapon_hitbox() if weapon_hit else monster.arrow_hitbox(hitbox.get_center().y)
+		if arrow.get("spell", false) and not weapon_hit:
+			bounds = monster.body_hitbox()
 		var overlap := hitbox.intersection(bounds)
 		if not overlap.has_area():
 			continue
@@ -366,6 +392,9 @@ func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector
 			monster.apply_equipment_push(direction, 110.0)
 		elif hunter.gear.get("手部") == "hardroot_bracers" and not hunter.is_on_floor():
 			monster.apply_equipment_push(direction, 85.0)
+	if weapon == "ember_staff":
+		hit_effects.fire_impact(point)
+		return
 	if blade_step == 0:
 		hit_effects.impact(point, direction, weapon_hit)
 		return
@@ -380,6 +409,8 @@ func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector
 func _on_monster_felled(monster: Monster) -> void:
 	enemies.erase(monster)
 	var x := monster.position.x
+	if monster.species == "lantern_crab":
+		_drop_corridor_lantern(x)
 	var reward := loot_rng.randi_range(int(monster.soul_reward[0]), int(monster.soul_reward[1]))
 	_drop("soul_currency", x, reward)
 	var rank := Progression.drop_rank(loot_rng.randf())
@@ -418,11 +449,17 @@ func _on_monster_felled(monster: Monster) -> void:
 		_drop("material", x + 15, 2 if monster.species == "lizard" else 1)
 
 
+func _drop_corridor_lantern(x: float) -> void:
+	if region != Campaign.Region.CORRIDOR or lantern_found or _has_drop("lantern"):
+		return
+	var gate: StaticBody2D = landscape.get_node("LightGate")
+	_drop("lantern", minf(x, gate.position.x - 50.0))
+	_notice("提燈落在地上。靠近拾取，用它打開暗水道。", 4.0)
+
+
 func _on_monster_disarmed(monster: Monster) -> void:
 	if monster.species == "lantern_crab":
-		if not lantern_found and not _has_drop("lantern"):
-			_drop("lantern", monster.position.x + monster.facing * 72.0)
-			_notice("提燈落在地上。靠近拾取，用它打開暗水道。", 4.0)
+		_drop_corridor_lantern(monster.position.x + monster.facing * 72.0)
 		return
 	if monster.species in ["thorn_archer", "shield_heron"]:
 		var item := "thorn_bow" if monster.species == "thorn_archer" else "earthen_armor"
@@ -656,8 +693,15 @@ func _draw() -> void:
 	for projectile: Dictionary in arrows:
 		var at: Vector2 = projectile.at
 		if projectile.get("spell", false):
-			draw_circle(at, 12, Color(0.95, 0.33, 0.11, 0.33))
-			draw_circle(at, 6, Color("#ffd078"))
+			var heading := Vector2(projectile.direction, 0)
+			for spark in range(8):
+				var sway := sin(elapsed * 37.0 + spark * 2.6)
+				var trail := at - heading * (7.0 + spark * 3.8) + Vector2(0, sway * (2 + spark * 0.7))
+				draw_circle(trail, 3.6 - spark * 0.37, Color(1, 0.26 + 0.06 * (7 - spark), 0.07, 0.85 - spark * 0.09), true, -1, true)
+			draw_circle(at, 15, Color(1, 0.24, 0.05, 0.22), true, -1, true)
+			draw_circle(at, 8, Color("#ff6b25"), true, -1, true)
+			draw_circle(at + heading * 2.0, 5.5, Color("#ffbe55"), true, -1, true)
+			draw_circle(at + heading * 3.5, 3.5, Color("#fff5c0"), true, -1, true)
 			continue
 		if projectile.has("hostile"):
 			EnemyEffects.bolt(self, at, projectile.direction, projectile.element, projectile.hostile, projectile.radius)
@@ -694,13 +738,35 @@ func _build_hud() -> void:
 
 	var status := _panel(root)
 	status.position = Vector2(24, 24)
+	var status_style: StyleBoxFlat = status.get_theme_stylebox("panel").duplicate()
+	status_style.bg_color = Color(0.038, 0.084, 0.095, 0.96)
+	status_style.border_color = Color("#627c74")
+	status_style.set_corner_radius_all(9)
+	status.add_theme_stylebox_override("panel", status_style)
 	var status_rows := VBoxContainer.new()
-	status_rows.add_theme_constant_override("separation", 4)
+	status_rows.add_theme_constant_override("separation", 8)
 	status.add_child(status_rows)
-	health_label = _label(17, Color("#ffc19b"))
-	status_rows.add_child(health_label)
-	loadout_label = _label(15, Color("#d8e4d4"))
-	status_rows.add_child(loadout_label)
+
+	var life_row := HBoxContainer.new()
+	life_row.add_theme_constant_override("separation", 12)
+	status_rows.add_child(life_row)
+	level_label = _label(15, Color("#eac48c"))
+	life_row.add_child(level_label)
+	health_label = _label(16, Color("#ffaca0"))
+	life_row.add_child(health_label)
+	health_hearts.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	health_hearts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	life_row.add_child(health_hearts)
+
+	var loadout := HBoxContainer.new()
+	loadout.add_theme_constant_override("separation", 23)
+	status_rows.add_child(loadout)
+	weapon_status = _status_field(loadout, "武器")
+	spirit_status = _status_field(loadout, "魂技")
+	soul_status = _status_field(loadout, "持有魂")
+	mana_status = _status_field(loadout, "法力")
+	status_flags = _label(12, Color("#e2c799"))
+	status_rows.add_child(status_flags)
 
 	var journal := _panel(root)
 	journal.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
@@ -767,36 +833,112 @@ func _build_camp_menu(root: Control) -> void:
 	root.add_child(camp_menu)
 	camp_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var panel := _panel(camp_menu)
-	panel.custom_minimum_size.x = 390
+	var theme_panel: StyleBoxFlat = panel.get_theme_stylebox("panel").duplicate()
+	theme_panel.bg_color = Color("#102123")
+	theme_panel.border_color = Color("#977c52")
+	theme_panel.set_corner_radius_all(12)
+	panel.add_theme_stylebox_override("panel", theme_panel)
 	var rows := VBoxContainer.new()
-	rows.add_theme_constant_override("separation", 9)
+	rows.add_theme_constant_override("separation", 12)
 	panel.add_child(rows)
-	var title := _label(25, Color("#ffe0a1"))
+	var title := _label(26, Color("#ffe0a1"))
 	title.text = "營火與工坊"
 	rows.add_child(title)
-	camp_stock = _label(16, Color("#d8e4d4"))
+	camp_stock = _label(15, Color("#d8e4d4"))
 	rows.add_child(camp_stock)
-	camp_rest = _camp_button(rows, "休息、恢復體力與存檔", _camp_heal)
-	camp_level_up = _camp_button(rows, "", _level_up)
-	camp_rank_items = OptionButton.new()
+	rows.add_child(HSeparator.new())
+
+	var columns := HBoxContainer.new()
+	columns.add_theme_constant_override("separation", 14)
+	rows.add_child(columns)
+	var services := _camp_section(columns, "營火服務")
+	var cards := GridContainer.new()
+	cards.columns = 2
+	cards.add_theme_constant_override("h_separation", 8)
+	cards.add_theme_constant_override("v_separation", 8)
+	services.add_child(cards)
+	var flame := _camp_icon("M16 3C19 11 27 14 27 21a11 11 0 0 1-22 0c0-5 4-8 6-11 0 4 2 5 2 5Z", "#ffba69")
+	var spirit := _camp_icon("M16 3 26 15 16 29 6 15Z M16 9v14 M12 15h8", "#99d9d4")
+	camp_rest = _camp_card(cards, flame, "休息與存檔", _camp_heal)
+	camp_level_up = _camp_card(cards, spirit, "", _level_up)
+	camp_knife = _camp_card(cards, Equipment.icon("hunter_knife"), "", _upgrade_weapon.bind(false))
+	camp_bow = _camp_card(cards, Equipment.icon("hunter_bow"), "", _upgrade_weapon.bind(true))
+	forge_fang = _camp_card(cards, Equipment.icon("fang_dagger"), "製作蛛牙短刃", _forge_fang_dagger)
+
+	var workshop := _camp_section(columns, "裝備工坊")
+	camp_rank_items = ItemList.new()
+	camp_rank_items.custom_minimum_size = Vector2(292, 166)
+	camp_rank_items.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	camp_rank_items.icon_mode = ItemList.ICON_MODE_TOP
+	camp_rank_items.fixed_icon_size = Vector2i(38, 38)
+	camp_rank_items.max_columns = 3
+	camp_rank_items.fixed_column_width = 88
 	camp_rank_items.add_theme_font_override("font", font)
-	camp_rank_items.get_popup().add_theme_font_override("font", font)
+	camp_rank_items.add_theme_font_size_override("font_size", 12)
+	var selected_tile := StyleBoxFlat.new()
+	selected_tile.bg_color = Color("#304742")
+	selected_tile.border_color = Color("#b8965f")
+	selected_tile.set_border_width_all(1)
+	selected_tile.set_corner_radius_all(5)
+	camp_rank_items.add_theme_stylebox_override("selected", selected_tile)
+	camp_rank_items.add_theme_stylebox_override("selected_focus", selected_tile)
 	camp_rank_items.item_selected.connect(_show_camp_rank_cost.unbind(1))
-	rows.add_child(camp_rank_items)
+	workshop.add_child(camp_rank_items)
+	camp_selected_item = _label(16, Color("#f1d294"))
+	workshop.add_child(camp_selected_item)
 	var item_actions := HBoxContainer.new()
 	item_actions.add_theme_constant_override("separation", 8)
-	rows.add_child(item_actions)
+	workshop.add_child(item_actions)
 	camp_rank_up = _camp_button(item_actions, "", _rank_up)
 	camp_rank_up.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	camp_salvage = _camp_button(item_actions, "", _salvage_item)
-	camp_knife = _camp_button(rows, "", _upgrade_weapon.bind(false))
-	camp_bow = _camp_button(rows, "", _upgrade_weapon.bind(true))
-	forge_fang = _camp_button(rows, "用蛛牙製作短刃", _forge_fang_dagger)
-	_camp_button(rows, "返回探索　Esc", _set_camp_open.bind(false))
+
+	var navigation := HBoxContainer.new()
+	navigation.alignment = BoxContainer.ALIGNMENT_END
+	navigation.add_theme_constant_override("separation", 8)
+	rows.add_child(navigation)
+	camp_leave = _camp_button(navigation, "返回探索　Esc", _set_camp_open.bind(false))
 	if region > Campaign.Region.TEMPLE:
-		_camp_button(rows, "返回上一區營火", _queue_region.bind(region - 1))
-	_camp_button(rows, "存檔並返回開始頁面", _camp_return_to_title)
+		_camp_button(navigation, "上一區營火", _queue_region.bind(region - 1))
+	camp_save_exit = _camp_button(navigation, "存檔並返回開始頁面", _camp_return_to_title)
 	camp_menu.hide()
+
+
+func _camp_section(parent: Container, heading: String) -> VBoxContainer:
+	var section := _panel(parent)
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 8)
+	section.add_child(rows)
+	var title := _label(17, Color("#f1d294"))
+	title.text = heading
+	rows.add_child(title)
+	return rows
+
+
+func _camp_icon(path: String, color: String) -> Texture2D:
+	var image := Image.new()
+	image.load_svg_from_string('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 32 32"><path d="%s" fill="none" stroke="%s" stroke-width="2" stroke-linejoin="round"/></svg>' % [path, color])
+	return ImageTexture.create_from_image(image)
+
+
+func _camp_card(parent: Container, artwork: Texture2D, caption: String, action: Callable) -> Button:
+	var button := _camp_button(parent, caption, action)
+	button.custom_minimum_size = Vector2(138, 100)
+	button.icon = artwork
+	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	button.add_theme_constant_override("icon_max_width", 41)
+	button.add_theme_font_size_override("font_size", 14)
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color("#273e39") if state in ["hover", "pressed"] else Color("#192c2c")
+		style.border_color = Color("#b59960") if state in ["hover", "pressed"] else Color("#546c60")
+		style.set_border_width_all(1)
+		style.set_corner_radius_all(8)
+		style.content_margin_top = 9
+		style.content_margin_bottom = 8
+		button.add_theme_stylebox_override(state, style)
+	return button
 
 
 func _camp_button(rows: Container, label: String, action: Callable) -> Button:
@@ -986,12 +1128,13 @@ func _show_failed_upgrade() -> void:
 
 
 func _selected_camp_item() -> int:
-	var selection := camp_rank_items.selected
-	return 0 if selection < 0 else int(camp_rank_items.get_item_metadata(selection))
+	var selection := camp_rank_items.get_selected_items()
+	return 0 if selection.is_empty() else int(camp_rank_items.get_item_metadata(selection[0]))
 
 
 func _show_camp_rank_cost() -> void:
 	var entry := _inventory_item(_selected_camp_item())
+	camp_selected_item.text = "背包沒有裝備" if entry.is_empty() else _entry_name(entry)
 	camp_salvage.disabled = entry.is_empty()
 	camp_salvage.text = "換取 %d 魂" % Progression.salvage_value(int(entry.get("rank", 0)))
 	if entry.is_empty():
@@ -1011,31 +1154,32 @@ func _update_camp_menu() -> void:
 		inventory.size(), Progression.bag_capacity(hunter.level)]
 	var cost := Progression.level_cost(hunter.level)
 	camp_level_up.disabled = hunter.level >= Progression.MAX_LEVEL or soul_balance < cost
-	camp_level_up.text = "角色 Lv.10　已達上限" if hunter.level >= Progression.MAX_LEVEL else (
-		"角色 Lv.%d → Lv.%d　體力上限 +1　花費 %d 魂" % [hunter.level, hunter.level + 1, cost])
+	camp_level_up.text = "角色成長\n已達 Lv.10" if hunter.level >= Progression.MAX_LEVEL else (
+		"Lv.%d → Lv.%d\n體力 +1  ·  %d 魂" % [hunter.level, hunter.level + 1, cost])
 	var selected := _selected_camp_item()
 	if selected == 0:
 		selected = _equipped_uid("武器")
 	camp_rank_items.clear()
 	for entry in inventory:
-		camp_rank_items.add_item("%s　%s" % [_gear_item_name(entry.item), Progression.rank_name(int(entry.rank))])
+		camp_rank_items.add_item("+%d %s" % [entry.rank, _gear_item_name(entry.item)], Equipment.ranked_icon(entry.item, int(entry.rank)))
 		var index := camp_rank_items.item_count - 1
 		camp_rank_items.set_item_metadata(index, entry.uid)
+		camp_rank_items.set_item_tooltip(index, _entry_name(entry))
 		if entry.uid == selected:
 			camp_rank_items.select(index)
-	if camp_rank_items.item_count > 0 and camp_rank_items.selected < 0:
+	if camp_rank_items.item_count > 0 and camp_rank_items.get_selected_items().is_empty():
 		camp_rank_items.select(0)
 	_show_camp_rank_cost()
-	_update_upgrade_button(camp_knife, "近戰素材改造", hunter.knife_level)
-	_update_upgrade_button(camp_bow, "獵弓素材改造", hunter.bow_level)
+	_update_upgrade_button(camp_knife, "近戰改造", hunter.knife_level)
+	_update_upgrade_button(camp_bow, "獵弓改造", hunter.bow_level)
 	forge_fang.visible = fangs > 0 and not owned_equipment.has("fang_dagger")
 	forge_fang.disabled = _bag_full()
 
 
 func _update_upgrade_button(button: Button, weapon: String, level: int) -> void:
 	button.disabled = level >= 2 or materials < 2 + level
-	button.text = "%s +%d　已達上限" % [weapon, level] if level >= 2 else (
-		"%s +%d → +%d　消耗 %d 素材" % [weapon, level, level + 1, 2 + level]
+	button.text = "%s +%d\n已達上限" % [weapon, level] if level >= 2 else (
+		"%s +%d → +%d\n消耗 %d 素材" % [weapon, level, level + 1, 2 + level]
 	)
 
 
@@ -1063,21 +1207,38 @@ func _label(size: int, color: Color) -> Label:
 	return label
 
 
+func _status_field(parent: Container, title: String) -> Label:
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 0)
+	parent.add_child(rows)
+	var caption := _label(11, Color("#a8c3ba"))
+	caption.text = title
+	rows.add_child(caption)
+	var value := _label(15, Color("#f0e5cb"))
+	rows.add_child(value)
+	return value
+
+
 func _update_hud() -> void:
-	var soul_name := String(SOUL_NAMES.get(hunter.equipped_soul, "未裝備"))
-	var weapon_name := _gear_item_name(hunter.selected_weapon())
-	health_label.text = "Lv.%d　體力 %d/%d　%s%s" % [hunter.level, hunter.health, hunter.max_health(),
-		"◆".repeat(hunter.health), "◇".repeat(hunter.max_health() - hunter.health)]
-	var level := hunter.bow_level if hunter.with_bow else (0 if hunter.with_staff else hunter.knife_level)
-	var upgrade := ("　素材改造 +%d" % level) if level > 0 else ""
-	loadout_label.text = "%s %s%s　｜　%s　｜　魂 %d" % [
-		weapon_name, "" if hunter.selected_weapon() == "unarmed" else Progression.rank_name(hunter.item_rank(hunter.selected_weapon())), upgrade, soul_name, soul_balance]
+	var weapon := hunter.selected_weapon()
+	var max_health := hunter.max_health()
+	level_label.text = "Lv.%d" % hunter.level
+	health_label.text = "體力 %d/%d" % [hunter.health, max_health]
+	health_hearts.update_health(hunter.health, max_health)
+	weapon_status.text = _ranked_gear_name(weapon, hunter.item_rank(weapon))
+	spirit_status.text = SOUL_NAMES.get(hunter.equipped_soul, "未裝備")
+	soul_status.text = str(soul_balance)
+	mana_status.get_parent().visible = hunter.staff_unlocked
+	mana_status.text = "%d/%d" % [hunter.mana, Hunter.MAX_MANA]
+	var flags := PackedStringArray()
 	if _bag_full():
-		loadout_label.text += "　｜　背包已滿"
-	if hunter.staff_unlocked:
-		loadout_label.text += "　｜　法力 %d/%d" % [hunter.mana, Hunter.MAX_MANA]
+		flags.append("背包已滿")
 	if hunter.pollen_left > 0:
-		loadout_label.text += "　｜　鱗粉緩速"
+		flags.append("鱗粉緩速")
+	if region == Campaign.Region.CORRIDOR and lantern_found:
+		flags.append("潮火提燈")
+	status_flags.text = "    ".join(flags)
+	status_flags.visible = not flags.is_empty()
 	if region != Campaign.Region.TEMPLE:
 		_update_region_hud()
 		return
@@ -1091,6 +1252,8 @@ func _update_hud() -> void:
 	prompt_label.text = ""
 	if _near(landscape.shrine.global_position):
 		prompt_label.text = "E　打開營火與工坊選單"
+	elif region == Campaign.Region.CORRIDOR and not lantern_found and absf(hunter.position.x - landscape.get_node("LightGate").position.x) < 108.0:
+		prompt_label.text = "石閘上鎖　／　擊倒石蟹或射落牠的提燈"
 	elif _near(landscape.portal.global_position):
 		prompt_label.text = "E　查看石門"
 	elif _near_cache() and not landscape.cache_open:
@@ -1108,9 +1271,7 @@ func _update_hud() -> void:
 func _update_region_hud() -> void:
 	if region == Campaign.Region.CORRIDOR:
 		objective_label.text = Campaign.NAMES[region] + "\n" + (
-			"穿過暗水道，往東走到排水出口。" if lantern_found else "石蟹舉起提燈時，向亮點射擊。")
-		if lantern_found:
-			loadout_label.text += "　｜　潮火提燈"
+			"穿過暗水道，往東走到排水出口。" if lantern_found else "擊倒石蟹，或在牠舉起提燈時射落提燈。")
 	else:
 		objective_label.text = Campaign.NAMES[region] + "\n" + (
 			"調查東側主祭壇。" if keeper_felled else "避開雙段橫掃，蓄力時擊破護印。")
@@ -1302,21 +1463,32 @@ func _build_gear_menu(root: Control) -> void:
 
 	var details := _panel(inventory)
 	var detail_rows := VBoxContainer.new()
-	detail_rows.add_theme_constant_override("separation", 4)
+	detail_rows.custom_minimum_size.y = 116
+	detail_rows.add_theme_constant_override("separation", 6)
 	details.add_child(detail_rows)
-	gear_name = _label(18, Color("#f4d698"))
-	detail_rows.add_child(gear_name)
-	gear_values = _label(16, Color("#f2e9d2"))
+	var item_header := HBoxContainer.new()
+	item_header.add_theme_constant_override("separation", 12)
+	detail_rows.add_child(item_header)
+	gear_name = _label(20, Color("#f4d698"))
+	gear_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	item_header.add_child(gear_name)
+	gear_slot = _label(13, Color("#adbfba"))
+	item_header.add_child(gear_slot)
+	detail_rows.add_child(HSeparator.new())
+	gear_values = _label(15, Color("#f2e9d2"))
 	detail_rows.add_child(gear_values)
+	gear_armor = _label(15, Color("#f2e9d2"))
+	detail_rows.add_child(gear_armor)
 	gear_detail = _label(14, Color("#adbfba"))
+	gear_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	detail_rows.add_child(gear_detail)
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 10)
 	inventory.add_child(actions)
-	gear_apply = _camp_button(actions, "裝備", _apply_gear)
+	gear_apply = _camp_button(actions, "裝備　E", _apply_gear)
 	gear_apply.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	destroy_item = _camp_button(actions, "銷毀", _ask_destroy_item)
+	destroy_item = _camp_button(actions, "銷毀　D", _ask_destroy_item)
 	destroy_dialog = ConfirmationDialog.new()
 	destroy_dialog.title = "銷毀裝備"
 	destroy_dialog.get_ok_button().text = "銷毀"
@@ -1434,7 +1606,9 @@ func _refresh_gear(selected: int) -> void:
 		gear_list.set_item_tooltip(index, _entry_name(entry))
 	if gear_uids.is_empty():
 		gear_name.text = "背包沒有裝備"
+		gear_slot.text = ""
 		gear_values.text = ""
+		gear_armor.hide()
 		gear_detail.text = ""
 		destroy_item.disabled = true
 		gear_apply.disabled = true
@@ -1446,7 +1620,12 @@ func _refresh_gear(selected: int) -> void:
 
 
 func _entry_name(entry: Dictionary) -> String:
-	return "%s　%s" % [_gear_item_name(entry.item), Progression.rank_name(int(entry.rank))]
+	return _ranked_gear_name(entry.item, int(entry.rank))
+
+
+func _ranked_gear_name(id: String, rank: int) -> String:
+	var name_text := _gear_item_name(id)
+	return name_text if id == "unarmed" else "+%d%s質%s" % [rank, Progression.NAMES[rank], name_text]
 
 
 func _is_equipped(entry: Dictionary) -> bool:
@@ -1458,14 +1637,17 @@ func _show_gear(index: int) -> void:
 	var entry := _inventory_item(gear_uids[index])
 	var id: String = entry.item
 	var rank := int(entry.rank)
-	gear_name.text = "%s　·　%s" % [_entry_name(entry), Equipment.item(id)[1]]
-	gear_name.add_theme_color_override("font_color", Progression.COLORS[rank])
+	var slot: String = Equipment.item(id)[1]
+	var equipped := _is_equipped(entry)
+	gear_name.text = _entry_name(entry)
+	gear_slot.text = "%s  ·  %s" % [slot, "已裝備" if equipped else "未裝備"]
 	gear_values.text = _gear_item_values(id, rank)
-	if Equipment.item(id)[1] != "武器":
-		gear_values.text += "\n護甲 +%d　｜　目前減傷 %d%%" % [rank, hunter.armor_reduction()]
-	gear_detail.text = Equipment.item(id)[2]
-	gear_apply.disabled = Equipment.item(id)[1] == "武器" and _is_equipped(entry)
-	gear_apply.text = "卸下" if _is_equipped(entry) and not gear_apply.disabled else "裝備"
+	gear_values.visible = not gear_values.text.is_empty()
+	gear_armor.visible = slot != "武器"
+	gear_armor.text = "護甲 +%d　｜　目前減傷 %d%%" % [rank, hunter.armor_reduction()]
+	gear_detail.text = "效果　" + str(Equipment.item(id)[2])
+	gear_apply.disabled = slot == "武器" and equipped
+	gear_apply.text = "卸下　E" if equipped and not gear_apply.disabled else "裝備　E"
 	destroy_item.disabled = false
 
 
@@ -1490,7 +1672,7 @@ func _gear_item_values(id: String, rank: int) -> String:
 			return "近戰攻擊週期　%.2f 秒 → %.2f 秒" % [Hunter.KNIFE_DURATION, Hunter.WRAPS_KNIFE_DURATION]
 		_:
 			if Equipment.item(id)[1] != "武器":
-				return Equipment.item(id)[1] + "裝備"
+				return ""
 			var stats := "傷害 %d　｜　攻擊週期 %.2f 秒" % [hunter.weapon_damage(id, rank), hunter.weapon_period(id)]
 			if id in ["ember_staff", "scribe_staff"]:
 				stats += "　｜　法力 %d" % Hunter.STAFF_MANA_COST

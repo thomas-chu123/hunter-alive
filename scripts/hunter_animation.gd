@@ -12,6 +12,11 @@ const FRAMES := {
 	"hurt": preload("res://assets/characters/hunter/hurt.png"),
 	"glide": preload("res://assets/characters/hunter/glide.png"),
 }
+const EMBER_POSE := preload("res://assets/characters/hunter/ember_staff_pose.png")
+const EMBER_ANCHOR := Vector2(160, 405)
+const EMBER_SCALE := 0.17
+const EMBER_GEM := (Vector2(251, 51) - EMBER_ANCHOR) * EMBER_SCALE
+
 const FRAME_WIDTH := 443
 const FRAME_COUNT := 4
 const SCALE := 0.38
@@ -32,11 +37,11 @@ static func bow_origin(facing: float) -> Vector2:
 	return Vector2(local.x * facing, local.y)
 
 
-static func draw_frame(canvas: Node2D, action: String, frame: int, facing: float) -> void:
+static func draw_frame(canvas: Node2D, action: String, frame: int, facing: float, bob: float = 0.0) -> void:
 	var texture: Texture2D = FRAMES[action]
 	var source := Rect2(frame * FRAME_WIDTH, 0, FRAME_WIDTH, texture.get_height())
 	var size := source.size * SCALE
-	canvas.draw_set_transform(Vector2.ZERO, 0, Vector2(facing, 1))
+	canvas.draw_set_transform(Vector2(0, bob), 0, Vector2(facing, 1))
 	canvas.draw_texture_rect_region(texture, Rect2(-size.x * 0.5, -size.y, size.x, size.y), source)
 	canvas.draw_set_transform(Vector2.ZERO)
 
@@ -54,4 +59,17 @@ static func draw_short_blade(canvas: Node2D, frame: int, facing: float) -> void:
 		uvs.append((point + Vector2(FRAME_WIDTH * 2, 0)) / texture.get_size())
 	canvas.draw_set_transform(Vector2.ZERO, 0, Vector2(facing, 1))
 	canvas.draw_polygon(points, PackedColorArray([Color.WHITE]), uvs, texture)
+	canvas.draw_set_transform(Vector2.ZERO)
+
+static func draw_ember_pose(canvas: Node2D, facing: float, bob: float) -> void:
+	canvas.draw_set_transform(Vector2(0, bob), 0, Vector2(facing, 1))
+	canvas.draw_texture_rect(EMBER_POSE, Rect2(-EMBER_ANCHOR * EMBER_SCALE, EMBER_POSE.get_size() * EMBER_SCALE), false)
+	canvas.draw_set_transform(Vector2.ZERO)
+
+static func draw_climb(canvas: Node2D, frame: int, facing: float) -> void:
+	var texture: Texture2D = FRAMES["run"]
+	var source := Rect2(frame * FRAME_WIDTH, 0, FRAME_WIDTH, texture.get_height())
+	var size := source.size * SCALE
+	canvas.draw_set_transform(Vector2(facing * 10, -24), -facing * PI * 0.5, Vector2(facing, 1))
+	canvas.draw_texture_rect_region(texture, Rect2(-size.x * 0.5, -size.y, size.x, size.y), source)
 	canvas.draw_set_transform(Vector2.ZERO)

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="wood"><stop stop-color="#3c211b"/><stop offset=".52" stop-color="#ab653f"/><stop offset="1" stop-color="#57321f"/></linearGradient>
+    <radialGradient id="ember"><stop stop-color="#fff4ad"/><stop offset=".53" stop-color="#ffae48"/><stop offset="1" stop-color="#b33c24"/></radialGradient>
+  </defs>
+  <path d="M20 109 49 75 56 62 77 39 87 35 84 45 64 68 59 82 30 116Z" fill="url(#wood)" stroke="#291917" stroke-width="4"/>
+  <path d="m41 82 9 8m-3-15 10 8m-4-16 9 8" stroke="#b69c75" stroke-width="3"/>
+  <path d="M76 46Q57 29 77 12L74 26 84 39 96 25 97 10Q112 29 94 42Z" fill="#cc935d" stroke="#533426" stroke-width="4"/>
+  <path d="m85 13 9 13-8 13-9-12Z" fill="url(#ember)" stroke="#f7ba67" stroke-width="2"/>
+  <path d="M103 17l5-5m-38 3-3-5" fill="none" stroke="#ffa951" stroke-width="2" stroke-linecap="round"/>
+</svg>

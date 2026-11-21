@@ -142,7 +142,7 @@ func camp_reload() -> bool:
 	await frames(10)
 	if not verify(ruins.camp_menu.visible, "opened camp menu by pressing E"):
 		return false
-	var save_button: Button = ruins.camp_rest.get_parent().get_child(-1)
+	var save_button: Button = ruins.camp_save_exit
 	await click(save_button)
 	for frame in range(180):
 		if is_instance_valid(current_scene) and current_scene.scene_file_path == "res://scenes/title.tscn":

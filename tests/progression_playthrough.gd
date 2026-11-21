@@ -129,7 +129,7 @@ func run() -> void:
 	var save_state: Dictionary = Save.read().get("state", {})
 	check(save_state.player_level == 2 and int(save_state.soul_balance) == level.soul_balance
 		and save_state.inventory.size() == level.inventory.size(), "camp transactions persist immediately")
-	await click(level.camp_rest.get_parent().get_child(-1))
+	await click(level.camp_save_exit)
 	await scene_changed
 	await frames(12)
 	await click(current_scene.continue_game)

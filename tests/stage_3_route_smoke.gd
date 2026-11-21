@@ -55,7 +55,7 @@ func run() -> void:
 	await view()
 	await stand(level, level.landscape.shrine.position.x)
 	await tap("hunt_interact")
-	await press(level.camp_rest.get_parent().get_child(-1))
+	await press(level.camp_save_exit)
 	await scene_changed
 	await press(current_scene.continue_game)
 	await scene_changed

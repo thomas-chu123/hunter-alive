@@ -7,7 +7,7 @@ const ITEMS := {
 	"hunter_wraps": ["獵人纏手", "手部", "短刀與木刃的攻擊恢復時間縮短。"],
 	"hunter_knife": ["短刀／木刃", "武器", "快速近身攻擊。繳械拾取木刃後提升傷害。"],
 	"hunter_bow": ["獵弓", "武器", "沿水平方向射出箭矢。"],
-	"ember_staff": ["餘火魔法杖", "武器", "消耗 1 點法力，往斜上方發射火彈。"],
+	"ember_staff": ["餘火魔法杖", "武器", "消耗 1 點法力，朝面向水平發射火球，碰到敵人或地形時爆炸。"],
 }
 
 const STARTING_WEAPONS := ["hunter_knife", "hunter_bow"]
@@ -18,7 +18,7 @@ const ICONS := {
 	"scaleveil_hood": preload("res://assets/items/scaleveil_hood.png"),
 	"moss_vest": preload("res://assets/items/moss_vest.png"),
 	"hunter_wraps": preload("res://assets/items/hunter_wraps.png"),
-	"ember_staff": preload("res://assets/items/ember_staff.png"),
+	"ember_staff": preload("res://assets/items/ember_staff.svg"),
 	"root_blade": preload("res://assets/items/root_blade.png"),
 }
 
