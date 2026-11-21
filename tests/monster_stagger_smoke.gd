@@ -94,8 +94,8 @@ func bow_hit() -> void:
 		await physics_frame
 		if spider.health < initial_hp:
 			break
-	check(level.hunter.with_bow and spider.health < initial_hp and spider.state != Monster.State.STAGGER,
-		"real bow input still damages the spider without applying melee stagger")
+	check(level.hunter.with_bow and spider.health < initial_hp and spider.hit_left > 0.0 and spider.state != Monster.State.STAGGER,
+		"real bow input damages the spider and shows a flinch without melee stagger")
 	await frames(40)
 	remove(spider)
 

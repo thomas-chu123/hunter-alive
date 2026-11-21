@@ -336,9 +336,9 @@ func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector
 	monster.receive_hit(damage, weapon_hit, projectile, weapon, direction)
 	if not projectile and not monster.is_queued_for_deletion():
 		if hunter.gear.get("手部") == "stonegrip_gloves" and monster.attack_kind == "roll" and monster.recovery > 0.0:
-			monster.velocity.x += direction * 110.0
+			monster.apply_equipment_push(direction, 110.0)
 		elif hunter.gear.get("手部") == "hardroot_bracers" and not hunter.is_on_floor():
-			monster.velocity.x += direction * 85.0
+			monster.apply_equipment_push(direction, 85.0)
 	hit_effects.impact(point, direction, weapon_hit)
 
 

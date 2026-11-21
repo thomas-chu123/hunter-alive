@@ -66,7 +66,10 @@ var gait_weight := 0.0
 var windup_duration := 0.0
 var recovery_duration := 0.0
 var recoil := 0.0
-var melee_stagger: Dictionary
+var hit_reaction: Dictionary
+var hit_left := 0.0
+var hit_direction := 0.0
+var hover_recoil := 0.0
 var stagger_left := 0.0
 var stagger_direction := 0.0
 var stagger_speed := 0.0
@@ -84,7 +87,7 @@ func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
 	design = Bestiary.creatures[species]
 	animation = design.get("animation", {})
 	sound = design.sound
-	melee_stagger = design.get("melee_stagger", {})
+	hit_reaction = design.hit_reaction
 	max_health = int(design.health)
 	profile = design.motion
 	attack = design.attack
@@ -121,11 +124,12 @@ func _physics_process(delta: float) -> void:
 		return
 	age += delta
 	flash = maxf(flash - delta, 0)
+	hit_left = maxf(hit_left - delta, 0.0)
 	reacquire_left = maxf(reacquire_left - delta, 0)
 	recoil = move_toward(recoil, 0.0, delta * 38.0)
 	if species == "bell_moth":
 		_update_moth(delta)
-		if _attack_pose() == AttackPose.IDLE:
+		if state != State.STAGGER and _attack_pose() == AttackPose.IDLE:
 			_step_sound(delta, float(sound.flap_period))
 		_update_motion_art(delta, 0.0)
 		queue_redraw()
@@ -482,16 +486,21 @@ func _start_recovery(seconds: float) -> void:
 	_move(0)
 
 
+func _flinch(direction: float) -> void:
+	hit_direction = signf(direction)
+	hit_left = float(hit_reaction.duration)
+	recoil = hit_direction * 3.0
+
+
 func _start_stagger(direction: float) -> void:
 	state = State.STAGGER
 	windup = 0.0
 	strike = 0.0
-	recovery = 0.0
 	can_hit = false
-	stagger_left = float(melee_stagger.duration)
+	stagger_left = float(hit_reaction.duration)
 	stagger_direction = signf(direction)
-	stagger_speed = float(melee_stagger.speed)
-	recoil = stagger_direction * 3.0
+	stagger_speed = float(hit_reaction.speed)
+	blocked_time = 0.0
 	velocity.x = 0.0
 
 
@@ -499,17 +508,31 @@ func _update_stagger(delta: float, visible: bool) -> void:
 	stagger_left = maxf(stagger_left - delta, 0.0)
 	if stagger_left <= 0.0:
 		velocity.x = 0.0
-		if visible and _inside_leash(target.position):
+		if recovery > 0.0:
+			state = State.RECOVER
+		elif visible and _inside_leash(target.position):
 			state = State.CHASE
 		else:
 			_begin_return()
 		return
-	stagger_speed = move_toward(stagger_speed, 0.0, delta * 475.0)
+	var resistance := float(hit_reaction.speed) * 0.65 / float(hit_reaction.duration)
+	stagger_speed = move_toward(stagger_speed, 0.0, resistance * delta)
+	if species == "bell_moth":
+		var motion := Vector2(stagger_speed * stagger_direction * delta, 0.0)
+		if not test_move(global_transform, motion):
+			hover_recoil = clampf(hover_recoil + motion.x, -34.0, 34.0)
+		return
 	if is_on_floor() and not _can_walk(stagger_direction):
 		stagger_speed = 0.0
-		velocity.x = 0.0
 	requested_speed = stagger_speed * stagger_direction
 	velocity.x = requested_speed
+
+
+func apply_equipment_push(direction: float, force: float) -> void:
+	if state == State.STAGGER and direction * stagger_direction > 0.0:
+		stagger_speed = maxf(stagger_speed, float(hit_reaction.speed) + force)
+	else:
+		velocity.x += direction * force
 
 
 func body_hitbox() -> Rect2:
@@ -540,47 +563,59 @@ func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false, source
 	if health <= 0:
 		return
 	flash = 0.15
-	recoil = -source_direction * 4.5
-	if (species == "bell_moth" and projectile or attack_kind == "rune") and windup > 0:
-		_start_recovery(float(attack.recovery))
+	var direction := source_direction
+	if is_zero_approx(direction):
+		direction = signf(position.x - target.position.x)
+		if is_zero_approx(direction):
+			direction = -facing
+
 	if weapon_hit and armed and windup > 0:
 		if species in ["lantern_crab", "thorn_archer"] and not projectile:
 			return
 		armed = false
 		_start_recovery(0.50)
+		_flinch(direction)
 		disarmed.emit(self)
 		return
-	if attack_kind in ["shell", "roll", "burrow"] and state != State.RECOVER:
+	if attack_kind in ["shell", "roll", "burrow"] and recovery <= 0.0 and state != State.RECOVER:
 		if source_weapon == "tide_hammer" and attack_kind == "shell":
 			_start_recovery(1.25)
 		else:
 			return
 	if attack_kind == "shield" and armed and source_direction * facing < 0:
 		return
-	if attack_kind == "spray" and windup > 0 and source_direction * facing > 0:
-		_start_recovery(0.75)
-	if attack_kind == "shards" and not second_phase and health - damage <= max_health / 2:
-		second_phase = true
-		_begin_windup(0.45)
-	if species == "seal_keeper":
-		if armed:
-			return
-		if not second_phase and health - damage <= 13:
-			health = 13
-			second_phase = true
-			armed = true
-			_start_recovery(0.6)
-			return
-	if species == "lantern_crab" and armed:
-		health = maxi(1, health - damage)
+	if species == "seal_keeper" and armed:
 		return
-	health = maxi(0, health - damage)
+
+	var before := health
+	var minimum := 1 if species == "lantern_crab" and armed else 0
+	var triggers_seal := species == "seal_keeper" and not second_phase and health - damage <= 13
+	if triggers_seal:
+		minimum = 13
+	health = maxi(minimum, health - damage)
+	if health >= before and not triggers_seal:
+		return
 	if health == 0:
 		felled.emit(self)
 		queue_free()
-	elif damage > 0 and not projectile and not melee_stagger.is_empty() and (
-			not is_zero_approx(source_direction) and state != State.STRIKE):
-		_start_stagger(source_direction)
+		return
+	_flinch(direction)
+
+	# Encounter-specific interruptions take priority over general stagger.
+	if triggers_seal:
+		second_phase = true
+		armed = true
+		_start_recovery(0.6)
+	elif attack_kind == "shards" and not second_phase and health <= max_health / 2.0:
+		second_phase = true
+		_begin_windup(0.45)
+	elif windup > 0 and ((species == "bell_moth" and projectile) or attack_kind == "rune"):
+		_start_recovery(float(attack.recovery))
+	elif attack_kind == "spray" and windup > 0 and source_direction * facing > 0:
+		_start_recovery(0.75)
+	elif not projectile and state not in [State.STRIKE, State.STAGGER] and (
+			windup <= 0.0 or hit_reaction.interrupt_windup):
+		_start_stagger(direction)
 
 
 func _draw() -> void:
@@ -599,10 +634,12 @@ func _draw() -> void:
 	if state == State.NOTICE:
 		stretch += 0.065 * sin(notice_left / NOTICE_TIME * PI)
 		lean -= 0.06
-	if state == State.STAGGER:
-		var impact := pow(clampf(stagger_left / float(melee_stagger.duration), 0.0, 1.0), 1.4)
+	var hit := pow(clampf(hit_left / float(hit_reaction.duration), 0.0, 1.0), 1.4)
+	var squash := hit * float(hit_reaction.squash)
+	var hit_lean := hit_direction * signf(motion_facing) * squash * 0.9
+	if state == State.STAGGER or (pose == AttackPose.IDLE and hit > 0.0):
 		Art.draw_attack(self, int(design.sprite_row), AttackPose.RECOVERY, motion_facing, tint, unarmed,
-			1.0 - impact * 0.23, stagger_direction * signf(motion_facing) * impact * 0.20, recoil)
+			1.0 - squash, hit_lean, recoil)
 	elif pose >= 0:
 		if strike > 0.0:
 			motion_facing = facing
@@ -611,6 +648,8 @@ func _draw() -> void:
 			lean = swing * 0.035
 		elif recovery > 0.0:
 			lean = 0.05 * clampf(recovery / maxf(recovery_duration, 0.02), 0.0, 1.0)
+		stretch *= 1.0 - squash
+		lean += hit_direction * signf(motion_facing) * squash * 0.9
 		if phase >= 0:
 			Art.draw_transition(self, transition_row, phase, motion_facing, tint, stretch, lean, recoil)
 		else:
@@ -688,7 +727,13 @@ func _draw_attack_effect(size: Vector2) -> void:
 
 
 func _update_moth(delta: float) -> void:
-	position = home + Vector2(sin(age * 1.2) * float(profile.patrol_radius), -63.0 + sin(age * 3.1) * 9.0)
+	var base := home + Vector2(sin(age * 1.2) * float(profile.patrol_radius), -63.0 + sin(age * 3.1) * 9.0)
+	if state == State.STAGGER:
+		_update_stagger(delta, _inside_leash(target.position))
+		position = base + Vector2(hover_recoil, 0.0)
+		return
+	hover_recoil = move_toward(hover_recoil, 0.0, delta * 56.0)
+	position = base + Vector2(hover_recoil, 0.0)
 	var offset := target.position - position
 	if windup > 0:
 		windup = maxf(0, windup - delta)

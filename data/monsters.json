@@ -26,10 +26,6 @@
       "recovery": 0.47,
       "damage": 1
     },
-    "melee_stagger": {
-      "duration": 0.2,
-      "speed": 148
-    },
     "animation": {
       "walk": 4,
       "stride": 61
@@ -38,6 +34,12 @@
       "step": "claw",
       "spacing": 24,
       "attack": "fang"
+    },
+    "hit_reaction": {
+      "duration": 0.2,
+      "speed": 148,
+      "squash": 0.23,
+      "interrupt_windup": true
     }
   },
   "lizard": {
@@ -80,6 +82,12 @@
       "step": "claw",
       "spacing": 31,
       "attack": "fire"
+    },
+    "hit_reaction": {
+      "duration": 0.16,
+      "speed": 120,
+      "squash": 0.19,
+      "interrupt_windup": true
     }
   },
   "treant": {
@@ -128,6 +136,12 @@
       "attack": "wood",
       "unarmed_attack": "heavy",
       "step_gain_db": -6.0
+    },
+    "hit_reaction": {
+      "duration": 0.11,
+      "speed": 54,
+      "squash": 0.12,
+      "interrupt_windup": false
     }
   },
   "bell_moth": {
@@ -162,6 +176,12 @@
       "spacing": 0,
       "attack": "pollen",
       "flap_period": 0.66
+    },
+    "hit_reaction": {
+      "duration": 0.2,
+      "speed": 106,
+      "squash": 0.22,
+      "interrupt_windup": true
     }
   },
   "lantern_crab": {
@@ -209,6 +229,12 @@
       "spacing": 30,
       "attack": "metal",
       "unarmed_attack": "heavy"
+    },
+    "hit_reaction": {
+      "duration": 0.13,
+      "speed": 73,
+      "squash": 0.15,
+      "interrupt_windup": false
     }
   },
   "seal_keeper": {
@@ -249,6 +275,12 @@
       "spacing": 47,
       "attack": "metal",
       "step_gain_db": -6.0
+    },
+    "hit_reaction": {
+      "duration": 0.1,
+      "speed": 43,
+      "squash": 0.1,
+      "interrupt_windup": false
     }
   },
   "shale_beetle": {
@@ -282,6 +314,12 @@
       "step": "stone",
       "spacing": 30,
       "attack": "heavy"
+    },
+    "hit_reaction": {
+      "duration": 0.12,
+      "speed": 72,
+      "squash": 0.15,
+      "interrupt_windup": false
     }
   },
   "dust_hare": {
@@ -316,6 +354,12 @@
       "step": "pad",
       "spacing": 25,
       "attack": "fang"
+    },
+    "hit_reaction": {
+      "duration": 0.21,
+      "speed": 159,
+      "squash": 0.24,
+      "interrupt_windup": true
     }
   },
   "mirror_eel": {
@@ -354,6 +398,12 @@
       "step": "pad",
       "spacing": 26,
       "attack": "water"
+    },
+    "hit_reaction": {
+      "duration": 0.17,
+      "speed": 126,
+      "squash": 0.22,
+      "interrupt_windup": true
     }
   },
   "root_mole": {
@@ -387,6 +437,12 @@
       "step": "claw",
       "spacing": 28,
       "attack": "heavy"
+    },
+    "hit_reaction": {
+      "duration": 0.14,
+      "speed": 95,
+      "squash": 0.17,
+      "interrupt_windup": false
     }
   },
   "reed_leech": {
@@ -420,6 +476,12 @@
       "step": "pad",
       "spacing": 28,
       "attack": "fang"
+    },
+    "hit_reaction": {
+      "duration": 0.17,
+      "speed": 115,
+      "squash": 0.22,
+      "interrupt_windup": true
     }
   },
   "silt_ray": {
@@ -454,6 +516,12 @@
       "step": "pad",
       "spacing": 34,
       "attack": "stone"
+    },
+    "hit_reaction": {
+      "duration": 0.16,
+      "speed": 104,
+      "squash": 0.2,
+      "interrupt_windup": true
     }
   },
   "sluice_snail": {
@@ -492,6 +560,12 @@
       "step": "stone",
       "spacing": 26,
       "attack": "stone"
+    },
+    "hit_reaction": {
+      "duration": 0.11,
+      "speed": 64,
+      "squash": 0.13,
+      "interrupt_windup": false
     }
   },
   "tide_salamander": {
@@ -530,6 +604,12 @@
       "step": "claw",
       "spacing": 31,
       "attack": "water"
+    },
+    "hit_reaction": {
+      "duration": 0.16,
+      "speed": 113,
+      "squash": 0.19,
+      "interrupt_windup": true
     }
   },
   "thorn_archer": {
@@ -575,6 +655,12 @@
       "spacing": 36,
       "attack": "arrow",
       "unarmed_attack": "fang"
+    },
+    "hit_reaction": {
+      "duration": 0.17,
+      "speed": 111,
+      "squash": 0.18,
+      "interrupt_windup": true
     }
   },
   "shield_heron": {
@@ -615,6 +701,12 @@
       "spacing": 36,
       "attack": "metal",
       "unarmed_attack": "fang"
+    },
+    "hit_reaction": {
+      "duration": 0.13,
+      "speed": 83,
+      "squash": 0.14,
+      "interrupt_windup": false
     }
   },
   "key_jackal": {
@@ -649,6 +741,12 @@
       "step": "pad",
       "spacing": 30,
       "attack": "fang"
+    },
+    "hit_reaction": {
+      "duration": 0.17,
+      "speed": 124,
+      "squash": 0.19,
+      "interrupt_windup": true
     }
   },
   "ash_scribe": {
@@ -683,6 +781,12 @@
       "step": "pad",
       "spacing": 33,
       "attack": "rune"
+    },
+    "hit_reaction": {
+      "duration": 0.17,
+      "speed": 101,
+      "squash": 0.17,
+      "interrupt_windup": true
     }
   },
   "shard_warden": {
@@ -721,6 +825,12 @@
       "spacing": 42,
       "attack": "heavy",
       "step_gain_db": -6.0
+    },
+    "hit_reaction": {
+      "duration": 0.1,
+      "speed": 52,
+      "squash": 0.11,
+      "interrupt_windup": false
     }
   },
   "copper_cicada": {
@@ -754,6 +864,12 @@
       "step": "metal",
       "spacing": 30,
       "attack": "resonance"
+    },
+    "hit_reaction": {
+      "duration": 0.16,
+      "speed": 97,
+      "squash": 0.19,
+      "interrupt_windup": true
     }
   },
   "burial_ram": {
@@ -788,6 +904,12 @@
       "spacing": 38,
       "attack": "heavy",
       "step_gain_db": -6.0
+    },
+    "hit_reaction": {
+      "duration": 0.12,
+      "speed": 59,
+      "squash": 0.13,
+      "interrupt_windup": false
     }
   }
 }
