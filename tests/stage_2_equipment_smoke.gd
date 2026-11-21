@@ -57,7 +57,7 @@ func run() -> void:
 		else:
 			ruins.enemies.erase(enemy)
 			enemy.queue_free()
-	check(moth._moth_pose() == MONSTER.MothPose.HOVER, "bell moth uses its hover sprite before engaging")
+	check(moth._attack_pose() == MONSTER.AttackPose.IDLE, "bell moth uses its hover sprite before engaging")
 	await wait_frames(15)
 	await hop(hunter, 1795, 473)
 	await hop(hunter, 1930, 412)
@@ -87,7 +87,7 @@ func run() -> void:
 			break
 		await physics_frame
 	check(hunter.pollen_left > 2.0, "standing underneath released pollen slows the hunter")
-	check(moth._moth_pose() == MONSTER.MothPose.POLLEN, "bell moth switches to its pollen sprite")
+	check(moth._attack_pose() == MONSTER.AttackPose.RELEASE, "bell moth switches to its pollen sprite")
 	await show_view()
 	hunter.position = Vector2(2210, 539)
 	hunter.velocity = Vector2.ZERO
@@ -97,13 +97,13 @@ func run() -> void:
 			break
 		await physics_frame
 	check(moth.windup > 0.6, "moth signals its pollen attack")
-	check(moth._moth_pose() == MONSTER.MothPose.WINDUP, "bell moth switches to its glowing windup sprite")
+	check(moth._attack_pose() == MONSTER.AttackPose.ANTICIPATION, "bell moth switches to its glowing windup sprite")
 	var mana: int = hunter.mana
 	Input.action_press("hunt_attack")
 	await wait_frames(19)
 	Input.action_release("hunt_attack")
 	check(hunter.mana == mana - 1 and moth.health == 3 and moth.windup == 0.0, "upward fire shot uses mana, hits airborne moth and interrupts pollen")
-	check(moth._moth_pose() == MONSTER.MothPose.RECOVER, "interrupted bell moth switches to its recoil sprite")
+	check(moth._attack_pose() == MONSTER.AttackPose.RECOVERY, "interrupted bell moth switches to its recoil sprite")
 	if OS.has_feature("movie"):
 		print("TIMING first staff hit checked at %.2fs" % (Engine.get_process_frames() / 60.0))
 	await wait_frames(24)

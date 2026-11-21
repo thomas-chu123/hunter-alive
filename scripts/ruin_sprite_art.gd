@@ -94,3 +94,26 @@ static func draw_bestiary(canvas: Node2D, index: int, facing: float, lean: float
 	canvas.draw_set_transform(Vector2.ZERO, lean * facing, Vector2(facing, 1))
 	canvas.draw_texture_rect_region(atlas, Rect2(Vector2(-size.x * 0.5, -size.y * 0.88), size), source, tint)
 	canvas.draw_set_transform(Vector2.ZERO)
+
+
+const ATTACK_ATLAS := preload("res://assets/monster/attack_poses.png")
+const UNARMED_ATLAS := preload("res://assets/monster/unarmed_attack_poses.png")
+const UNARMED_ROWS := {2: 0, 4: 1, 14: 2, 15: 3}
+const ATTACK_CELL := Vector2(224, 224)
+const ATTACK_ANCHOR := Vector2(112, 197)
+
+
+static func draw_attack(canvas: Node2D, index: int, pose: int, facing: float,
+		tint: Color, unarmed: bool) -> void:
+	var atlas := ATTACK_ATLAS
+	var row := index % 7
+	var column := floori(index / 7.0) * 3 + pose
+	if unarmed:
+		atlas = UNARMED_ATLAS
+		row = UNARMED_ROWS[index]
+		column = pose
+	var source := Rect2(Vector2(column, row) * ATTACK_CELL, ATTACK_CELL)
+	var dest := Rect2(-ATTACK_ANCHOR * 0.8, ATTACK_CELL * 0.8)
+	canvas.draw_set_transform(Vector2.ZERO, 0, Vector2(facing, 1))
+	canvas.draw_texture_rect_region(atlas, dest, source, tint)
+	canvas.draw_set_transform(Vector2.ZERO)

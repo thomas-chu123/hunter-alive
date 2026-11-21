@@ -1,0 +1,560 @@
+{
+  "spider": {
+    "name": "石縫巨蛛",
+    "sprite_row": 0,
+    "health": 5,
+    "idle_atlas_index": -1,
+    "motion": {
+      "speed": 148.0,
+      "sight": 390.0,
+      "leash": 575.0,
+      "jump": 545.0
+    },
+    "attack": {
+      "kind": "fang",
+      "name": "毒牙突刺",
+      "mode": "melee",
+      "element": "wood",
+      "trigger_range": 74,
+      "extent": 68,
+      "windup": 0.32,
+      "active": 0.46,
+      "recovery": 0.47,
+      "damage": 1
+    }
+  },
+  "lizard": {
+    "name": "滑翔蜥蜴",
+    "sprite_row": 1,
+    "health": 6,
+    "idle_atlas_index": -1,
+    "motion": {
+      "speed": 126.0,
+      "sight": 445.0,
+      "leash": 660.0,
+      "jump": 615.0
+    },
+    "attack": {
+      "kind": "breath",
+      "name": "火息",
+      "mode": "bolt",
+      "element": "fire",
+      "trigger_range": 239,
+      "extent": 12,
+      "windup": 0.43,
+      "active": 0.59,
+      "recovery": 0.67,
+      "damage": 1,
+      "speed": 405,
+      "outlet": [
+        42,
+        -39
+      ]
+    }
+  },
+  "treant": {
+    "name": "埋根樹靈",
+    "sprite_row": 2,
+    "health": 20,
+    "idle_atlas_index": -1,
+    "motion": {
+      "speed": 96.0,
+      "sight": 480.0,
+      "leash": 510.0,
+      "jump": 0.0
+    },
+    "attack": {
+      "kind": "blade",
+      "name": "木刃橫掃",
+      "mode": "melee",
+      "element": "wood",
+      "trigger_range": 119,
+      "extent": 113,
+      "windup": 0.78,
+      "active": 0.34,
+      "recovery": 0.92,
+      "damage": 1,
+      "unarmed": {
+        "mode": "melee",
+        "trigger_range": 87,
+        "extent": 87,
+        "windup": 0.46
+      }
+    }
+  },
+  "bell_moth": {
+    "name": "石鐘蛾",
+    "sprite_row": 3,
+    "health": 6,
+    "idle_atlas_index": -1,
+    "motion": {
+      "speed": 0,
+      "sight": 0,
+      "leash": 0,
+      "jump": 0
+    },
+    "attack": {
+      "kind": "pollen",
+      "name": "催眠鱗粉",
+      "mode": "pollen",
+      "element": "wood",
+      "trigger_range": 150,
+      "extent": 82,
+      "windup": 0.95,
+      "active": 0.58,
+      "recovery": 1.1,
+      "damage": 0
+    }
+  },
+  "lantern_crab": {
+    "name": "提燈石蟹",
+    "sprite_row": 4,
+    "health": 9,
+    "idle_atlas_index": -1,
+    "motion": {
+      "speed": 84.0,
+      "sight": 390.0,
+      "leash": 435.0,
+      "jump": 0.0
+    },
+    "attack": {
+      "kind": "claw",
+      "name": "青銅螯斬",
+      "mode": "melee",
+      "element": "metal",
+      "trigger_range": 132,
+      "extent": 121,
+      "windup": 0.94,
+      "active": 0.48,
+      "recovery": 1.05,
+      "damage": 1,
+      "unarmed": {
+        "mode": "melee",
+        "trigger_range": 77,
+        "extent": 77,
+        "windup": 0.46
+      }
+    }
+  },
+  "seal_keeper": {
+    "name": "古封守衛",
+    "sprite_row": 5,
+    "health": 26,
+    "idle_atlas_index": -1,
+    "motion": {
+      "speed": 103.0,
+      "sight": 520.0,
+      "leash": 650.0,
+      "jump": 0.0
+    },
+    "attack": {
+      "kind": "halberd",
+      "name": "雙段戰斧",
+      "mode": "melee",
+      "element": "metal",
+      "trigger_range": 165,
+      "extent": 151,
+      "windup": 0.87,
+      "active": 0.74,
+      "recovery": 0.97,
+      "damage": 1,
+      "hits": 2
+    }
+  },
+  "shale_beetle": {
+    "name": "頁岩甲蟲",
+    "sprite_row": 6,
+    "health": 8,
+    "idle_atlas_index": 0,
+    "motion": {
+      "speed": 86.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "roll",
+      "name": "岩顎夾咬",
+      "mode": "melee",
+      "element": "earth",
+      "trigger_range": 68,
+      "extent": 62,
+      "windup": 0.66,
+      "active": 0.58,
+      "recovery": 1.05,
+      "damage": 1
+    }
+  },
+  "dust_hare": {
+    "name": "塵躍野兔",
+    "sprite_row": 7,
+    "health": 4,
+    "idle_atlas_index": 1,
+    "motion": {
+      "speed": 165.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "double",
+      "name": "雙段踢擊",
+      "mode": "melee",
+      "element": "earth",
+      "trigger_range": 78,
+      "extent": 72,
+      "windup": 0.58,
+      "active": 0.66,
+      "recovery": 0.62,
+      "damage": 1,
+      "hits": 2
+    }
+  },
+  "mirror_eel": {
+    "name": "鏡潭長鰻",
+    "sprite_row": 8,
+    "health": 7,
+    "idle_atlas_index": 2,
+    "motion": {
+      "speed": 126.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "leap",
+      "name": "水矢",
+      "mode": "bolt",
+      "element": "water",
+      "trigger_range": 245,
+      "extent": 11,
+      "windup": 0.62,
+      "active": 0.63,
+      "recovery": 0.9,
+      "damage": 1,
+      "speed": 405,
+      "outlet": [
+        40,
+        -40
+      ]
+    }
+  },
+  "root_mole": {
+    "name": "鑿根鼴獸",
+    "sprite_row": 9,
+    "health": 9,
+    "idle_atlas_index": 3,
+    "motion": {
+      "speed": 80.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "burrow",
+      "name": "岩爪下劈",
+      "mode": "melee",
+      "element": "earth",
+      "trigger_range": 87,
+      "extent": 81,
+      "windup": 0.88,
+      "active": 0.4,
+      "recovery": 0.94,
+      "damage": 1
+    }
+  },
+  "reed_leech": {
+    "name": "蘆苔水蛭",
+    "sprite_row": 10,
+    "health": 5,
+    "idle_atlas_index": 4,
+    "motion": {
+      "speed": 96.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "latch",
+      "name": "吸盤咬附",
+      "mode": "melee",
+      "element": "wood",
+      "trigger_range": 66,
+      "extent": 60,
+      "windup": 0.5,
+      "active": 0.52,
+      "recovery": 0.78,
+      "damage": 0
+    }
+  },
+  "silt_ray": {
+    "name": "淤泥鰩",
+    "sprite_row": 11,
+    "health": 7,
+    "idle_atlas_index": 5,
+    "motion": {
+      "speed": 79.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "mud",
+      "name": "泥沼尾鞭",
+      "mode": "ground",
+      "element": "earth",
+      "trigger_range": 153.0,
+      "extent": 67,
+      "windup": 0.82,
+      "active": 0.5,
+      "recovery": 0.88,
+      "damage": 1,
+      "target_mark": true
+    }
+  },
+  "sluice_snail": {
+    "name": "水閘岩螺",
+    "sprite_row": 12,
+    "health": 10,
+    "idle_atlas_index": 6,
+    "motion": {
+      "speed": 57.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "shell",
+      "name": "泥石彈",
+      "mode": "bolt",
+      "element": "earth",
+      "trigger_range": 250.0,
+      "extent": 13,
+      "windup": 0.83,
+      "active": 0.49,
+      "recovery": 1.3,
+      "damage": 1,
+      "speed": 360,
+      "outlet": [
+        35,
+        -29
+      ]
+    }
+  },
+  "tide_salamander": {
+    "name": "潮汐蠑螈",
+    "sprite_row": 13,
+    "health": 8,
+    "idle_atlas_index": 7,
+    "motion": {
+      "speed": 112.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "spray",
+      "name": "潮流噴射",
+      "mode": "bolt",
+      "element": "water",
+      "trigger_range": 229.0,
+      "extent": 14,
+      "windup": 0.75,
+      "active": 0.48,
+      "recovery": 0.84,
+      "damage": 1,
+      "speed": 460,
+      "outlet": [
+        40,
+        -33
+      ]
+    }
+  },
+  "thorn_archer": {
+    "name": "荊骨弓衛",
+    "sprite_row": 14,
+    "health": 9,
+    "idle_atlas_index": 8,
+    "motion": {
+      "speed": 94.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "arrow",
+      "name": "荊棘箭",
+      "mode": "bolt",
+      "element": "wood",
+      "trigger_range": 310.0,
+      "extent": 5,
+      "windup": 0.86,
+      "active": 0.43,
+      "recovery": 0.84,
+      "damage": 1,
+      "speed": 590,
+      "unarmed": {
+        "mode": "melee",
+        "trigger_range": 75,
+        "extent": 75,
+        "windup": 0.46
+      },
+      "outlet": [
+        31,
+        -46
+      ]
+    }
+  },
+  "shield_heron": {
+    "name": "陶盾長腳鳥",
+    "sprite_row": 15,
+    "health": 10,
+    "idle_atlas_index": 9,
+    "motion": {
+      "speed": 110.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "shield",
+      "name": "盾啄反擊",
+      "mode": "melee",
+      "element": "metal",
+      "trigger_range": 92,
+      "extent": 86,
+      "windup": 0.72,
+      "active": 0.63,
+      "recovery": 0.96,
+      "damage": 1,
+      "unarmed": {
+        "mode": "melee",
+        "trigger_range": 78,
+        "extent": 78,
+        "windup": 0.46
+      }
+    }
+  },
+  "key_jackal": {
+    "name": "逐鑰豺獸",
+    "sprite_row": 16,
+    "health": 8,
+    "idle_atlas_index": 10,
+    "motion": {
+      "speed": 146.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "double",
+      "name": "交錯爪擊",
+      "mode": "melee",
+      "element": "metal",
+      "trigger_range": 84,
+      "extent": 78,
+      "windup": 0.54,
+      "active": 0.73,
+      "recovery": 0.91,
+      "damage": 1,
+      "hits": 2
+    }
+  },
+  "ash_scribe": {
+    "name": "灰燼抄寫員",
+    "sprite_row": 17,
+    "health": 9,
+    "idle_atlas_index": 11,
+    "motion": {
+      "speed": 67.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "rune",
+      "name": "腳下火印",
+      "mode": "ground",
+      "element": "fire",
+      "trigger_range": 267.0,
+      "extent": 55,
+      "windup": 1.02,
+      "active": 0.45,
+      "recovery": 1.18,
+      "damage": 2,
+      "target_mark": true
+    }
+  },
+  "shard_warden": {
+    "name": "碎岩守衛",
+    "sprite_row": 18,
+    "health": 13,
+    "idle_atlas_index": 12,
+    "motion": {
+      "speed": 83.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "shards",
+      "name": "地刺震擊",
+      "mode": "ground",
+      "element": "earth",
+      "trigger_range": 105,
+      "extent": 101,
+      "windup": 0.75,
+      "active": 0.54,
+      "recovery": 0.82,
+      "damage": 1
+    }
+  },
+  "copper_cicada": {
+    "name": "銅翼蟬",
+    "sprite_row": 19,
+    "health": 7,
+    "idle_atlas_index": 13,
+    "motion": {
+      "speed": 110.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "shock",
+      "name": "金屬共振",
+      "mode": "ground",
+      "element": "metal",
+      "trigger_range": 108,
+      "extent": 104,
+      "windup": 0.7,
+      "active": 0.48,
+      "recovery": 1.08,
+      "damage": 1
+    }
+  },
+  "burial_ram": {
+    "name": "埋碑岩羊",
+    "sprite_row": 20,
+    "health": 12,
+    "idle_atlas_index": 14,
+    "motion": {
+      "speed": 102.0,
+      "sight": 400,
+      "leash": 470,
+      "jump": 525
+    },
+    "attack": {
+      "kind": "ram",
+      "name": "岩角甩擊",
+      "mode": "melee",
+      "element": "earth",
+      "trigger_range": 94,
+      "extent": 88,
+      "windup": 0.86,
+      "active": 0.72,
+      "recovery": 1.19,
+      "damage": 1
+    }
+  }
+}

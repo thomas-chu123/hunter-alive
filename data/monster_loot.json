@@ -1,12 +1,12 @@
 [
-  {"id":"spider","name":"石縫巨蛛","area":"崩塌神殿","tell":"抬起前足後撲擊","counter":"退開撲擊範圍，落地後用短刀反擊","gear":{"name":"蛛牙短刀","slot":"近戰","effect":"短刀連續命中同一目標三次，造成 1 點額外傷害","drop":"機率","chance":0.18},"soul":{"name":"蛛步","effect":"貼牆時按住方向與魂技鍵攀爬","chance":0.37}},
-  {"id":"lizard","name":"滑翔蜥蜴","area":"崩塌神殿","tell":"張開翼膜後低空俯衝","counter":"跳過俯衝，在牠落地時用弓箭射擊","gear":{"name":"翼膜披肩","slot":"披肩","effect":"裝備蜥翼之魂時，滑翔下降速度降低 15%","drop":"機率","chance":0.25},"soul":{"name":"蜥翼","effect":"滯空滑翔，跨越西側斷橋","chance":1.0}},
+  {"id":"spider","name":"石縫巨蛛","area":"崩塌神殿","tell":"抬起前足，再伸出毒牙向前突刺","counter":"退出毒牙的前方範圍，收招後用短刀反擊","gear":{"name":"蛛牙短刀","slot":"近戰","effect":"短刀連續命中同一目標三次，造成 1 點額外傷害","drop":"機率","chance":0.18},"soul":{"name":"蛛步","effect":"貼牆時按住方向與魂技鍵攀爬","chance":0.37}},
+  {"id":"lizard","name":"滑翔蜥蜴","area":"崩塌神殿","tell":"仰頭蓄起喉間火光，向前吐出火息","counter":"躍過火息或以石牆擋下火息，趁收招用弓射擊","gear":{"name":"翼膜披肩","slot":"披肩","effect":"裝備蜥翼之魂時，滑翔下降速度降低 15%","drop":"機率","chance":0.25},"soul":{"name":"蜥翼","effect":"滯空滑翔，跨越西側斷橋","chance":1.0}},
   {"id":"treant","name":"埋根樹靈","area":"崩塌神殿","tell":"舉起發光的木刃後橫掃","counter":"攻擊亮起的刃身使牠失去武器","gear":{"name":"樹靈木刃","slot":"近戰","effect":"近戰傷害增加 1 點","drop":"繳械","chance":1.0}},
   {"id":"bell_moth","name":"石鐘蛾","area":"迴音鐘廊","tell":"腹部發亮，拍翼後落下鱗粉","counter":"趁腹部發亮時從斜下方射擊","gear":{"name":"鱗紗兜帽","slot":"頭部","effect":"鱗粉造成的緩速持續時間減半","drop":"機率","chance":0.22}},
   {"id":"lantern_crab","name":"提燈石蟹","area":"淹沒的迴廊","tell":"高舉前螯與燈籠，往前重砸","counter":"重砸前射擊掉在身側低處的燈籠","gear":{"name":"潮火提燈","slot":"工具","effect":"照亮暗室並顯示牆上的舊路標","drop":"繳械","chance":1.0}},
   {"id":"thorn_archer","name":"荊骨弓衛","area":"荊棘回廊","tell":"拉滿弓弦，箭頭冒出綠光","counter":"拉弓時射中持弓的手","gear":{"name":"荊骨獵弓","slot":"遠程","effect":"箭矢可穿透第一個小型敵人","drop":"繳械","chance":1.0}},
-  {"id":"mirror_eel","name":"鏡潭長鰻","area":"淹沒的迴廊","tell":"水面現出波紋，接著躍向最近的平台","counter":"換到相鄰平台，趁牠轉身時射擊","gear":{"name":"鰻鱗護腿","slot":"腿部","effect":"淺水中的移動速度提高 20%","drop":"機率","chance":0.2}},
-  {"id":"root_mole","name":"鑿根鼴獸","area":"樹根地窟","tell":"土痕向前推進，在腳下鼓起後破土","counter":"離開鼓起的土堆，等牠探頭再反擊","gear":{"name":"硬根護腕","slot":"手部","effect":"空中近戰攻擊的擊退距離增加 25%","drop":"機率","chance":0.24},"soul":{"name":"鑿根","effect":"空中向下衝擊，可打碎帶裂紋的地板","chance":1.0}},
-  {"id":"shield_heron","name":"陶盾長腳鳥","area":"斷水高架","tell":"把陶盾轉到身前，低頭後向前衝刺","counter":"跳過衝刺，趁牠急停時從背後攻擊盾帶","gear":{"name":"沉陶護甲","slot":"身體","effect":"每次離開營火後，抵消第一次接觸傷害","drop":"繳械","chance":1.0}},
-  {"id":"key_jackal","name":"逐鑰豺獸","area":"埋碑內庭","tell":"耳朵貼平，向後退半步再連撲兩次","counter":"避開兩次撲擊後，攻擊牠第二次落地的位置","gear":{"name":"古門扣環","slot":"飾品","effect":"營火死亡重生時少損失 1 份素材","drop":"機率","chance":0.15}}
+  {"id":"mirror_eel","name":"鏡潭長鰻","area":"淹沒的迴廊","tell":"縮頸聚水，向前射出水矢","counter":"跳過水矢再趁牠收招射擊","gear":{"name":"鰻鱗護腿","slot":"腿部","effect":"淺水中的移動速度提高 20%","drop":"機率","chance":0.2}},
+  {"id":"root_mole","name":"鑿根鼴獸","area":"樹根地窟","tell":"高舉前爪後向下劈","counter":"退出岩爪範圍，等牠收爪時反擊","gear":{"name":"硬根護腕","slot":"手部","effect":"空中近戰攻擊的擊退距離增加 25%","drop":"機率","chance":0.24},"soul":{"name":"鑿根","effect":"空中向下衝擊，可打碎帶裂紋的地板","chance":1.0}},
+  {"id":"shield_heron","name":"陶盾長腳鳥","area":"斷水高架","tell":"縮頸舉盾後向前啄擊","counter":"退開盾啄，趁牠收招時從背後攻擊","gear":{"name":"沉陶護甲","slot":"身體","effect":"每次離開營火後，抵消第一次接觸傷害","drop":"繳械","chance":1.0}},
+  {"id":"key_jackal","name":"逐鑰豺獸","area":"埋碑內庭","tell":"蹲低後以雙爪連擊","counter":"避開兩次爪擊後，趁牠收招時靠近","gear":{"name":"古門扣環","slot":"飾品","effect":"營火死亡重生時少損失 1 份素材","drop":"機率","chance":0.15}}
 ]

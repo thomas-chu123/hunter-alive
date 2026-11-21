@@ -46,10 +46,10 @@ func run() -> void:
 	await tap("hunt_switch")
 	phase = "combat"
 	for enemy in ruins.enemies.duplicate():
-		if enemy.species == "bell_moth":
+		if enemy.species not in ["spider", "lizard", "treant"]:
 			continue
 		if not await defeat(enemy):
-			verify(false, "combat: " + enemy.get_name())
+			verify(false, "combat: " + enemy.species)
 			return
 		if not ruins.collected_souls.has("lizard") and ruins._has_drop("lizard"):
 			for drop in ruins.drops:

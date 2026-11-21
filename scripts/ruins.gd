@@ -2,6 +2,7 @@ extends Node2D
 
 const Hunter := preload("res://scripts/ruin_hunter.gd")
 const Monster := preload("res://scripts/ruin_monster.gd")
+const EnemyEffects := preload("res://scripts/ruin_enemy_effects.gd")
 const HitEffects := preload("res://scripts/ruin_hit_effects.gd")
 const Landscape := preload("res://scripts/ruin_landscape.gd")
 const CampSave := preload("res://scripts/camp_save.gd")
@@ -239,8 +240,11 @@ func _cast(origin: Vector2, direction: float, weapon: String) -> void:
 		"spell": true, "weapon": weapon, "hit_ids": []})
 
 
-func _launch_enemy_projectile(origin: Vector2, direction: float, effect: String) -> void:
-	arrows.append({"at": origin, "direction": direction, "damage": 1, "left": 0.6, "hostile": effect})
+func _launch_enemy_projectile(origin: Vector2, direction: float, attack: Dictionary) -> void:
+	var speed := float(attack.speed)
+	arrows.append({"at": origin, "direction": direction, "damage": int(attack.damage),
+		"left": (float(attack.trigger_range) + 75.0) / speed, "hostile": attack.kind,
+		"speed": speed, "radius": float(attack.extent), "element": attack.element})
 
 
 func _update_glyphs(delta: float) -> void:
@@ -262,7 +266,7 @@ func _update_arrows(delta: float) -> void:
 		var from: Vector2 = arrow.at
 		var spell: bool = arrow.get("spell", false)
 		var hostile: String = arrow.get("hostile", "")
-		var speed := 850.0 if hostile.is_empty() else (590.0 if hostile == "arrow" else 465.0)
+		var speed: float = arrow.get("speed", 850.0)
 		var velocity := Vector2(arrow.direction * 710.0, -245.0) if spell else Vector2(arrow.direction * speed, 0)
 		var to := from + velocity * delta
 		var ray := PhysicsRayQueryParameters2D.create(from, to, 1)
@@ -275,9 +279,14 @@ func _update_arrows(delta: float) -> void:
 		var hit := false
 		if not hostile.is_empty():
 			var height := Hunter.CROUCH_HEIGHT if hunter.crouching else Hunter.STANDING_HEIGHT
+			var radius: float = arrow.radius
+			hitbox = Rect2(from, Vector2.ZERO).expand(to).grow(radius)
 			hit = hitbox.intersects(Rect2(hunter.position - Vector2(12, height), Vector2(24, height)))
 			if hit:
-				hunter.hurt(hunter.position.x - arrow.direction, arrow.damage, hostile)
+				var sight := PhysicsRayQueryParameters2D.create(from, Vector2(hunter.position.x, from.y), 1)
+				hit = get_world_2d().direct_space_state.intersect_ray(sight).is_empty()
+				if hit:
+					hunter.hurt(hunter.position.x - arrow.direction, arrow.damage, hostile)
 		else:
 			var target_id := _arrow_hits_monster(hitbox, arrow)
 			hit = target_id != 0
@@ -596,8 +605,10 @@ func _draw() -> void:
 			draw_circle(at, 12, Color(0.95, 0.33, 0.11, 0.33))
 			draw_circle(at, 6, Color("#ffd078"))
 			continue
-		var ink := Color("#ffe7a6") if not projectile.has("hostile") else Color("#81c4b5")
-		draw_line(at - Vector2(projectile.direction * 26, 0), at, ink, 2, true)
+		if projectile.has("hostile"):
+			EnemyEffects.bolt(self, at, projectile.direction, projectile.element, projectile.hostile, projectile.radius)
+			continue
+		draw_line(at - Vector2(projectile.direction * 26, 0), at, Color("#ffe7a6"), 2, true)
 		draw_circle(at, 2, Color("#fff7d7"))
 	for drop: Dictionary in drops:
 		var at: Vector2 = drop.at + Vector2(0, sin(elapsed * 4.8 + float(drop.at.x)) * 5.0)
