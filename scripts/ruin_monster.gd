@@ -8,15 +8,21 @@ const Bestiary := preload("res://scripts/ruin_bestiary.gd")
 const Art := preload("res://scripts/ruin_sprite_art.gd")
 const Effects := preload("res://scripts/ruin_enemy_effects.gd")
 const Hunter := preload("res://scripts/ruin_hunter.gd")
-const COLORS := {"spider": Color("#ae745d"), "lizard": Color("#77c6ad"), "treant": Color("#d5a56d")}
 const SIZE := {"spider": Vector2(76, 55), "lizard": Vector2(92, 70), "treant": Vector2(110, 120),
 	"bell_moth": Vector2(64, 49), "lantern_crab": Vector2(97, 60), "seal_keeper": Vector2(102, 136)}
 const ART_ROWS := {"spider": 0, "lizard": 1, "treant": 2}
 const ART_SCALES := {"spider": 0.30, "lizard": 0.33, "treant": 0.46}
-enum State { PATROL, CHASE, WINDUP, STRIKE, RECOVER, RETURN }
+enum State { PATROL, NOTICE, CHASE, WINDUP, STRIKE, RECOVER, RETURN }
 enum AttackPose { IDLE = -1, ANTICIPATION, RELEASE, RECOVERY }
 
 const GRAVITY := 1380.0
+const NOTICE_TIME := 0.13
+const LOST_SIGHT_TIME := 0.62
+const BLOCKED_TIME := 0.42
+const REACQUIRE_DELAY := 0.80
+const CHASE_HEIGHT := 230.0
+const STEP_TIME := 0.065
+
 var species: String
 var target: CharacterBody2D
 var home := Vector2.ZERO
@@ -25,6 +31,7 @@ var max_health := 0
 var attack_kind := ""
 var attack: Dictionary
 var design: Dictionary
+var animation: Dictionary
 var target_mark := Vector2.ZERO
 var ground_mark_valid := false
 var impact_index := 0
@@ -40,6 +47,19 @@ var profile: Dictionary
 var state := State.PATROL
 var jump_delay := 0.0
 var lost_sight := 0.0
+var blocked_time := 0.0
+var notice_left := 0.0
+var reacquire_left := 0.0
+var barrier_dir := 0.0
+var barrier_x := 0.0
+var patrol_center := 0.0
+var requested_speed := 0.0
+var gait_distance := 0.0
+var visual_turn := -1.0
+var gait_weight := 0.0
+var windup_duration := 0.0
+var recovery_duration := 0.0
+var recoil := 0.0
 var patrol_dir := -1.0
 var walking := false
 var second_phase := false
@@ -49,8 +69,10 @@ func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
 	species = kind
 	position = at
 	home = at
+	patrol_center = at.x
 	target = hunter
 	design = Bestiary.creatures[species]
+	animation = design.get("animation", {})
 	max_health = int(design.health)
 	profile = design.motion
 	attack = design.attack
@@ -64,7 +86,7 @@ func _ready() -> void:
 	collision_mask = 1
 	var shape := RectangleShape2D.new()
 	# Keep the movement collider near the feet; combat uses the full sprite hitbox.
-	shape.size = Vector2(38, 58) if species in ["treant", "seal_keeper"] else Vector2(28, 29)
+	shape.size = Vector2(float(profile.collider_width), float(profile.collider_height))
 	var feet := CollisionShape2D.new()
 	feet.shape = shape
 	feet.position.y = -shape.size.y / 2.0
@@ -76,28 +98,39 @@ func _physics_process(delta: float) -> void:
 		return
 	age += delta
 	flash = maxf(flash - delta, 0)
+	reacquire_left = maxf(reacquire_left - delta, 0)
+	recoil = move_toward(recoil, 0.0, delta * 38.0)
 	if species == "bell_moth":
 		_update_moth(delta)
+		_update_motion_art(delta, 0.0)
 		queue_redraw()
 		return
 	jump_delay = maxf(jump_delay - delta, 0)
 	velocity.y = minf(velocity.y + GRAVITY * delta, 850.0)
-
 	var offset := target.position - position
-	var visible := absf(offset.x) < float(profile.sight) and absf(offset.y) < 255.0
+	var visible := absf(offset.x) <= float(profile.sight) and absf(offset.y) <= CHASE_HEIGHT and _clear_to_target()
 	lost_sight = 0.0 if visible else lost_sight + delta
+	requested_speed = 0.0
+	if state in [State.NOTICE, State.CHASE] and (not _inside_leash(target.position) or not _inside_leash(position)):
+		_begin_return()
 	match state:
 		State.PATROL:
-			if visible:
-				state = State.CHASE
+			if visible and _can_engage():
+				state = State.NOTICE
+				notice_left = NOTICE_TIME
+				facing = signf(offset.x) if absf(offset.x) > 8.0 else facing
 			else:
-				if absf(position.x - home.x) >= 61 or _wall_ahead(patrol_dir) or not _floor_ahead(patrol_dir):
-					patrol_dir = -patrol_dir
-				_move(patrol_dir * 48.0)
+				_patrol()
+		State.NOTICE:
+			notice_left -= delta
+			if notice_left <= 0.0:
+				state = State.CHASE
 		State.CHASE:
-			_chase(offset)
+			if lost_sight > LOST_SIGHT_TIME:
+				_begin_return()
+			else:
+				_chase(offset)
 		State.WINDUP:
-			_move(0)
 			windup = maxf(0, windup - delta)
 			if windup <= 0:
 				_start_strike()
@@ -107,84 +140,188 @@ func _physics_process(delta: float) -> void:
 			if strike <= 0:
 				_start_recovery(float(attack.recovery))
 		State.RECOVER:
-			_move(0)
 			recovery = maxf(0, recovery - delta)
 			if recovery <= 0 and is_on_floor():
-				state = State.CHASE
+				if _inside_leash(target.position) and lost_sight <= LOST_SIGHT_TIME:
+					state = State.CHASE
+				else:
+					_begin_return()
 		State.RETURN:
 			_return_home()
 
-	var before_x := position.x
+	var before := position
+	velocity.x = move_toward(velocity.x, requested_speed, float(profile.acceleration) * delta)
+	var budget := float(profile.leash)
+	# Clip chase steering to the territory edge, including the last movement step.
+	velocity.x = clampf(velocity.x, minf(0.0, (home.x - budget - position.x) / delta),
+		maxf(0.0, (home.x + budget - position.x) / delta))
 	move_and_slide()
-	walking = absf(position.x - before_x) > 0.25
+	var travel := absf(position.x - before.x)
+	_update_motion_art(delta, travel)
+	if state in [State.CHASE, State.RETURN]:
+		_check_progress(delta, travel)
 	if state == State.STRIKE and can_hit:
 		_try_hit()
 	if position.y > home.y + 250.0:
 		position = home
 		velocity = Vector2.ZERO
+		patrol_center = home.x
 		state = State.PATROL
 		strike = 0.0
 		windup = 0.0
+		recovery = 0.0
+		can_hit = false
 	queue_redraw()
 
 
-func _chase(offset: Vector2) -> void:
-	if absf(position.x - home.x) > profile.leash or lost_sight > 1.65:
-		state = State.RETURN
-		_move(0)
+func _inside_leash(point: Vector2) -> bool:
+	return absf(point.x - home.x) <= float(profile.leash) and absf(point.y - home.y) <= CHASE_HEIGHT
+
+
+func _can_engage() -> bool:
+	if reacquire_left > 0.0 or not _inside_leash(target.position):
+		return false
+	if barrier_dir != 0.0 and (target.position.x - barrier_x) * barrier_dir > 0.0:
+		return false
+	barrier_dir = 0.0
+	return true
+
+
+func _patrol() -> void:
+	if not is_on_floor():
 		return
+	var radius := float(profile.patrol_radius)
+	if (position.x - patrol_center) * patrol_dir >= radius or not _can_walk(patrol_dir):
+		patrol_dir = -patrol_dir
+	if (position.x - patrol_center) * patrol_dir < radius and _can_walk(patrol_dir):
+		_move(patrol_dir * 45.0)
+
+
+func _chase(offset: Vector2) -> void:
 	if absf(offset.x) > 8.0:
 		facing = signf(offset.x)
 	var reach := float(_attack_value("trigger_range"))
-	var max_height := 82.0 if _attack_value("mode") == "bolt" else 64.0
-	if is_on_floor() and absf(offset.x) <= reach and absf(offset.y) <= max_height and _clear_to_target():
+	var height := 82.0 if _attack_value("mode") == "bolt" else 64.0
+	if is_on_floor() and absf(offset.x) <= reach and absf(offset.y) <= height and _clear_to_target():
 		_begin_windup()
 	else:
-		_navigate(facing, float(profile.speed), offset.y < -35.0 and absf(offset.x) < 175.0,
-			offset.y > 35.0)
+		_navigate(facing, float(profile.speed), offset.y < -35.0 and absf(offset.x) < 175.0)
+
+
+func _begin_return() -> void:
+	state = State.RETURN
+	blocked_time = 0.0
+	reacquire_left = REACQUIRE_DELAY
+	_move(0)
 
 
 func _return_home() -> void:
 	var offset := home - position
-	if absf(offset.x) < 17.0 and is_on_floor():
-		state = State.PATROL
-		_move(0)
+	if absf(offset.x) < 17.0 and absf(offset.y) < 30.0 and is_on_floor():
+		_resume_patrol(home.x)
 		return
-	var direction := signf(offset.x) if absf(offset.x) > 10 else facing
-	_navigate(direction, float(profile.speed) * 0.85, offset.y < -35.0, offset.y > 35.0)
+	var direction := signf(offset.x) if absf(offset.x) > 9.0 else patrol_dir
+	_navigate(direction, float(profile.speed) * 0.85, offset.y < -35.0,
+		offset.y > 35.0)
 
 
-func _navigate(direction: float, speed: float, climb: bool, descend: bool) -> void:
+func _resume_patrol(center: float) -> void:
+	var max_offset := float(profile.leash) - float(profile.patrol_radius) - 8.0
+	patrol_center = clampf(center, home.x - max_offset, home.x + max_offset)
+	state = State.PATROL
+	reacquire_left = REACQUIRE_DELAY
+	_move(0)
+
+
+func _check_progress(delta: float, travel: float) -> void:
+	if not is_on_floor() or travel >= 0.32:
+		blocked_time = 0.0
+		return
+	blocked_time += delta
+	if blocked_time < BLOCKED_TIME:
+		return
+	if state == State.RETURN:
+		# A terrain change can close the route back; patrol the reachable floor.
+		_resume_patrol(position.x)
+	else:
+		barrier_dir = facing
+		barrier_x = position.x + barrier_dir * (float(profile.collider_width) * 0.5 + 21.0)
+		_begin_return()
+
+
+func _navigate(direction: float, speed: float, climb: bool, descend: bool = false) -> void:
 	if not is_on_floor():
 		_move(direction * speed)
 		return
-	var wall := _wall_ahead(direction)
-	var edge := not _floor_ahead(direction)
-	var jump_speed: float = profile.jump
-	# Only jump a gap if a nearby landing is in reach. The west chasm stays a boundary.
-	var crosses_gap := edge and not _terrain_ray(Vector2(direction * 45, -8), Vector2(direction * 150, 70)).is_empty()
-	var safe_drop := edge and descend and jump_speed > 0 and not _terrain_ray(
-		Vector2(direction * 38, -6), Vector2(direction * 38, 210)).is_empty()
-	if jump_speed > 0 and jump_delay <= 0 and (wall or climb or (crosses_gap and not safe_drop)):
-		velocity.y = -jump_speed
-		jump_delay = 0.35
+	var walkable := _can_walk(direction)
+	if (not walkable or climb) and jump_delay <= 0.0 and float(profile.jump) > 0.0:
+		jump_delay = 0.22
+		if _find_landing(direction, speed, climb and walkable):
+			velocity.y = -float(profile.jump)
+			jump_delay = 0.35
+			_move(direction * speed, true)
+			return
+	if walkable or (descend and _can_drop(direction)):
 		_move(direction * speed)
-	else:
-		_move(0 if wall or (edge and not safe_drop) else direction * speed)
 
 
-func _move(speed: float) -> void:
-	velocity.x = speed
+func _can_walk(direction: float) -> bool:
+	var half_width := float(profile.collider_width) * 0.5
+	var ahead := Vector2(direction * 13.0, 0.0)
+	if test_move(global_transform, ahead):
+		return false
+	var step := direction * (half_width + 16.0)
+	return not _terrain_ray(Vector2(step, -8.0), Vector2(step, 23.0)).is_empty()
+
+
+func _can_drop(direction: float) -> bool:
+	if float(profile.jump) <= 0.0 or test_move(global_transform, Vector2(direction * 16.0, 0)):
+		return false
+	var step := direction * (float(profile.collider_width) * 0.5 + 12.0)
+	return not _terrain_ray(Vector2(step, -8.0), Vector2(step, 84.0)).is_empty()
+
+
+func _find_landing(direction: float, speed: float, higher_only: bool) -> bool:
+	var jump := float(profile.jump)
+	var landing := KinematicCollision2D.new()
+	var origin := global_transform
+	var previous := Vector2.ZERO
+	var vx := direction * speed
+	var lowest := 44.0
+	var step_count := ceili((2.0 * jump / GRAVITY + 0.12) / STEP_TIME)
+	for index in range(1, step_count + 1):
+		var time := index * STEP_TIME
+		var next := Vector2(vx * time, (GRAVITY * 0.5 * time - jump) * time)
+		if absf(position.x + next.x - home.x) > float(profile.leash) or next.y > lowest:
+			return false
+		if test_move(origin.translated(previous), next - previous, landing):
+			var endpoint := previous + landing.get_travel()
+			var distance := absf(endpoint.x)
+			return next.y > previous.y and landing.get_normal().y < -0.7 and distance > 37.0 and (
+				not higher_only or endpoint.y < -20.0)
+		previous = next
+	return false
+
+
+func _move(speed: float, launch: bool = false) -> void:
+	requested_speed = speed
 	if absf(speed) > 1:
 		facing = signf(speed)
+	if launch:
+		velocity.x = speed
 
 
-func _floor_ahead(direction: float) -> bool:
-	return not _terrain_ray(Vector2(direction * 24, -7), Vector2(direction * 24, 31)).is_empty()
+func _update_motion_art(delta: float, travel: float) -> void:
+	walking = travel > 0.15 and is_on_floor()
+	gait_weight = move_toward(gait_weight, 1.0 if walking else 0.0, delta * 8.0)
+	if walking:
+		gait_distance += travel
+	var turning_rate := 21.0 if state in [State.WINDUP, State.STRIKE] else 13.0
+	visual_turn = move_toward(visual_turn, facing, turning_rate * delta)
 
 
-func _wall_ahead(direction: float) -> bool:
-	return not _terrain_ray(Vector2(0, -18), Vector2(direction * 28, -18)).is_empty()
+func _sprite_facing() -> float:
+	return signf(visual_turn) * maxf(absf(visual_turn), 0.55) if not is_zero_approx(visual_turn) else facing * 0.55
 
 
 func _clear_to_target() -> bool:
@@ -204,7 +341,8 @@ func _attack_value(key: String) -> Variant:
 
 func _begin_windup(duration: float = -1.0) -> void:
 	state = State.WINDUP
-	windup = float(_attack_value("windup")) if duration < 0 else duration
+	windup_duration = float(_attack_value("windup")) if duration < 0 else duration
+	windup = windup_duration
 	ground_mark_valid = false
 	if _attack_value("mode") == "ground":
 		var mark_x: float = target.position.x if attack.get("target_mark", false) else position.x
@@ -290,6 +428,7 @@ func _start_recovery(seconds: float) -> void:
 	windup = 0.0
 	strike = 0.0
 	can_hit = false
+	recovery_duration = seconds
 	recovery = seconds
 	_move(0)
 
@@ -322,6 +461,7 @@ func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false, source
 	if health <= 0:
 		return
 	flash = 0.15
+	recoil = -source_direction * 4.5
 	if (species == "bell_moth" and projectile or attack_kind == "rune") and windup > 0:
 		_start_recovery(float(attack.recovery))
 	if weapon_hit and armed and windup > 0:
@@ -365,27 +505,47 @@ func _draw() -> void:
 	var tint := Color(1.23, 1.16, 1.07) if flash > 0 else Color.WHITE
 	var pose := _attack_pose()
 	var unarmed := not armed and attack.has("unarmed")
-	if pose == AttackPose.IDLE and unarmed and species in ["thorn_archer", "shield_heron"]:
-		pose = AttackPose.RECOVERY
+	var motion_facing := _sprite_facing()
 	var size: Vector2 = SIZE.get(species, Vector2(82, 69))
+	var stride := float(animation.get("stride", 68.0))
+	var rhythm := gait_distance * TAU / stride
+	var stretch := 1.0 + sin(age * 3.5) * 0.014 + sin(rhythm * 2.0) * 0.026 * gait_weight
+	var lean := cos(rhythm) * 0.043 * gait_weight
+	var walk_row: int = animation.get("unarmed_walk" if unarmed else "walk", -1)
+	var transition_row: int = animation.get("unarmed_transition" if unarmed else "transition", -1)
+	var phase := _transition_frame() if transition_row >= 0 else -1
+	if state == State.NOTICE:
+		stretch += 0.065 * sin(notice_left / NOTICE_TIME * PI)
+		lean -= 0.06
 	if pose >= 0:
-		Art.draw_attack(self, int(design.sprite_row), pose, facing, tint, unarmed)
+		if strike > 0.0:
+			motion_facing = facing
+			var swing := sin(_strike_progress() * PI)
+			stretch = 1.0 + swing * 0.035
+			lean = swing * 0.035
+		elif recovery > 0.0:
+			lean = 0.05 * clampf(recovery / maxf(recovery_duration, 0.02), 0.0, 1.0)
+		if phase >= 0:
+			Art.draw_transition(self, transition_row, phase, motion_facing, tint, stretch, lean, recoil)
+		else:
+			Art.draw_attack(self, int(design.sprite_row), pose, motion_facing, tint, unarmed, stretch, lean, recoil)
+	elif walk_row >= 0 and gait_weight > 0.24:
+		Art.draw_walk(self, walk_row, floori(fposmod(gait_distance, stride) / stride * 4.0),
+			motion_facing, tint, stretch, lean, recoil)
 	elif species == "bell_moth":
-		var flap := 1.0 + sin(age * 19.0) * 0.07
-		Art.draw_bell_moth(self, 0, facing, flap, tint)
+		var flap := 1.0 + sin(age * 19.0) * 0.08
+		Art.draw_bell_moth(self, 0, motion_facing, flap, tint)
 	elif species in ["lantern_crab", "seal_keeper"]:
-		var lean := sin(age * 14.0) * 0.035 if walking else 0.0
-		Art.draw_stage_guard(self, species == "lantern_crab", facing, armed, lean, tint)
+		Art.draw_stage_guard(self, species == "lantern_crab", motion_facing, armed, lean, tint)
 	elif ART_ROWS.has(species):
-		var idle := 1 if walking and sin(age * 13.0) > 0 else 0
-		if species == "treant" and not armed:
-			idle = 3
-		var bob := sin(age * (9.0 if walking else 3.0)) * 1.5
-		Art.draw_actor(self, ART_ROWS[species], idle, ART_SCALES[species], facing, bob, tint)
+		var idle := 3 if species == "treant" and not armed else 0
+		Art.draw_actor(self, ART_ROWS[species], idle, ART_SCALES[species], motion_facing, (1.0 - stretch) * size.y, tint)
 		draw_set_transform(Vector2.ZERO)
+	elif unarmed and species in ["thorn_archer", "shield_heron"]:
+		Art.draw_attack(self, int(design.sprite_row), AttackPose.RECOVERY, motion_facing,
+			tint, unarmed, stretch, lean, recoil)
 	else:
-		var lean := sin(age * 17.0) * 0.035 if walking else 0.0
-		Art.draw_bestiary(self, int(design.idle_atlas_index), facing, lean, tint)
+		Art.draw_bestiary(self, int(design.idle_atlas_index), motion_facing, lean, tint, stretch, recoil)
 	if species == "seal_keeper" and armed:
 		draw_arc(Vector2(0, -70), 65, 0, TAU, 48, Color(0.62, 0.71, 1.0, 0.68), 3, true)
 	_draw_attack_effect(size)
@@ -394,6 +554,20 @@ func _draw() -> void:
 		draw_rect(bar, Color("#172c2a"))
 		bar.size.x *= float(health) / max_health
 		draw_rect(bar, Color("#d2a06c"))
+
+
+func _transition_frame() -> int:
+	if windup > 0 and windup_duration > 0 and windup / windup_duration > 0.44:
+		return 0
+	if strike > 0.0:
+		var progress := _strike_progress()
+		if progress >= 0.32 and progress < 0.46:
+			return 1
+		if int(attack.get("hits", 1)) == 1 and progress >= 0.46:
+			return 1
+		if int(attack.get("hits", 1)) == 2 and progress >= 0.82:
+			return 1
+	return -1
 
 
 func _attack_pose() -> AttackPose:
@@ -428,7 +602,7 @@ func _draw_attack_effect(size: Vector2) -> void:
 
 
 func _update_moth(delta: float) -> void:
-	position = home + Vector2(sin(age * 1.2) * 32.0, -63.0 + sin(age * 3.1) * 9.0)
+	position = home + Vector2(sin(age * 1.2) * float(profile.patrol_radius), -63.0 + sin(age * 3.1) * 9.0)
 	var offset := target.position - position
 	if windup > 0:
 		windup = maxf(0, windup - delta)
@@ -443,7 +617,7 @@ func _update_moth(delta: float) -> void:
 			_start_recovery(float(attack.recovery))
 	elif recovery > 0:
 		recovery = maxf(0, recovery - delta)
-	elif absf(offset.x) < float(attack.trigger_range) and absf(offset.y) < 130.0 and _clear_to_target():
+	elif _inside_leash(target.position) and absf(offset.x) < float(attack.trigger_range) and absf(offset.y) < 130.0 and _clear_to_target():
 		if absf(offset.x) > 8.0:
 			facing = signf(offset.x)
 		_begin_windup()

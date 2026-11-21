@@ -71,9 +71,9 @@ func run() -> void:
 	await go_to(753.0)
 	await frames(20)
 	phase = "glide"
-	move(-1)
 	Input.action_press("hunt_soul")
 	await tap("hunt_jump")
+	move(-1)
 	var glided := false
 	for frame in range(180):
 		await physics_frame
@@ -121,7 +121,7 @@ func defeat(enemy: Node2D) -> bool:
 
 
 func go_to(x: float) -> void:
-	for frame in range(750):
+	for frame in range(1400):
 		await physics_frame
 		var offset: float = x - hunter.position.x
 		if absf(offset) < 7.0:

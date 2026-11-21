@@ -1,0 +1,202 @@
+extends SceneTree
+
+const Monster := preload("res://scripts/ruin_monster.gd")
+const Ruins := preload("res://scripts/ruins.gd")
+const Art := preload("res://scripts/ruin_sprite_art.gd")
+
+var level: Ruins
+var caption: Label
+var failures := 0
+
+
+func _initialize() -> void:
+	run.call_deferred()
+
+
+func run() -> void:
+	change_scene_to_file("res://scenes/flooded_corridor.tscn")
+	await scene_changed
+	level = current_scene
+	for enemy in level.enemies:
+		enemy.queue_free()
+	level.enemies.clear()
+	level.lantern_found = true
+	level._sync_region_gate()
+	level.camera.zoom = Vector2.ONE * 1.8
+	level.camera.position.y = -115
+	level.camera.position_smoothing_enabled = false
+	var overlay := CanvasLayer.new()
+	overlay.layer = 7
+	level.add_child(overlay)
+	caption = Label.new()
+	caption.position = Vector2(26, 92)
+	caption.add_theme_font_override("font", level.font)
+	caption.add_theme_font_size_override("font_size", 24)
+	caption.add_theme_constant_override("outline_size", 7)
+	overlay.add_child(caption)
+	check_atlas(Art.MOVEMENT_ATLAS.get_image(), 8, 4, "walk")
+	check_atlas(Art.TRANSITION_ATLAS.get_image(), 4, 2, "attack transition")
+	await low_ceiling("treant")
+	await low_ceiling("seal_keeper")
+	await scout_jumps()
+	await stays_in_territory()
+	await attack_transition()
+	quit(1 if failures else 0)
+
+
+func low_ceiling(id: String) -> void:
+	caption.text = ("樹靈" if id == "treant" else "古門封印者") + "｜碰到低矮石樑後折返"
+	place_hunter(1065)
+	var obstacle := block(Vector2(929, 479), Vector2(64, 38))
+	var monster := spawn(id, 800)
+	var was_chasing := false
+	var turned := false
+	var chased_again := false
+	var farthest := monster.position.x
+	for frame in range(240):
+		await physics_frame
+		farthest = maxf(farthest, monster.position.x)
+		was_chasing = was_chasing or monster.state == Monster.State.CHASE
+		if monster.state == Monster.State.RETURN:
+			turned = true
+		if turned and monster.state == Monster.State.CHASE:
+			chased_again = true
+	check(was_chasing and turned and monster.position.x < farthest - 20 and farthest < 916,
+		"%s abandons a blocked passage and walks away from the ceiling" % id)
+	check(not chased_again and monster.state == Monster.State.PATROL,
+		"%s resumes patrol without immediately retrying the blocked side" % id)
+	place_hunter(684)
+	for frame in range(90):
+		await physics_frame
+		if monster.state in [Monster.State.CHASE, Monster.State.WINDUP]:
+			break
+	check(monster.state in [Monster.State.CHASE, Monster.State.WINDUP],
+		"%s can react again from the accessible side" % id)
+	await frames(22)
+	remove(monster, obstacle)
+
+
+func scout_jumps() -> void:
+	caption.text = "石縫巨蛛｜跨過低石塊後繼續追擊"
+	place_hunter(1040)
+	var obstacle := block(Vector2(949, 530), Vector2(22, 20))
+	var monster := spawn("spider", 790)
+	var jumped := false
+	var crossed := false
+	for frame in range(220):
+		await physics_frame
+		jumped = jumped or monster.position.y < 491.0
+		if monster.position.x > 974 and monster.is_on_floor():
+			crossed = true
+			break
+	check(jumped and crossed, "small enemy checks a landing before jumping over a low obstacle")
+	await frames(32)
+	remove(monster, obstacle)
+
+
+func stays_in_territory() -> void:
+	caption.text = "碎岩守衛｜獵人拉開到追擊範圍外"
+	place_hunter(830)
+	var monster := spawn("shard_warden", 610)
+	for frame in range(115):
+		await physics_frame
+		if monster.position.x > 665.0:
+			break
+	var started := monster.position.x > 665.0
+	Input.action_press("hunt_right")
+	for frame in range(160):
+		await physics_frame
+		if level.hunter.position.x > 1235:
+			break
+	Input.action_release("hunt_right")
+	var returned := monster.state == Monster.State.RETURN
+	var farthest := monster.position.x
+	for frame in range(170):
+		await physics_frame
+		farthest = maxf(farthest, monster.position.x)
+		returned = returned or monster.state == Monster.State.RETURN
+	check(started and returned and farthest <= monster.home.x + float(monster.profile.leash) + 0.1 and
+		absf(monster.position.x - monster.home.x) <= float(monster.profile.patrol_radius) + 10.0 and
+		monster.state == Monster.State.PATROL, "moving out of territory ends chase and returns the guardian to patrol")
+	remove(monster)
+
+
+func attack_transition() -> void:
+	caption.text = "樹靈｜收身蓄力、出刀與揮刀後的跟隨動作"
+	place_hunter(966)
+	var monster := spawn("treant", 840)
+	var seen := {}
+	var gait := {}
+	var base_poses := {}
+	for frame in range(230):
+		await physics_frame
+		var stride := float(monster.animation.stride)
+		if monster.walking:
+			gait[floori(fposmod(monster.gait_distance, stride) / stride * 4.0)] = true
+		if monster._attack_pose() >= 0:
+			base_poses[monster._attack_pose()] = true
+			var between := monster._transition_frame()
+			if between >= 0:
+				seen[between] = true
+	check(seen.size() == 2 and base_poses.size() == 3, "treant uses both added drawings during an actual attack cycle")
+	check(gait.size() > 1, "walk phase advances with terrain movement")
+	remove(monster)
+
+
+func check_atlas(atlas: Image, rows: int, columns: int, action: String) -> void:
+	for row in range(rows):
+		var seen := {}
+		for frame in range(columns):
+			var region := atlas.get_region(Rect2i(Vector2i(frame, row) * 224, Vector2i(224, 224)))
+			if not region.is_invisible() and is_zero_approx(region.get_pixel(0, 0).a):
+				seen[hash(region.get_data())] = true
+		check(seen.size() == columns, "%s row %d has %d distinct transparent drawings" % [action, row, columns])
+
+
+func spawn(id: String, x: float) -> Monster:
+	level._add_monster(id, x)
+	return level.enemies.back()
+
+
+func place_hunter(x: float) -> void:
+	level.hunter.position = Vector2(x, 539)
+	level.hunter.velocity = Vector2.ZERO
+	level.hunter.invincible_left = 0.0
+	level.hunter.hurt_left = 0.0
+	level.hunter.rest()
+
+
+func block(center: Vector2, size: Vector2) -> StaticBody2D:
+	var obstacle := StaticBody2D.new()
+	obstacle.position = center
+	var collision := CollisionShape2D.new()
+	var shape := RectangleShape2D.new()
+	shape.size = size
+	collision.shape = shape
+	obstacle.add_child(collision)
+	var art := Polygon2D.new()
+	var edge := size / 2
+	art.color = Color("#85958e")
+	art.polygon = PackedVector2Array([-edge, Vector2(edge.x, -edge.y), edge, Vector2(-edge.x, edge.y)])
+	obstacle.add_child(art)
+	level.add_child(obstacle)
+	return obstacle
+
+
+func remove(monster: Monster, obstacle: StaticBody2D = null) -> void:
+	level.enemies.erase(monster)
+	monster.queue_free()
+	if obstacle != null:
+		obstacle.queue_free()
+	level.arrows.clear()
+
+
+func frames(count: int) -> void:
+	for frame in range(count):
+		await physics_frame
+
+
+func check(passed: bool, title: String) -> void:
+	if not passed:
+		failures += 1
+	print("%s %s" % ["PASS" if passed else "FAIL", title])

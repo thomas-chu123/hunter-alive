@@ -94,6 +94,8 @@ func run() -> void:
 			return
 		if not verify(await glide_to(leg[1]), "glided to court waypoint %d" % leg[1]):
 			return
+	if not verify(await glide_to(3070), "glided behind the seal keeper"):
+		return
 	var keeper = find_enemy("seal_keeper")
 	if not verify(await push_keeper_to_seal(keeper), "reached the keeper's shield phase"):
 		return
@@ -110,6 +112,11 @@ func run() -> void:
 		return
 	mark("FINISH deaths=%d" % deaths)
 	await frames(120)
+	if DisplayServer.get_name() == "headless":
+		# A fixed-FPS run finishes before the real-time dummy audio mixer.
+		ruins.hit_effects.clear()
+		OS.delay_msec(250)
+		await process_frame
 	quit(0)
 
 
@@ -149,20 +156,32 @@ func camp_reload() -> bool:
 
 
 func push_keeper_to_seal(keeper: Node2D) -> bool:
-	for frame in range(1350):
-		await physics_frame
-		if not is_instance_valid(keeper):
+	for shot in range(24):
+		if not is_instance_valid(keeper) or ruins.restarting:
 			break
 		if keeper.second_phase:
 			release_inputs()
 			return true
 		var offset: float = keeper.position.x - hunter.position.x
-		var distance := absf(offset)
-		move(signf(offset) if distance > 270.0 or hunter.facing != signf(offset)
-			else (-signf(offset) if distance < 195.0 else 0.0))
-		hold("hunt_attack", hunter.facing == signf(offset))
+		if absf(offset) > 350.0:
+			await walk_to(keeper.position.x - signf(offset) * 280.0, 12)
+		elif absf(offset) < 180.0:
+			var retreat := clampf(keeper.position.x - signf(offset) * 224.0, 2470.0, 3255.0)
+			if absf(retreat - hunter.position.x) > 12.0:
+				await walk_to(retreat, 10)
+		await aim_at(keeper.position.x)
+		await tap("hunt_attack")
+		await frames(24)
 	release_inputs()
 	return false
+
+
+func aim_at(x: float) -> void:
+	var direction := signf(x - hunter.position.x)
+	if hunter.facing != direction:
+		move(direction)
+		await frames(2)
+	move(0)
 
 
 func break_guard(enemy: Node2D) -> bool:
