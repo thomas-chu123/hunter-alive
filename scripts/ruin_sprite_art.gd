@@ -16,6 +16,9 @@ const MOTH_CELL := 627.0
 # Abdomen position within each cell, kept aligned with the in-game warning glow.
 const MOTH_ABDOMEN := [Vector2(305, 365), Vector2(307, 372),
 	Vector2(334, 383), Vector2(298, 373)]
+const CRAB := preload("res://assets/monster/lantern_crab.png")
+const KEEPER := preload("res://assets/monster/seal_keeper.png")
+const LANTERN_REGION := Rect2(1366, 423, 240, 325)
 
 
 static func draw_actor(canvas: Node2D, row: int, pose: int, scale: float,
@@ -52,4 +55,42 @@ static func draw_bell_moth(canvas: Node2D, pose: int, facing: float, flap: float
 	var dest := Rect2(-MOTH_ABDOMEN[pose] * scale, cell * scale)
 	canvas.draw_set_transform(Vector2(0, -22), 0, Vector2(facing * flap, 1))
 	canvas.draw_texture_rect_region(MOTH_ATLAS, dest, source, tint)
+	canvas.draw_set_transform(Vector2.ZERO)
+
+
+static func draw_stage_guard(canvas: Node2D, crab: bool, facing: float,
+		armed: bool, lean: float, tint: Color) -> void:
+	canvas.draw_set_transform(Vector2.ZERO, lean * facing, Vector2(facing, 1))
+	if crab:
+		var offset := Vector2(836, 814)
+		var scale := 0.085
+		if armed:
+			var source := Rect2(130, 28, 1490, 790)
+			canvas.draw_texture_rect_region(CRAB, Rect2((source.position - offset) * scale, source.size * scale), source, tint)
+		else:
+			# Keep the pincer while omitting the hanging lantern beneath it.
+			for source in [Rect2(130, 28, 1230, 790), Rect2(1360, 28, 260, 386)]:
+				canvas.draw_texture_rect_region(CRAB, Rect2((source.position - offset) * scale, source.size * scale), source, tint)
+	else:
+		var source := Rect2(0, 0, KEEPER.get_width(), KEEPER.get_height())
+		var scale := 0.128
+		var feet := Vector2(594, 1307)
+		canvas.draw_texture_rect_region(KEEPER, Rect2(-feet * scale, source.size * scale), source, tint)
+	canvas.draw_set_transform(Vector2.ZERO)
+
+
+const BESTIARY_ATLASES := [
+	preload("res://assets/monster/stage3_beasts_a.png"),
+	preload("res://assets/monster/stage3_beasts_b.png"),
+]
+
+
+static func draw_bestiary(canvas: Node2D, index: int, facing: float, lean: float, tint: Color) -> void:
+	var atlas: Texture2D = BESTIARY_ATLASES[0 if index < 8 else 1]
+	var frame := index % 8
+	var cell := atlas.get_size() / Vector2(4, 2)
+	var source := Rect2(Vector2(frame % 4, 0 if frame < 4 else 1) * cell, cell)
+	var size := Vector2(103, 103)
+	canvas.draw_set_transform(Vector2.ZERO, lean * facing, Vector2(facing, 1))
+	canvas.draw_texture_rect_region(atlas, Rect2(Vector2(-size.x * 0.5, -size.y * 0.88), size), source, tint)
 	canvas.draw_set_transform(Vector2.ZERO)

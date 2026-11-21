@@ -24,7 +24,7 @@ func run_checks() -> void:
 	var species: Array[String] = []
 	for monster in ruins.enemies:
 		species.append(monster.species)
-	check(species == ["spider", "lizard", "spider", "treant", "bell_moth"], "ruins spawn five enemies across four species")
+	check(species.slice(0, 5) == ["spider", "lizard", "spider", "treant", "bell_moth"], "ruins retain the five prototype encounters")
 	if failures > 0:
 		quit(1)
 		return

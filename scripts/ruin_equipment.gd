@@ -21,3 +21,45 @@ const ICONS := {
 	"ember_staff": preload("res://assets/items/ember_staff.png"),
 	"root_blade": preload("res://assets/items/root_blade.png"),
 }
+
+
+const Armory := preload("res://scripts/ruin_armory.gd")
+
+
+static func item(id: String) -> Array:
+	if ITEMS.has(id):
+		return ITEMS[id]
+	if Armory.WEAR.has(id):
+		return Armory.WEAR[id]
+	if Armory.WEAPONS.has(id):
+		var weapon: Array = Armory.WEAPONS[id]
+		return [weapon[0], "武器", weapon[1]]
+	return []
+
+
+const CAMPAIGN_ICONS := [
+	preload("res://assets/items/stage3_wear_a.png"),
+	preload("res://assets/items/stage3_wear_b.png"),
+	preload("res://assets/items/stage3_weapons.png"),
+]
+
+
+static func icon(id: String) -> Texture2D:
+	if ICONS.has(id):
+		return ICONS[id]
+	var index := Armory.WEAR.keys().find(id)
+	var atlas: Texture2D
+	if index >= 0:
+		atlas = CAMPAIGN_ICONS[0 if index < 8 else 1]
+		index %= 8
+	else:
+		index = Armory.WEAPONS.keys().find(id) - 1
+		if index < 0:
+			return null
+		atlas = CAMPAIGN_ICONS[2]
+	var cell := atlas.get_size() / Vector2(4, 2)
+	var texture := AtlasTexture.new()
+	texture.atlas = atlas
+	texture.region = Rect2(Vector2(index % 4, 0 if index < 4 else 1) * cell, cell)
+	texture.filter_clip = true
+	return texture

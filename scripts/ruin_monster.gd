@@ -2,11 +2,14 @@ extends CharacterBody2D
 
 signal felled(monster: Node2D)
 signal disarmed(monster: Node2D)
+signal launched(origin: Vector2, direction: float, effect: String)
 
+const Bestiary := preload("res://scripts/ruin_bestiary.gd")
 const Art := preload("res://scripts/ruin_sprite_art.gd")
 const COLORS := {"spider": Color("#ae745d"), "lizard": Color("#77c6ad"), "treant": Color("#d5a56d")}
-const HP := {"spider": 5, "lizard": 6, "treant": 20, "bell_moth": 6}
-const SIZE := {"spider": Vector2(76, 55), "lizard": Vector2(92, 70), "treant": Vector2(110, 120), "bell_moth": Vector2(64, 49)}
+const HP := {"spider": 5, "lizard": 6, "treant": 20, "bell_moth": 6, "lantern_crab": 9, "seal_keeper": 26}
+const SIZE := {"spider": Vector2(76, 55), "lizard": Vector2(92, 70), "treant": Vector2(110, 120),
+	"bell_moth": Vector2(64, 49), "lantern_crab": Vector2(97, 60), "seal_keeper": Vector2(102, 136)}
 const ART_ROWS := {"spider": 0, "lizard": 1, "treant": 2}
 const ART_SCALES := {"spider": 0.30, "lizard": 0.33, "treant": 0.46}
 enum State { PATROL, CHASE, WINDUP, STRIKE, RECOVER, RETURN }
@@ -21,12 +24,19 @@ const PROFILES := {
 	"treant": {"speed": 96.0, "sight": 480.0, "leash": 510.0, "jump": 0.0,
 		"reach": 148.0, "tell": 0.78, "strike": 0.34, "recover": 0.92},
 	"bell_moth": {"tell": 0.95, "strike": 0.58, "recover": 1.1},
+	"lantern_crab": {"speed": 84.0, "sight": 390.0, "leash": 435.0, "jump": 0.0,
+		"reach": 132.0, "tell": 0.94, "strike": 0.48, "recover": 1.05},
+	"seal_keeper": {"speed": 103.0, "sight": 520.0, "leash": 650.0, "jump": 0.0,
+		"reach": 165.0, "tell": 0.87, "strike": 0.74, "recover": 0.97},
 }
 
 var species: String
 var target: CharacterBody2D
 var home := Vector2.ZERO
 var health := 0
+var max_health := 0
+var attack_kind := ""
+var target_mark := 0.0
 var armed := false
 var facing := -1.0
 var age := 0.0
@@ -42,6 +52,8 @@ var lost_sight := 0.0
 var patrol_dir := -1.0
 var dive_lift := 0.0
 var walking := false
+var second_phase := false
+var second_sweep := false
 
 
 func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
@@ -49,9 +61,16 @@ func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
 	position = at
 	home = at
 	target = hunter
-	health = HP[species]
-	armed = species == "treant"
-	profile = PROFILES[species]
+	if Bestiary.CREATURES.has(species):
+		var design: Array = Bestiary.CREATURES[species]
+		max_health = design[1]
+		attack_kind = design[7]
+		profile = Bestiary.profile(species)
+	else:
+		max_health = HP[species]
+		profile = PROFILES[species]
+	health = max_health
+	armed = species in ["treant", "lantern_crab", "thorn_archer", "shield_heron"]
 
 
 func _ready() -> void:
@@ -59,7 +78,7 @@ func _ready() -> void:
 	collision_mask = 1
 	var shape := RectangleShape2D.new()
 	# Keep the movement collider near the feet; combat uses the full sprite hitbox.
-	shape.size = Vector2(38, 58) if species == "treant" else Vector2(28, 29)
+	shape.size = Vector2(38, 58) if species in ["treant", "seal_keeper"] else Vector2(28, 29)
 	var feet := CollisionShape2D.new()
 	feet.shape = shape
 	feet.position.y = -shape.size.y / 2.0
@@ -135,6 +154,7 @@ func _chase(offset: Vector2) -> void:
 	if is_on_floor() and absf(offset.x) <= reach and absf(offset.y) <= max_height and _clear_to_target():
 		state = State.WINDUP
 		windup = float(profile.tell)
+		target_mark = target.position.x
 		if species == "treant" and not armed:
 			windup = 0.45
 		_move(0)
@@ -209,9 +229,27 @@ func _start_strike(offset: Vector2) -> void:
 			velocity.y = -430.0
 		"treant":
 			_move(facing * (92.0 if armed else 231.0))
+		"lantern_crab":
+			_move(facing * 182.0)
+		"seal_keeper":
+			second_sweep = false
+			_move(facing * 135.0)
+		_:
+			_start_bestiary_attack()
 
 
 func _strike(delta: float) -> void:
+	if (species == "seal_keeper" or attack_kind == "double") and not second_sweep and strike < 0.36:
+		second_sweep = true
+		can_hit = true
+		if species == "dust_hare" and absf(target_mark - position.x) > 5.0:
+			facing = signf(target_mark - position.x)
+		_move(facing * 260.0)
+		if attack_kind == "double":
+			velocity.y = -270.0
+	if attack_kind == "ram" and _wall_ahead(facing):
+		_start_recovery(1.5)
+		strike = 0.0
 	if species == "lizard" and dive_lift > 0:
 		dive_lift -= delta
 		if dive_lift <= 0:
@@ -223,10 +261,29 @@ func _strike(delta: float) -> void:
 
 func _try_hit() -> void:
 	var offset := target.position - position
+	if attack_kind == "rune":
+		if absf(target.position.x - target_mark) < 57.0 and target.is_on_floor():
+			target.hurt(target_mark + 1, 2, "rune")
+			can_hit = false
+		return
 	var reach := 128.0 if armed else (85.0 if species == "treant" else 47.0)
-	if facing * offset.x >= -25.0 and absf(offset.x) <= reach and absf(offset.y) < 78.0 and _clear_to_target():
+	if species == "seal_keeper":
+		reach = 147.0 if second_sweep else 122.0
+	elif species == "lantern_crab":
+		reach = 91.0
+	if not attack_kind.is_empty():
+		reach = float(profile.reach)
+		if attack_kind in ["shock", "mud", "shards"] and not target.is_on_floor():
+			return
+	if (facing * offset.x >= -25.0 or attack_kind in ["shock", "mud", "shards"]) and absf(offset.x) <= reach and absf(offset.y) < 78.0 and _clear_to_target():
 		can_hit = false
-		target.hurt(position.x)
+		if attack_kind == "latch":
+			target.attach_leech()
+		elif attack_kind == "mud":
+			target.apply_mud()
+			target.hurt(position.x, 1, attack_kind)
+		else:
+			target.hurt(position.x, 1, attack_kind)
 
 
 func _start_recovery(seconds: float) -> void:
@@ -236,7 +293,7 @@ func _start_recovery(seconds: float) -> void:
 
 
 func body_hitbox() -> Rect2:
-	var size: Vector2 = SIZE[species]
+	var size: Vector2 = SIZE.get(species, Vector2(82, 69))
 	return Rect2(position - Vector2(size.x / 2.0, size.y), size)
 
 
@@ -248,21 +305,59 @@ func arrow_hitbox(arrow_y: float) -> Rect2:
 
 
 func weapon_hitbox() -> Rect2:
+	if species == "lantern_crab":
+		return Rect2(position + Vector2(facing * 58 - 14, -49), Vector2(28, 41))
+	if species == "thorn_archer":
+		return Rect2(position + Vector2(facing * 39 - 18, -66), Vector2(36, 45))
+	if species == "shield_heron":
+		return Rect2(position + Vector2(-facing * 35 - 18, -65), Vector2(36, 48))
+	if species == "seal_keeper":
+		return Rect2(position + Vector2(facing * 55 - 20, -62), Vector2(40, 43))
 	return Rect2(position + Vector2(facing * 81 - 24, -71), Vector2(48, 56))
 
 
-func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false) -> void:
+func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false, source_weapon: String = "", source_direction: float = 0.0) -> void:
 	if health <= 0:
 		return
 	flash = 0.15
-	if species == "bell_moth" and projectile and windup > 0:
+	if (species == "bell_moth" and projectile or attack_kind == "rune") and windup > 0:
 		windup = 0.0
 		recovery = profile.recover
+		state = State.RECOVER
 	if weapon_hit and armed and windup > 0:
+		if species in ["lantern_crab", "thorn_archer"] and not projectile:
+			return
 		armed = false
 		windup = 0.0
 		_start_recovery(0.50)
 		disarmed.emit(self)
+		return
+	if attack_kind in ["shell", "roll", "burrow"] and state != State.RECOVER:
+		if source_weapon == "tide_hammer" and attack_kind == "shell":
+			_start_recovery(1.25)
+		else:
+			return
+	if attack_kind == "shield" and armed and source_direction * facing < 0:
+		return
+	if attack_kind == "spray" and windup > 0 and source_direction * facing > 0:
+		windup = 0.0
+		_start_recovery(0.75)
+	if attack_kind == "shards" and not second_phase and health - damage <= max_health / 2:
+		second_phase = true
+		target_mark = position.x
+		state = State.WINDUP
+		windup = 0.45
+	if species == "seal_keeper":
+		if armed:
+			return
+		if not second_phase and health - damage <= 13:
+			health = 13
+			second_phase = true
+			armed = true
+			_start_recovery(0.6)
+			return
+	if species == "lantern_crab" and armed:
+		health = maxi(1, health - damage)
 		return
 	health = maxi(0, health - damage)
 	if health == 0:
@@ -273,6 +368,12 @@ func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false) -> voi
 func _draw() -> void:
 	if species == "bell_moth":
 		_draw_moth()
+		return
+	if species in ["lantern_crab", "seal_keeper"]:
+		_draw_stage_guard()
+		return
+	if not attack_kind.is_empty():
+		_draw_bestiary()
 		return
 	var pose := 1 if walking and sin(age * 13.0) > 0 else 0
 	var torso_motion := sin(age * (9.0 if walking else 3.0)) * 1.5
@@ -351,3 +452,84 @@ func _draw_moth() -> void:
 		for i in range(12):
 			var at := Vector2(sin(i * 4.9) * (18.0 + 56.0 * progress), i * 7.0 - 10.0 + progress * 34.0)
 			draw_circle(at, 4.0 + i % 3, Color(0.93, 0.77, 0.48, 0.75 * (1.0 - progress)))
+
+
+func _draw_stage_guard() -> void:
+	var crab := species == "lantern_crab"
+	var lean := sin(age * 14.0) * 0.035 if walking else 0.0
+	if windup > 0:
+		lean = -0.10
+	elif strike > 0:
+		lean = 0.21 if second_sweep else 0.12
+	var tint := Color(1.22, 1.13, 1.05) if flash > 0 else Color.WHITE
+	Art.draw_stage_guard(self, crab, facing, armed, lean, tint)
+	if armed and not crab:
+		draw_arc(Vector2(0, -70), 65, 0.0, TAU, 48, Color(0.62, 0.71, 1.0, 0.68), 3.0, true)
+	if windup > 0:
+		var point := weapon_hitbox().get_center() - position
+		draw_circle(point, 13 + sin(age * 14.0) * 2, Color(1, 0.72, 0.27, 0.22))
+		draw_circle(point, 4, Color("#ffeac3"))
+	elif strike > 0:
+		var radius := 94.0 if crab else (145.0 if second_sweep else 120.0)
+		var angle := 0.0 if facing > 0 else PI
+		draw_arc(Vector2(0, -20), radius, angle - 0.29, angle + 0.29, 18, Color(1, 0.73, 0.35, 0.73), 3.0, true)
+	var bar := Rect2(-32, -77 if crab else -174, 64, 5)
+	draw_rect(bar, Color("#172c2a"))
+	bar.size.x *= float(health) / int(HP[species])
+	draw_rect(bar, Color("#daa260") if crab else Color("#bb9ce2"))
+
+
+func _start_bestiary_attack() -> void:
+	second_sweep = false
+	match attack_kind:
+		"roll", "ram", "shield":
+			_move(facing * (340.0 if attack_kind == "ram" else 260.0))
+		"double", "leap":
+			if species == "dust_hare":
+				can_hit = false
+				_move(-facing * 95.0)
+				velocity.y = -150.0
+			else:
+				_move(facing * 235.0)
+				velocity.y = -365.0 if attack_kind == "leap" else -265.0
+		"burrow":
+			_move(facing * 315.0)
+			velocity.y = -180.0
+		"latch":
+			_move(facing * 205.0)
+			velocity.y = -170.0
+		"arrow", "shell", "spray":
+			_move(0)
+			can_hit = false
+			launched.emit(position + Vector2(facing * 25, -32), facing, attack_kind)
+		_:
+			_move(0)
+
+
+func _draw_bestiary() -> void:
+	var lean := 0.0
+	if windup > 0:
+		lean = -0.14
+	elif strike > 0:
+		lean = 0.18
+	elif attack_kind == "roll" and recovery > 0:
+		lean = 0.78
+	elif walking:
+		lean = sin(age * 17.0) * 0.035
+	var tint := Color(1.23, 1.16, 1.07) if flash > 0 else Color.WHITE
+	Art.draw_bestiary(self, Bestiary.CREATURES[species][0], facing, lean, tint)
+	if windup > 0 and attack_kind == "rune":
+		draw_circle(Vector2(target_mark - position.x, 0), 54, Color(1.0, 0.41, 0.19, 0.25))
+	elif windup > 0 and attack_kind == "burrow":
+		draw_circle(Vector2(facing * 34, -2), 27, Color(0.66, 0.42, 0.22, 0.58))
+	elif windup > 0:
+		var aim := weapon_hitbox().get_center() - position if armed else Vector2(0, -56)
+		draw_circle(aim, 8, Color(1.0, 0.68, 0.28, 0.45))
+		draw_circle(aim, 3, Color("#ffe7b3"))
+	if strike > 0 and attack_kind in ["shock", "mud", "shards", "rune"]:
+		var center := Vector2(target_mark - position.x, 0) if attack_kind == "rune" else Vector2(0, -4)
+		var radius := 54.0 if attack_kind == "rune" else float(profile.reach)
+		draw_line(center - Vector2(radius, 0), center + Vector2(radius, 0), Color(1.0, 0.64, 0.30, 0.66), 4.0, true)
+	if health < max_health:
+		draw_rect(Rect2(-23, -75, 46, 4), Color("#172c2a"))
+		draw_rect(Rect2(-23, -75, 46.0 * health / max_health, 4), Color("#d2a06c"))

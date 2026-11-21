@@ -19,6 +19,11 @@ func _ready() -> void:
 	disarm_sound = _make_sound(true)
 
 
+func _exit_tree() -> void:
+	if is_instance_valid(audio):
+		audio.stop()
+
+
 func impact(point: Vector2, direction: float, disarm: bool) -> void:
 	bursts.append({"point": point, "direction": direction, "disarm": disarm, "age": 0.0})
 	audio.stream = disarm_sound if disarm else hit_sound

@@ -1,9 +1,10 @@
 extends CharacterBody2D
 
-signal attacked(origin: Vector2, facing: float, ranged: bool, damage: int)
-signal cast(origin: Vector2, direction: float)
+signal attacked(origin: Vector2, facing: float, ranged: bool, damage: int, weapon: String)
+signal cast(origin: Vector2, direction: float, weapon: String)
 signal defeated
 
+const Armory := preload("res://scripts/ruin_armory.gd")
 const HunterAnimation := preload("res://scripts/hunter_animation.gd")
 const RUN_SPEED := 250.0
 const WALK_SPEED := 115.0
@@ -35,6 +36,13 @@ var staff_unlocked := false
 var gear: Dictionary = {}
 var vest_ready := false
 var pollen_left := 0.0
+var leech_left := 0.0
+var leech_tick := 0.0
+var mud_left := 0.0
+var shallow_water := false
+var equipped_weapon := ""
+var attack_weapon := "hunter_knife"
+var unlocked_weapons: Array[String] = ["hunter_knife", "hunter_bow"]
 var equipped_soul := ""
 var knife_level := 0
 var bow_level := 0
@@ -85,6 +93,13 @@ func _physics_process(delta: float) -> void:
 	rise_left = maxf(rise_left - delta, 0)
 	hurt_left = maxf(hurt_left - delta, 0)
 	pollen_left = maxf(pollen_left - delta, 0)
+	mud_left = maxf(mud_left - delta, 0)
+	if leech_left > 0.0:
+		leech_left = maxf(0, leech_left - delta)
+		leech_tick -= delta
+		if leech_tick <= 0:
+			hurt(position.x - facing, 1, "leech")
+			leech_tick = 1.5 if gear.get("身體") == "reed_coat" else 0.9
 	var grounded := is_on_floor()
 	_update_crouch(grounded and Input.is_action_pressed("hunt_crouch"))
 	crouch_time = crouch_time + delta if crouching else 0.0
@@ -109,40 +124,44 @@ func _physics_process(delta: float) -> void:
 		velocity.y = -JUMP_SPEED
 		jump_grace = 0.0
 		wall_holding = false
+		leech_left = 0.0
 
 	gliding = (
 		equipped_soul == "lizard" and Input.is_action_pressed("hunt_soul")
 		and not is_on_floor() and velocity.y > 0
 	)
 	if gliding:
-		velocity.y = minf(velocity.y, 58.0)
+		velocity.y = minf(velocity.y, 49.3 if gear.get("身體") == "wing_cape" else 58.0)
 
 	var speed := WALK_SPEED if walking else RUN_SPEED
 	if gliding:
 		speed = GLIDE_SPEED
 	elif crouching:
 		speed = CROUCH_SPEED
-	if pollen_left > 0:
+	if landing_left > 0.0:
+		speed *= 0.75
+	if pollen_left > 0 or mud_left > 0:
 		speed *= 0.64
-	velocity.x = move_toward(velocity.x, direction * speed, 2100.0 * delta)
+	var current_force := 0.0
+	if shallow_water:
+		speed *= 1.20 if gear.get("腿部") == "eel_greaves" else 1.0
+		current_force = -16.0 if gear.get("腿部") == "sluice_boots" else -32.0
+	velocity.x = move_toward(velocity.x, direction * speed + current_force, 2100.0 * delta)
 	var fall_speed := velocity.y
 	move_and_slide()
 	if is_on_floor() and not grounded and fall_speed > 245.0:
-		landing_left = LAND_DURATION
+		landing_left = LAND_DURATION * (0.5 if gear.get("腿部") == "cliff_boots" else 1.0)
 	animation_time += delta
 	if Input.is_action_just_pressed("hunt_switch"):
-		if with_staff:
-			select_weapon("hunter_knife")
-		elif with_bow:
-			select_weapon("ember_staff" if staff_unlocked else "hunter_knife")
-		else:
-			select_weapon("hunter_bow")
+		var slot := unlocked_weapons.find(selected_weapon())
+		select_weapon(unlocked_weapons[(slot + 1) % unlocked_weapons.size()])
 	var wants_attack := attack_buffer_left > 0 or Input.is_action_pressed("hunt_attack")
 	if wants_attack and attack_left <= 0 and hurt_left <= 0 and (not with_staff or mana >= STAFF_MANA_COST):
 		attack_buffer_left = 0.0
 		attack_with_bow = with_bow
 		attack_with_staff = with_staff
-		attack_duration = weapon_period(selected_weapon())
+		attack_weapon = selected_weapon()
+		attack_duration = weapon_period(attack_weapon)
 		attack_left = attack_duration
 		attack_queued = true
 	var hit_at := attack_duration * (1.0 - float(HunterAnimation.BOW_RELEASE_FRAME) / HunterAnimation.FRAME_COUNT) if attack_with_bow else attack_duration * 0.74
@@ -150,12 +169,12 @@ func _physics_process(delta: float) -> void:
 		attack_queued = false
 		if attack_with_staff:
 			mana -= STAFF_MANA_COST
-			cast.emit(position + Vector2(facing * 22, -37), facing)
+			cast.emit(position + Vector2(facing * 22, -37), facing, attack_weapon)
 		else:
-			var damage := weapon_damage("hunter_bow" if attack_with_bow else "hunter_knife")
+			var damage := weapon_damage(attack_weapon)
 			var height := 21.0 if crouching else 30.0
 			var origin := HunterAnimation.bow_origin(facing) if attack_with_bow else Vector2(facing * 14, -height)
-			attacked.emit(position + origin, facing, attack_with_bow, damage)
+			attacked.emit(position + origin, facing, attack_with_bow, damage, attack_weapon)
 	queue_redraw()
 
 
@@ -180,23 +199,30 @@ func _update_crouch(requested: bool, force_stand: bool = false) -> void:
 		rise_left = 0.08
 
 
-func hurt(source_x: float) -> void:
+func hurt(source_x: float, damage: int = 1, effect: String = "") -> void:
 	if invincible_left > 0 or health <= 0:
 		return
-	if vest_ready and gear.get("身體") == "moss_vest":
+	if vest_ready and gear.get("身體") in ["moss_vest", "earthen_armor"]:
 		vest_ready = false
 		invincible_left = 0.45
 		return
-	health -= 1
+	if effect == "rune" and gear.get("頭部") == "ash_cowl":
+		damage = maxi(1, damage - 1)
+	health = maxi(0, health - damage)
 	if health == 0:
 		defeated.emit()
 		return
 	invincible_left = 0.9
 	hurt_left = HURT_DURATION
+	if (effect == "shock" and gear.get("頭部") == "copper_helm") or (effect == "shards" and gear.get("腿部") == "cinder_greaves"):
+		hurt_left *= 0.5
 	attack_left = 0.0
 	attack_buffer_left = 0.0
 	attack_queued = false
-	velocity = Vector2(signf(position.x - source_x) * 270, -240)
+	var force := 270.0
+	if (effect == "spray" and gear.get("頭部") == "sealed_cap") or (effect == "ram" and gear.get("腿部") == "ram_boots"):
+		force *= 0.55
+	velocity = Vector2(signf(position.x - source_x) * force, -240)
 
 
 func max_health() -> int:
@@ -206,40 +232,65 @@ func max_health() -> int:
 func rest() -> void:
 	health = max_health()
 	mana = MAX_MANA
-	vest_ready = gear.get("身體") == "moss_vest"
+	vest_ready = gear.get("身體") in ["moss_vest", "earthen_armor"]
 	pollen_left = 0.0
+	mud_left = 0.0
+	leech_left = 0.0
 
 
 func apply_pollen() -> void:
 	pollen_left = POLLEN_DURATION * (0.5 if gear.get("頭部") == "scaleveil_hood" else 1.0)
 
 
+func apply_mud() -> void:
+	mud_left = 1.1 if gear.get("身體") == "silt_shell" else 2.2
+
+
+func attach_leech() -> void:
+	leech_left = 3.6
+	leech_tick = 1.5 if gear.get("身體") == "reed_coat" else 0.9
+
+
 func weapon_period(id: String) -> float:
-	match id:
-		"hunter_bow":
-			return BOW_DURATION
-		"ember_staff":
-			return STAFF_DURATION
-		_:
-			return WRAPS_KNIFE_DURATION if gear.get("手部") == "hunter_wraps" else KNIFE_DURATION
+	var duration := KNIFE_DURATION
+	if Armory.WEAPONS.has(id):
+		duration = Armory.WEAPONS[id][3]
+	elif id == "hunter_bow":
+		duration = BOW_DURATION
+	elif id == "ember_staff":
+		duration = STAFF_DURATION
+	if id in ["hunter_bow", "thorn_bow"] and gear.get("手部") == "bowstring_gloves":
+		duration *= 0.85
+	if id in ["ember_staff", "scribe_staff"] and gear.get("手部") == "rune_gloves":
+		duration *= 0.85
+	if id == "hunter_knife" and gear.get("手部") == "hunter_wraps":
+		duration = WRAPS_KNIFE_DURATION
+	return duration
 
 
 func weapon_damage(id: String) -> int:
+	if Armory.WEAPONS.has(id):
+		return int(Armory.WEAPONS[id][2]) + (0 if id == "scribe_staff" else (bow_level if id == "thorn_bow" else knife_level))
 	match id:
 		"hunter_bow":
 			return 1 + bow_level
 		"ember_staff":
 			return STAFF_DAMAGE
 		_:
-			return 2 + knife_level + int(stolen_blade)
+			return 2 + knife_level
 
 
 func select_weapon(id: String) -> void:
-	with_staff = id == "ember_staff" and staff_unlocked
-	with_bow = id == "hunter_bow"
+	if not unlocked_weapons.has(id):
+		id = "hunter_knife"
+	equipped_weapon = id if Armory.WEAPONS.has(id) else ""
+	with_staff = id in ["ember_staff", "scribe_staff"]
+	with_bow = id in ["hunter_bow", "thorn_bow"]
 
 
 func selected_weapon() -> String:
+	if not equipped_weapon.is_empty():
+		return equipped_weapon
 	if with_staff:
 		return "ember_staff"
 	return "hunter_bow" if with_bow else "hunter_knife"

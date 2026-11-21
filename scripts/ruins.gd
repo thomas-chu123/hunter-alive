@@ -8,6 +8,11 @@ const CampSave := preload("res://scripts/camp_save.gd")
 const Preferences := preload("res://scripts/game_preferences.gd")
 const HunterAnimation := preload("res://scripts/hunter_animation.gd")
 const Equipment := preload("res://scripts/ruin_equipment.gd")
+const Bestiary := preload("res://scripts/ruin_bestiary.gd")
+const Armory := preload("res://scripts/ruin_armory.gd")
+const CacheTexture := preload("res://assets/environment/ruins/reliquary.png")
+const Campaign := preload("res://scripts/campaign.gd")
+const MonsterArt := preload("res://scripts/ruin_sprite_art.gd")
 const START := Vector2(950, 526)
 const MOTH_X := 2330.0
 const SOUL_NAMES := {"lizard": "蜥翼", "spider": "蛛步"}
@@ -26,10 +31,25 @@ var camera: Camera2D
 var enemies: Array[Monster] = []
 var drops: Array[Dictionary] = []
 var arrows: Array[Dictionary] = []
+var glyphs: Array[Dictionary] = []
+var fang_target: Monster
+var fang_hits := 0
 var collected_souls: Array[String] = []
 var materials := 0
+var fangs := 0
+var forge_fang: Button
 var owned_equipment: Array[String] = []
+@export_enum("Temple", "Flooded Corridor", "Buried Court") var region := 0
+
 var guardian_felled := false
+var unclaimed_blade_x := -1.0
+var lantern_found := false
+var keeper_felled := false
+var cache_flags: Dictionary = {}
+var transitioning := false
+var end_title: Label
+var end_story: Label
+var end_prompt: Label
 var completed := false
 var restarting := false
 var notice_left := 0.0
@@ -69,7 +89,7 @@ func _ready() -> void:
 
 	hunter = Hunter.new()
 	hunter.name = "Hunter"
-	hunter.position = START
+	hunter.position = _camp_start()
 	hunter.attacked.connect(_attack)
 	hunter.cast.connect(_cast)
 	hunter.defeated.connect(_on_hunter_defeated)
@@ -89,9 +109,16 @@ func _ready() -> void:
 	if get_tree().has_meta(CampSave.RESTORE_META):
 		_restore_camp(get_tree().get_meta(CampSave.RESTORE_META))
 		get_tree().remove_meta(CampSave.RESTORE_META)
+	_sync_region_gate()
 	_spawn_enemies()
 	_build_hud()
-	_notice("前世的記憶停在墜落那一刻。神殿深處也許有回家的線索。", 5.0)
+	match region:
+		Campaign.Region.TEMPLE:
+			_notice("前世的記憶停在墜落那一刻。神殿深處也許有回家的線索。", 5.0)
+		Campaign.Region.CORRIDOR:
+			_notice("暗水道的石閘需要光。留意石蟹舉起的提燈。", 5.0)
+		Campaign.Region.COURT:
+			_notice("沿王座外階走到主祭壇，找到古門封印者。", 5.0)
 
 
 func _process(delta: float) -> void:
@@ -105,12 +132,14 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if completed or restarting or camp_menu.visible or gear_menu.visible or pause_menu.visible:
+	if completed or transitioning or restarting or camp_menu.visible or gear_menu.visible or pause_menu.visible:
 		return
 	if hunter.position.y > 790:
 		_on_hunter_defeated()
 		return
+	hunter.shallow_water = region == Campaign.Region.CORRIDOR and hunter.position.y > 522.0 and hunter.position.x > 1580 and hunter.position.x < 2220
 	_update_arrows(delta)
+	_update_glyphs(delta)
 	_collect_drops()
 	if Input.is_action_just_pressed("hunt_equip"):
 		_equip_next_soul()
@@ -133,41 +162,98 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if completed and event.is_action_pressed("hunt_interact"):
-		get_tree().reload_current_scene()
+		if region == Campaign.Region.COURT:
+			get_tree().change_scene_to_file("res://scenes/title.tscn")
+		else:
+			_queue_region(region + 1)
+		get_viewport().set_input_as_handled()
 
 
 func _spawn_enemies() -> void:
-	_add_monster("spider", 1310)
-	_add_monster("lizard", 1880)
-	_add_monster("spider", 2240)
-	if not guardian_felled:
-		_add_monster("treant", 2840)
-	_add_monster("bell_moth", MOTH_X)
+	match region:
+		Campaign.Region.TEMPLE:
+			_add_monster("spider", 1310)
+			_add_monster("lizard", 1880)
+			_add_monster("spider", 2240)
+			if not guardian_felled:
+				_add_monster("treant", 2840)
+			_add_monster("bell_moth", MOTH_X)
+		Campaign.Region.COURT:
+			if not keeper_felled:
+				_add_monster("seal_keeper", 2850)
+	for encounter in Bestiary.ENCOUNTERS[region]:
+		_add_monster(encounter[0], encounter[1])
 
 
 func _add_monster(species: String, x: float) -> void:
 	var monster := Monster.new()
 	monster.configure(species, Vector2(x, Landscape.FLOOR_Y), hunter)
+	if species == "lantern_crab" and lantern_found:
+		monster.armed = false
 	monster.felled.connect(_on_monster_felled)
 	monster.disarmed.connect(_on_monster_disarmed)
+	monster.launched.connect(_launch_enemy_projectile)
 	enemies.append(monster)
 	add_child(monster)
 
 
-func _attack(origin: Vector2, direction: float, ranged: bool, damage: int) -> void:
+func _attack(origin: Vector2, direction: float, ranged: bool, damage: int, weapon: String) -> void:
 	if ranged:
-		arrows.append({"at": origin, "direction": direction, "damage": damage, "left": 0.55})
+		arrows.append({"at": origin, "direction": direction, "damage": damage, "left": 0.55,
+			"weapon": weapon, "pierce": int(weapon == "thorn_bow"), "hit_ids": []})
 		return
-	var hitbox := Rect2(origin.x if direction > 0 else origin.x - 51.0, origin.y - 17, 51, 42)
-	for monster: Monster in enemies.duplicate():
-		if monster.armed and monster.windup > 0 and hitbox.intersects(monster.weapon_hitbox()):
-			_hit_monster(monster, damage, true, hitbox.intersection(monster.weapon_hitbox()).get_center(), direction)
-		elif hitbox.intersects(monster.body_hitbox()):
-			_hit_monster(monster, damage, false, hitbox.intersection(monster.body_hitbox()).get_center(), direction)
+	var reach: float = Armory.WEAPONS[weapon][4] if Armory.WEAPONS.has(weapon) else 51.0
+	var hitbox := Rect2(origin.x if direction > 0 else origin.x - reach, origin.y - 17, reach, 42)
+	var candidates := enemies.duplicate()
+	candidates.sort_custom(func(a, b): return absf(a.position.x - origin.x) < absf(b.position.x - origin.x))
+	var hit_count := 0
+	for monster: Monster in candidates:
+		var weapon_hit := monster.armed and monster.windup > 0 and hitbox.intersects(monster.weapon_hitbox())
+		var bounds := monster.weapon_hitbox() if weapon_hit else monster.body_hitbox()
+		if not hitbox.intersects(bounds):
+			continue
+		var applied := damage
+		if weapon == "fang_dagger":
+			if not is_instance_valid(fang_target) or fang_target != monster:
+				fang_target = monster
+				fang_hits = 0
+			fang_hits += 1
+			applied += int(fang_hits % 3 == 0)
+		else:
+			fang_hits = 0
+		_hit_monster(monster, applied, weapon_hit, hitbox.intersection(bounds).get_center(), direction, false, weapon)
+		hit_count += 1
+		if hit_count >= (2 if weapon == "gate_halberd" else 1):
+			break
 
 
-func _cast(origin: Vector2, direction: float) -> void:
-	arrows.append({"at": origin, "direction": direction, "damage": Hunter.STAFF_DAMAGE, "left": 0.44, "spell": true})
+func _cast(origin: Vector2, direction: float, weapon: String) -> void:
+	if weapon == "scribe_staff":
+		var x := clampf(origin.x + direction * 129.0, 54.0, 3230.0)
+		var vertical_ray := PhysicsRayQueryParameters2D.create(Vector2(x, origin.y), Vector2(x, origin.y + 280.0), 1)
+		var ground := get_world_2d().direct_space_state.intersect_ray(vertical_ray)
+		if not ground.is_empty():
+			glyphs.append({"at": ground.position, "left": 0.46, "damage": hunter.weapon_damage(weapon), "direction": direction})
+		return
+	arrows.append({"at": origin, "direction": direction, "damage": Hunter.STAFF_DAMAGE, "left": 0.44,
+		"spell": true, "weapon": weapon, "hit_ids": []})
+
+
+func _launch_enemy_projectile(origin: Vector2, direction: float, effect: String) -> void:
+	arrows.append({"at": origin, "direction": direction, "damage": 1, "left": 0.6, "hostile": effect})
+
+
+func _update_glyphs(delta: float) -> void:
+	for index in range(glyphs.size() - 1, -1, -1):
+		var glyph := glyphs[index]
+		glyph.left -= delta
+		if glyph.left > 0:
+			continue
+		var area := Rect2(glyph.at - Vector2(54, 64), Vector2(108, 69))
+		for enemy: Monster in enemies.duplicate():
+			if enemy.body_hitbox().intersects(area):
+				_hit_monster(enemy, glyph.damage, false, enemy.position - Vector2(0, 24), glyph.direction, true, "scribe_staff")
+		glyphs.remove_at(index)
 
 
 func _update_arrows(delta: float) -> void:
@@ -175,7 +261,9 @@ func _update_arrows(delta: float) -> void:
 		var arrow := arrows[index]
 		var from: Vector2 = arrow.at
 		var spell: bool = arrow.get("spell", false)
-		var velocity := Vector2(arrow.direction * 710.0, -245.0) if spell else Vector2(arrow.direction * 850.0, 0)
+		var hostile: String = arrow.get("hostile", "")
+		var speed := 850.0 if hostile.is_empty() else (590.0 if hostile == "arrow" else 465.0)
+		var velocity := Vector2(arrow.direction * 710.0, -245.0) if spell else Vector2(arrow.direction * speed, 0)
 		var to := from + velocity * delta
 		var ray := PhysicsRayQueryParameters2D.create(from, to, 1)
 		var wall := get_world_2d().direct_space_state.intersect_ray(ray)
@@ -184,7 +272,19 @@ func _update_arrows(delta: float) -> void:
 		var hitbox := Rect2(Vector2(minf(from.x, to.x), from.y - 4), Vector2(absf(to.x - from.x), 8))
 		if spell:
 			hitbox = Rect2(from, Vector2.ZERO).expand(to).grow(5)
-		var hit := _arrow_hits_monster(hitbox, arrow.direction, arrow.damage)
+		var hit := false
+		if not hostile.is_empty():
+			var height := Hunter.CROUCH_HEIGHT if hunter.crouching else Hunter.STANDING_HEIGHT
+			hit = hitbox.intersects(Rect2(hunter.position - Vector2(12, height), Vector2(24, height)))
+			if hit:
+				hunter.hurt(hunter.position.x - arrow.direction, arrow.damage, hostile)
+		else:
+			var target_id := _arrow_hits_monster(hitbox, arrow)
+			hit = target_id != 0
+			if hit and int(arrow.get("pierce", 0)) > 0:
+				arrow.pierce -= 1
+				arrow.hit_ids.append(target_id)
+				hit = false
 		arrow.left -= delta
 		if hit or not wall.is_empty() or arrow.left <= 0:
 			arrows.remove_at(index)
@@ -192,12 +292,15 @@ func _update_arrows(delta: float) -> void:
 			arrow.at = to
 
 
-func _arrow_hits_monster(hitbox: Rect2, direction: float, damage: int) -> bool:
+func _arrow_hits_monster(hitbox: Rect2, arrow: Dictionary) -> int:
+	var direction: float = arrow.direction
 	var nearest: Monster
 	var nearest_x := INF
 	var impact_point := Vector2.ZERO
 	var hits_weapon := false
 	for monster: Monster in enemies:
+		if monster.get_instance_id() in arrow.hit_ids:
+			continue
 		var weapon_hit := monster.armed and monster.windup > 0 and hitbox.intersects(monster.weapon_hitbox())
 		var bounds := monster.weapon_hitbox() if weapon_hit else monster.arrow_hitbox(hitbox.get_center().y)
 		var overlap := hitbox.intersection(bounds)
@@ -210,29 +313,47 @@ func _arrow_hits_monster(hitbox: Rect2, direction: float, damage: int) -> bool:
 			impact_point = Vector2(hit_x, hitbox.get_center().y)
 			hits_weapon = weapon_hit
 	if nearest == null:
-		return false
-	_hit_monster(nearest, damage, hits_weapon, impact_point, direction, true)
-	return true
+		return 0
+	_hit_monster(nearest, arrow.damage, hits_weapon, impact_point, direction, true, arrow.weapon)
+	return nearest.get_instance_id()
 
 
-func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector2, direction: float, projectile: bool = false) -> void:
-	monster.receive_hit(damage, weapon_hit, projectile)
+func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector2, direction: float,
+		projectile: bool = false, weapon: String = "") -> void:
+	monster.receive_hit(damage, weapon_hit, projectile, weapon, direction)
+	if not projectile and not monster.is_queued_for_deletion():
+		if hunter.gear.get("手部") == "stonegrip_gloves" and monster.attack_kind == "roll" and monster.recovery > 0.0:
+			monster.velocity.x += direction * 110.0
+		elif hunter.gear.get("手部") == "hardroot_bracers" and not hunter.is_on_floor():
+			monster.velocity.x += direction * 85.0
 	hit_effects.impact(point, direction, weapon_hit)
 
 
 func _on_monster_felled(monster: Monster) -> void:
 	enemies.erase(monster)
 	var x := monster.position.x
+	var loot: String = Bestiary.DROPS.get(monster.species, "")
+	if not loot.is_empty() and not owned_equipment.has(loot) and not _has_drop(loot):
+		_drop(loot, x - 12)
+	if monster.species == "ash_scribe" and not owned_equipment.has("scribe_staff") and not _has_drop("scribe_staff"):
+		_drop("scribe_staff", x + 28)
 	match monster.species:
 		"spider":
 			if rng.randf() < 0.37 and not collected_souls.has("spider") and not _has_drop("spider"):
 				_drop("spider", x - 12)
+			if not owned_equipment.has("fang_dagger"):
+				_drop("fang_material", x + 8)
 		"lizard":
 			if not collected_souls.has("lizard"):
 				_drop("lizard", x - 12)
 		"bell_moth":
 			if not owned_equipment.has("scaleveil_hood") and not _has_drop("scaleveil_hood"):
 				_drop("scaleveil_hood", x - 12)
+		"seal_keeper":
+			keeper_felled = true
+			_sync_region_gate()
+			_notice("封印者倒下了。往東調查主祭壇。", 4.0)
+			return
 		"treant":
 			guardian_felled = true
 			landscape.portal_open = true
@@ -244,9 +365,23 @@ func _on_monster_felled(monster: Monster) -> void:
 
 
 func _on_monster_disarmed(monster: Monster) -> void:
+	if monster.species == "lantern_crab":
+		if not lantern_found and not _has_drop("lantern"):
+			_drop("lantern", monster.position.x + monster.facing * 72.0)
+			_notice("提燈落在地上。靠近拾取，用它打開暗水道。", 4.0)
+		return
+	if monster.species in ["thorn_archer", "shield_heron"]:
+		var item := "thorn_bow" if monster.species == "thorn_archer" else "earthen_armor"
+		if not owned_equipment.has(item) and not _has_drop(item):
+			_drop(item, monster.position.x + monster.facing * 50.0)
+		return
+	if monster.species == "seal_keeper":
+		_notice("護印已破，趁硬直反擊。", 3.0)
+		return
 	if hunter.stolen_blade or _has_drop("blade"):
 		return
-	_drop("blade", monster.position.x + monster.facing * 104)
+	unclaimed_blade_x = monster.position.x + monster.facing * 104
+	_drop("blade", unclaimed_blade_x)
 	_notice("樹靈的木刃掉在地上了。", 3.0)
 
 
@@ -258,7 +393,7 @@ func _has_drop(kind: String) -> bool:
 
 
 func _drop(kind: String, x: float, amount: int = 1) -> void:
-	drops.append({"kind": kind, "at": Vector2(clampf(x, 736, 3280), Landscape.FLOOR_Y - 27),
+	drops.append({"kind": kind, "at": Vector2(clampf(x, 736 if region == Campaign.Region.TEMPLE else 60, 3240), Landscape.FLOOR_Y - 27),
 		"amount": amount, "spawn": elapsed})
 
 
@@ -273,13 +408,27 @@ func _collect_drops() -> void:
 				materials += int(drop.amount)
 			"blade":
 				hunter.stolen_blade = true
-				_notice("取得樹靈木刃。近戰傷害提升。", 3.0)
+				unclaimed_blade_x = -1.0
+				_grant_equipment("root_blade")
+				_notice("取得樹靈木刃。按 I 換裝。", 3.0)
+			"fang_material":
+				fangs += 1
+				_notice("取得蛛牙。回營火可製作蛛牙短刃。", 3.0)
+			"lantern":
+				lantern_found = true
+				_sync_region_gate()
+				_notice("取得潮火提燈，暗水道已照亮。", 4.0)
 			"scaleveil_hood":
 				_grant_equipment("scaleveil_hood")
 				_notice("取得鱗紗兜帽。按 I 看裝備。", 3.0)
 			_:
-				collected_souls.append(drop.kind)
-				_notice("拾得%s之魂。按 F 裝備，按住 Shift 使用魂技。" % SOUL_NAMES[drop.kind], 4.0)
+				if SOUL_NAMES.has(drop.kind):
+					if not collected_souls.has(drop.kind):
+						collected_souls.append(drop.kind)
+					_notice("拾得%s之魂。按 F 裝備，按住 Shift 使用魂技。" % SOUL_NAMES[drop.kind], 4.0)
+				elif not Equipment.item(drop.kind).is_empty():
+					_grant_equipment(drop.kind)
+					_notice("取得%s。按 I 看裝備。" % Equipment.item(drop.kind)[0], 3.0)
 
 
 func _equip_next_soul() -> void:
@@ -293,7 +442,11 @@ func _equip_next_soul() -> void:
 
 
 func _interact() -> void:
-	if _near(landscape.shrine.global_position):
+	var loot := _near_treasure()
+	if not loot.is_empty():
+		_grant_equipment(loot)
+		_notice("石匣內有%s。按 I 看裝備。" % Equipment.item(loot)[0], 4.0)
+	elif _near(landscape.shrine.global_position):
 		var first_visit := not owned_equipment.has("linen_hood")
 		_grant_equipment("linen_hood")
 		_grant_equipment("hunter_wraps")
@@ -301,20 +454,44 @@ func _interact() -> void:
 		if first_visit:
 			_notice("取得營火布兜與獵人纏手。返回探索後按 I 看裝備。", 4.0)
 	elif _near(landscape.portal.global_position):
-		if guardian_felled:
-			_finish()
-		else:
-			_notice("石門上的枝紋在發光。還有一名守門者活著。", 3.0)
+		match region:
+			Campaign.Region.TEMPLE:
+				if guardian_felled:
+					_finish()
+				else:
+					_notice("石門上的枝紋在發光。還有一名守門者活著。", 3.0)
+			Campaign.Region.CORRIDOR:
+				if lantern_found:
+					_queue_region(Campaign.Region.COURT)
+				else:
+					_notice("先取得潮火提燈，才能照出出口。", 3.0)
+			Campaign.Region.COURT:
+				if keeper_felled:
+					_finish()
+					if CampSave.write(_checkpoint_state()) != OK:
+						end_prompt.text = "E　返回開始頁面（進度未能保存）"
+				else:
+					_notice("主祭壇被封印者封鎖。", 3.0)
 	elif _near_cache() and not landscape.cache_open:
 		landscape.cache_open = true
 		materials += 3
-		_grant_equipment("moss_vest")
-		_grant_equipment("ember_staff")
-		_notice("取得苔織獵衣、餘火魔法杖和 3 份素材。按 I 看裝備。", 4.0)
+		if region == Campaign.Region.TEMPLE:
+			_grant_equipment("moss_vest")
+			_grant_equipment("ember_staff")
+			_notice("取得苔織獵衣、餘火魔法杖和 3 份素材。按 I 看裝備。", 4.0)
+		else:
+			_notice("從石匣取得 3 份工坊素材。", 4.0)
 
 
 func _near(at: Vector2) -> bool:
 	return absf(hunter.global_position.x - at.x) < 79 and absf(hunter.global_position.y - at.y) < 60
+
+
+func _near_treasure() -> String:
+	for chest in Armory.CHESTS[region]:
+		if not owned_equipment.has(chest[0]) and hunter.position.distance_to(Vector2(chest[1], chest[2])) < 50:
+			return chest[0]
+	return ""
 
 
 func _near_cache() -> bool:
@@ -335,10 +512,11 @@ func _retry() -> void:
 		monster.queue_free()
 	enemies.clear()
 	arrows.clear()
+	glyphs.clear()
 	hit_effects.clear()
 	# A disarmed guardian stays dead after victory. Keep its unclaimed weapon reachable.
 	drops = drops.filter(func(drop: Dictionary) -> bool: return guardian_felled and drop.kind == "blade")
-	hunter.respawn(START)
+	hunter.respawn(_camp_start())
 	camera.reset_smoothing()
 	_spawn_enemies()
 	restarting = false
@@ -351,6 +529,44 @@ func _finish() -> void:
 	for monster: Monster in enemies:
 		monster.set_physics_process(false)
 	end_screen.show()
+
+
+func _camp_start() -> Vector2:
+	return START if region == Campaign.Region.TEMPLE else landscape.shrine.position + Vector2(48, -14)
+
+
+func _sync_region_gate() -> void:
+	match region:
+		Campaign.Region.TEMPLE:
+			landscape.portal_open = guardian_felled
+		Campaign.Region.CORRIDOR:
+			landscape.portal_open = lantern_found
+			landscape.get_node("Darkness").visible = not lantern_found
+			landscape.get_node("LightGate/Bar").visible = not lantern_found
+			landscape.get_node("LightGate/Collision").set_deferred("disabled", lantern_found)
+		Campaign.Region.COURT:
+			landscape.portal_open = keeper_felled
+
+
+func _queue_region(destination: int) -> void:
+	if not transitioning:
+		transitioning = true
+		_change_region.call_deferred(destination)
+
+
+func _change_region(destination: int) -> void:
+	var checkpoint := _checkpoint_state()
+	checkpoint["region"] = destination
+	var next: PackedScene = load(Campaign.scene_path(checkpoint))
+	if next == null or CampSave.write(checkpoint) != OK:
+		transitioning = false
+		_notice("無法保存下一區的進度，請重試。", 4.0)
+		return
+	get_tree().set_meta(CampSave.RESTORE_META, checkpoint)
+	if get_tree().change_scene_to_packed(next) != OK:
+		get_tree().remove_meta(CampSave.RESTORE_META)
+		transitioning = false
+		_notice("無法開啟下一區，請重試。", 4.0)
 
 
 func _notice(message: String, seconds: float) -> void:
@@ -367,19 +583,30 @@ func _resize_backdrop() -> void:
 
 
 func _draw() -> void:
+	for chest in Armory.CHESTS[region]:
+		if not owned_equipment.has(chest[0]):
+			var at := Vector2(chest[1], chest[2])
+			draw_texture_rect(CacheTexture, Rect2(at - Vector2(21, 24), Vector2(42, 24)), false)
+			draw_circle(at - Vector2(0, 26), 3.5, Color(1.0, 0.79, 0.46, 0.62))
+	for glyph in glyphs:
+		draw_arc(glyph.at - Vector2(0, 5), 30.0, 0, TAU, 32, Color("#9cc9ee"), 2.0, true)
 	for projectile: Dictionary in arrows:
 		var at: Vector2 = projectile.at
 		if projectile.get("spell", false):
 			draw_circle(at, 12, Color(0.95, 0.33, 0.11, 0.33))
 			draw_circle(at, 6, Color("#ffd078"))
 			continue
-		draw_line(at - Vector2(projectile.direction * 26, 0), at, Color("#ffe7a6"), 2, true)
+		var ink := Color("#ffe7a6") if not projectile.has("hostile") else Color("#81c4b5")
+		draw_line(at - Vector2(projectile.direction * 26, 0), at, ink, 2, true)
 		draw_circle(at, 2, Color("#fff7d7"))
 	for drop: Dictionary in drops:
 		var at: Vector2 = drop.at + Vector2(0, sin(elapsed * 4.8 + float(drop.at.x)) * 5.0)
 		var color: Color = DROP_COLORS.get(drop.kind, Color("#dfb9ff"))
 		draw_circle(at, 15, Color(color, 0.16))
-		if drop.kind == "blade":
+		if drop.kind == "lantern":
+			draw_texture_rect_region(MonsterArt.CRAB, Rect2(at - Vector2(10, 14), Vector2(20, 28)),
+				MonsterArt.LANTERN_REGION)
+		elif drop.kind == "blade":
 			draw_line(at - Vector2(10, -7), at + Vector2(12, -8), color, 4, true)
 		else:
 			draw_colored_polygon(PackedVector2Array([at + Vector2(0, -10), at + Vector2(7, 0),
@@ -447,18 +674,20 @@ func _build_hud() -> void:
 	var card_rows := VBoxContainer.new()
 	card_rows.add_theme_constant_override("separation", 12)
 	card.add_child(card_rows)
-	var title := _label(32, Color("#ffe0a1"))
-	title.text = "斷橋另一端"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	card_rows.add_child(title)
-	var story := _label(18, Color("#e1e9d7"))
-	story.text = "石門認得你前世的名字。\n門後的道路通往更古老的世界。"
-	story.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	card_rows.add_child(story)
-	var replay := _label(16, Color("#b6c9bc"))
-	replay.text = "E　再次踏入遺跡"
-	replay.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	card_rows.add_child(replay)
+	end_title = _label(32, Color("#ffe0a1"))
+	end_title.text = "封印的另一面" if region == Campaign.Region.COURT else "斷橋另一端"
+	end_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	card_rows.add_child(end_title)
+	end_story = _label(18, Color("#e1e9d7"))
+	end_story.text = ("古門記起你的名字，鬆開了最後一道封印。\n"
+		+ "獵人把提燈留在祭壇，沿晨光下的石階回到地面。") if region == Campaign.Region.COURT else (
+		"石門認得你前世的名字。\n門後的水聲沿著石階傳來。")
+	end_story.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	card_rows.add_child(end_story)
+	end_prompt = _label(16, Color("#b6c9bc"))
+	end_prompt.text = "E　返回開始頁面" if region == Campaign.Region.COURT else "E　進入淹沒的迴廊"
+	end_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	card_rows.add_child(end_prompt)
 	end_screen.hide()
 	_build_camp_menu(root)
 	_build_gear_menu(root)
@@ -482,7 +711,10 @@ func _build_camp_menu(root: Control) -> void:
 	camp_rest = _camp_button(rows, "休息、恢復體力與存檔", _camp_heal)
 	camp_knife = _camp_button(rows, "", _upgrade_weapon.bind(false))
 	camp_bow = _camp_button(rows, "", _upgrade_weapon.bind(true))
+	forge_fang = _camp_button(rows, "用蛛牙製作短刃", _forge_fang_dagger)
 	_camp_button(rows, "返回探索　Esc", _set_camp_open.bind(false))
+	if region > Campaign.Region.TEMPLE:
+		_camp_button(rows, "返回上一區營火", _queue_region.bind(region - 1))
 	_camp_button(rows, "存檔並返回開始頁面", _camp_return_to_title)
 	camp_menu.hide()
 
@@ -520,8 +752,20 @@ func _camp_return_to_title() -> void:
 
 func _save_camp() -> bool:
 	_update_camp_menu()
+	var saved := CampSave.write(_checkpoint_state()) == OK
+	camp_stock.text += "\n" + ("已保存營火進度" if saved else "存檔失敗，請重試")
+	return saved
+
+
+func _checkpoint_state() -> Dictionary:
+	cache_flags[region] = landscape.cache_open
 	var state := {
+		"region": region,
+		"lantern_found": lantern_found,
+		"keeper_felled": keeper_felled,
+		"cache_flags": cache_flags,
 		"materials": materials,
+		"fangs": fangs,
 		"souls": collected_souls,
 		"equipped_soul": hunter.equipped_soul,
 		"with_bow": hunter.with_bow,
@@ -532,20 +776,19 @@ func _save_camp() -> bool:
 		"bow_level": hunter.bow_level,
 		"stolen_blade": hunter.stolen_blade,
 		"guardian_felled": guardian_felled,
-		"cache_open": landscape.cache_open,
+		"cache_open": cache_flags.get(Campaign.Region.TEMPLE, false),
 	}
-	if guardian_felled:
-		for drop in drops:
-			if drop.kind == "blade":
-				state["blade_x"] = drop.at.x
-				break
-	var saved := CampSave.write(state) == OK
-	camp_stock.text += "\n" + ("已保存營火進度" if saved else "存檔失敗，請重試")
-	return saved
+	if guardian_felled and unclaimed_blade_x >= 0.0:
+		state["blade_x"] = unclaimed_blade_x
+	return state
 
 
 func _restore_camp(state: Dictionary) -> void:
 	materials = maxi(0, state.get("materials", 0))
+	fangs = maxi(0, state.get("fangs", 0))
+	hunter.stolen_blade = state.get("stolen_blade", false)
+	if hunter.stolen_blade:
+		_grant_equipment("root_blade")
 	for soul in state.get("souls", []):
 		if SOUL_NAMES.has(soul) and not collected_souls.has(soul):
 			collected_souls.append(soul)
@@ -553,25 +796,38 @@ func _restore_camp(state: Dictionary) -> void:
 	if collected_souls.has(equipped):
 		hunter.equipped_soul = equipped
 	for item in state.get("owned_equipment", []):
-		if Equipment.ITEMS.has(item):
+		if not Equipment.item(item).is_empty():
 			_grant_equipment(item)
 	if state.get("cache_open", false):
 		_grant_equipment("moss_vest")
 		_grant_equipment("ember_staff")
 	for slot in state.get("gear", {}):
 		var item = state.gear[slot]
-		if owned_equipment.has(item) and Equipment.ITEMS[item][1] == slot and slot != "武器":
+		if owned_equipment.has(item) and Equipment.item(item)[1] == slot and slot != "武器":
 			hunter.gear[slot] = item
-	hunter.select_weapon(state.get("weapon", "hunter_bow" if state.get("with_bow", false) else "hunter_knife"))
+	var previous_weapon: String = state.get("weapon", "hunter_bow" if state.get("with_bow", false) else "hunter_knife")
+	if hunter.stolen_blade and previous_weapon == "hunter_knife" and not state.get("owned_equipment", []).has("root_blade"):
+		previous_weapon = "root_blade"
+	hunter.select_weapon(previous_weapon)
 	hunter.rest()
 	hunter.knife_level = clampi(state.get("knife_level", 0), 0, 2)
 	hunter.bow_level = clampi(state.get("bow_level", 0), 0, 2)
-	hunter.stolen_blade = state.get("stolen_blade", false)
 	guardian_felled = state.get("guardian_felled", false)
-	landscape.portal_open = guardian_felled
-	landscape.cache_open = state.get("cache_open", false)
-	if guardian_felled and not hunter.stolen_blade and state.has("blade_x"):
-		_drop("blade", state.blade_x)
+	lantern_found = state.get("lantern_found", false)
+	keeper_felled = state.get("keeper_felled", false)
+	cache_flags = state.get("cache_flags", {Campaign.Region.TEMPLE: state.get("cache_open", false)})
+	landscape.cache_open = cache_flags.get(region, false)
+	unclaimed_blade_x = state.get("blade_x", -1.0)
+	if region == Campaign.Region.TEMPLE and guardian_felled and not hunter.stolen_blade and unclaimed_blade_x >= 0.0:
+		_drop("blade", unclaimed_blade_x)
+
+
+func _forge_fang_dagger() -> void:
+	if fangs > 0 and not owned_equipment.has("fang_dagger"):
+		fangs -= 1
+		_grant_equipment("fang_dagger")
+		_update_camp_menu()
+		camp_rest.grab_focus()
 
 
 func _upgrade_weapon(bow: bool) -> void:
@@ -593,6 +849,7 @@ func _update_camp_menu() -> void:
 	camp_stock.text = "素材 %d　｜　體力 %d / %d" % [materials, hunter.health, hunter.max_health()]
 	_update_upgrade_button(camp_knife, "近戰武器", hunter.knife_level)
 	_update_upgrade_button(camp_bow, "獵弓", hunter.bow_level)
+	forge_fang.visible = fangs > 0 and not owned_equipment.has("fang_dagger")
 
 
 func _update_upgrade_button(button: Button, weapon: String, level: int) -> void:
@@ -628,9 +885,7 @@ func _label(size: int, color: Color) -> Label:
 
 func _update_hud() -> void:
 	var soul_name := String(SOUL_NAMES.get(hunter.equipped_soul, "未裝備"))
-	var weapon_name: String = Equipment.ITEMS[hunter.selected_weapon()][0]
-	if not hunter.with_bow and not hunter.with_staff:
-		weapon_name = "樹靈木刃" if hunter.stolen_blade else "短刀"
+	var weapon_name := _gear_item_name(hunter.selected_weapon())
 	health_label.text = "體力  %s%s" % ["◆".repeat(hunter.health), "◇".repeat(hunter.max_health() - hunter.health)]
 	var level := hunter.bow_level if hunter.with_bow else (0 if hunter.with_staff else hunter.knife_level)
 	var upgrade := (" +%d" % level) if level > 0 else ""
@@ -639,6 +894,9 @@ func _update_hud() -> void:
 		loadout_label.text += "　｜　法力 %d/%d" % [hunter.mana, Hunter.MAX_MANA]
 	if hunter.pollen_left > 0:
 		loadout_label.text += "　｜　鱗粉緩速"
+	if region != Campaign.Region.TEMPLE:
+		_update_region_hud()
+		return
 	if not collected_souls.has("lizard"):
 		objective_label.text = "崩塌神殿\n往東狩獵滑翔蜥蜴，取得蜥翼之魂。"
 	elif not guardian_felled:
@@ -653,6 +911,8 @@ func _update_hud() -> void:
 		prompt_label.text = "E　查看石門"
 	elif _near_cache() and not landscape.cache_open:
 		prompt_label.text = "E　查看觀景台上的石匣"
+	elif not _near_treasure().is_empty():
+		prompt_label.text = "E　打開補給石匣"
 	elif hunter.position.x > 677 and hunter.position.x < 805:
 		prompt_label.text = "斷橋　／　裝備蜥翼，跳起後按住 Shift 滑翔"
 	elif hunter.position.x > 2560 and not guardian_felled:
@@ -661,11 +921,31 @@ func _update_hud() -> void:
 		prompt_label.text = "石鐘蛾腹部發光時，向上攻擊可打斷落粉。"
 
 
+func _update_region_hud() -> void:
+	if region == Campaign.Region.CORRIDOR:
+		objective_label.text = Campaign.NAMES[region] + "\n" + (
+			"穿過暗水道，往東走到排水出口。" if lantern_found else "石蟹舉起提燈時，向亮點射擊。")
+		if lantern_found:
+			loadout_label.text += "　｜　潮火提燈"
+	else:
+		objective_label.text = Campaign.NAMES[region] + "\n" + (
+			"調查東側主祭壇。" if keeper_felled else "避開雙段橫掃，蓄力時擊破護印。")
+	prompt_label.text = ""
+	if _near(landscape.shrine.global_position):
+		prompt_label.text = "E　打開營火與工坊選單"
+	elif _near(landscape.portal.global_position):
+		prompt_label.text = "E　查看排水出口" if region == Campaign.Region.CORRIDOR else "E　調查主祭壇"
+	elif (_near_cache() and not landscape.cache_open) or not _near_treasure().is_empty():
+		prompt_label.text = "E　打開石匣"
+
+
 func _grant_equipment(id: String) -> void:
 	if not owned_equipment.has(id):
 		owned_equipment.append(id)
 	if id == "ember_staff":
 		hunter.staff_unlocked = true
+	if Equipment.item(id)[1] == "武器" and not hunter.unlocked_weapons.has(id):
+		hunter.unlocked_weapons.append(id)
 
 
 func _build_gear_menu(root: Control) -> void:
@@ -832,8 +1112,8 @@ func _refresh_gear(selected: String) -> void:
 		icon.tooltip_text = "%s　%s" % [slot, _gear_item_name(id) if not id.is_empty() else "未裝備"]
 	gear_list.clear()
 	gear_ids.assign(Equipment.STARTING_WEAPONS)
-	for id: String in Equipment.ITEMS:
-		if owned_equipment.has(id) and not gear_ids.has(id):
+	for id: String in owned_equipment:
+		if not gear_ids.has(id):
 			gear_ids.append(id)
 	for id in gear_ids:
 		var text := _gear_item_name(id)
@@ -848,27 +1128,27 @@ func _refresh_gear(selected: String) -> void:
 
 
 func _is_equipped(id: String) -> bool:
-	var slot: String = Equipment.ITEMS[id][1]
+	var slot: String = Equipment.item(id)[1]
 	return hunter.selected_weapon() == id if slot == "武器" else hunter.gear.get(slot) == id
 
 
 func _show_gear(index: int) -> void:
 	var id := gear_ids[index]
-	gear_name.text = "%s　·　%s" % [_gear_item_name(id), Equipment.ITEMS[id][1]]
+	gear_name.text = "%s　·　%s" % [_gear_item_name(id), Equipment.item(id)[1]]
 	gear_values.text = _gear_item_values(id)
-	gear_detail.text = Equipment.ITEMS[id][2]
-	gear_apply.disabled = Equipment.ITEMS[id][1] == "武器" and _is_equipped(id)
+	gear_detail.text = Equipment.item(id)[2]
+	gear_apply.disabled = Equipment.item(id)[1] == "武器" and _is_equipped(id)
 	gear_apply.text = "卸下" if _is_equipped(id) and not gear_apply.disabled else "裝備"
 
 
 func _gear_icon(id: String) -> Texture2D:
-	return Equipment.ICONS.get("root_blade" if id == "hunter_knife" and hunter.stolen_blade else id) as Texture2D
+	return Equipment.icon(id)
 
 
 func _gear_item_name(id: String) -> String:
 	if id == "hunter_knife":
-		return "樹靈木刃" if hunter.stolen_blade else "短刀"
-	return Equipment.ITEMS[id][0]
+		return "短刀"
+	return Equipment.item(id)[0]
 
 
 func _gear_item_values(id: String) -> String:
@@ -882,8 +1162,10 @@ func _gear_item_values(id: String) -> String:
 		"hunter_wraps":
 			return "近戰攻擊週期　%.2f 秒 → %.2f 秒" % [Hunter.KNIFE_DURATION, Hunter.WRAPS_KNIFE_DURATION]
 		_:
+			if Equipment.item(id)[1] != "武器":
+				return Equipment.item(id)[1] + "裝備"
 			var stats := "傷害 %d　｜　攻擊週期 %.2f 秒" % [hunter.weapon_damage(id), hunter.weapon_period(id)]
-			if id == "ember_staff":
+			if id in ["ember_staff", "scribe_staff"]:
 				stats += "　｜　法力 %d" % Hunter.STAFF_MANA_COST
 			return stats
 
@@ -893,7 +1175,7 @@ func _apply_gear() -> void:
 	if selection.is_empty():
 		return
 	var id := gear_ids[selection[0]]
-	var slot: String = Equipment.ITEMS[id][1]
+	var slot: String = Equipment.item(id)[1]
 	if slot == "武器":
 		hunter.select_weapon(id)
 	elif _is_equipped(id):

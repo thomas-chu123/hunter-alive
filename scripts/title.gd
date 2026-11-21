@@ -1,7 +1,7 @@
 extends Control
 
 const CampSave := preload("res://scripts/camp_save.gd")
-const RUINS := "res://scenes/ruins.tscn"
+const Campaign := preload("res://scripts/campaign.gd")
 const Preferences := preload("res://scripts/game_preferences.gd")
 const GOLD := Color("#f3d8a3")
 const TEXT := Color("#e4eadc")
@@ -137,9 +137,9 @@ func _continue() -> void:
 
 func _start_run(state: Dictionary) -> void:
 	get_tree().set_meta(CampSave.RESTORE_META, state)
-	if get_tree().change_scene_to_file(RUINS) != OK:
+	if get_tree().change_scene_to_file(Campaign.scene_path(state)) != OK:
 		get_tree().remove_meta(CampSave.RESTORE_META)
-		_show_notice("無法進入崩塌神殿。")
+		_show_notice("無法進入存檔中的區域。")
 
 
 func _open_settings() -> void:
