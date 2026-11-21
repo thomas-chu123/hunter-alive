@@ -26,6 +26,10 @@
       "recovery": 0.47,
       "damage": 1
     },
+    "melee_stagger": {
+      "duration": 0.2,
+      "speed": 148
+    },
     "animation": {
       "walk": 4,
       "stride": 61

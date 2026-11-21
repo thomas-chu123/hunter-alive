@@ -12,7 +12,7 @@ const SIZE := {"spider": Vector2(76, 55), "lizard": Vector2(92, 70), "treant": V
 	"bell_moth": Vector2(64, 49), "lantern_crab": Vector2(97, 60), "seal_keeper": Vector2(102, 136)}
 const ART_ROWS := {"spider": 0, "lizard": 1, "treant": 2}
 const ART_SCALES := {"spider": 0.30, "lizard": 0.33, "treant": 0.46}
-enum State { PATROL, NOTICE, CHASE, WINDUP, STRIKE, RECOVER, RETURN }
+enum State { PATROL, NOTICE, CHASE, WINDUP, STRIKE, RECOVER, RETURN, STAGGER }
 enum AttackPose { IDLE = -1, ANTICIPATION, RELEASE, RECOVERY }
 
 const GRAVITY := 1380.0
@@ -60,6 +60,10 @@ var gait_weight := 0.0
 var windup_duration := 0.0
 var recovery_duration := 0.0
 var recoil := 0.0
+var melee_stagger: Dictionary
+var stagger_left := 0.0
+var stagger_direction := 0.0
+var stagger_speed := 0.0
 var patrol_dir := -1.0
 var walking := false
 var second_phase := false
@@ -73,6 +77,7 @@ func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
 	target = hunter
 	design = Bestiary.creatures[species]
 	animation = design.get("animation", {})
+	melee_stagger = design.get("melee_stagger", {})
 	max_health = int(design.health)
 	profile = design.motion
 	attack = design.attack
@@ -148,6 +153,8 @@ func _physics_process(delta: float) -> void:
 					_begin_return()
 		State.RETURN:
 			_return_home()
+		State.STAGGER:
+			_update_stagger(delta, visible)
 
 	var before := position
 	velocity.x = move_toward(velocity.x, requested_speed, float(profile.acceleration) * delta)
@@ -170,6 +177,7 @@ func _physics_process(delta: float) -> void:
 		strike = 0.0
 		windup = 0.0
 		recovery = 0.0
+		stagger_left = 0.0
 		can_hit = false
 	queue_redraw()
 
@@ -312,7 +320,7 @@ func _move(speed: float, launch: bool = false) -> void:
 
 
 func _update_motion_art(delta: float, travel: float) -> void:
-	walking = travel > 0.15 and is_on_floor()
+	walking = state != State.STAGGER and travel > 0.15 and is_on_floor()
 	gait_weight = move_toward(gait_weight, 1.0 if walking else 0.0, delta * 8.0)
 	if walking:
 		gait_distance += travel
@@ -433,6 +441,36 @@ func _start_recovery(seconds: float) -> void:
 	_move(0)
 
 
+func _start_stagger(direction: float) -> void:
+	state = State.STAGGER
+	windup = 0.0
+	strike = 0.0
+	recovery = 0.0
+	can_hit = false
+	stagger_left = float(melee_stagger.duration)
+	stagger_direction = signf(direction)
+	stagger_speed = float(melee_stagger.speed)
+	recoil = stagger_direction * 3.0
+	velocity.x = 0.0
+
+
+func _update_stagger(delta: float, visible: bool) -> void:
+	stagger_left = maxf(stagger_left - delta, 0.0)
+	if stagger_left <= 0.0:
+		velocity.x = 0.0
+		if visible and _inside_leash(target.position):
+			state = State.CHASE
+		else:
+			_begin_return()
+		return
+	stagger_speed = move_toward(stagger_speed, 0.0, delta * 475.0)
+	if is_on_floor() and not _can_walk(stagger_direction):
+		stagger_speed = 0.0
+		velocity.x = 0.0
+	requested_speed = stagger_speed * stagger_direction
+	velocity.x = requested_speed
+
+
 func body_hitbox() -> Rect2:
 	var size: Vector2 = SIZE.get(species, Vector2(82, 69))
 	return Rect2(position - Vector2(size.x / 2.0, size.y), size)
@@ -499,6 +537,9 @@ func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false, source
 	if health == 0:
 		felled.emit(self)
 		queue_free()
+	elif damage > 0 and not projectile and not melee_stagger.is_empty() and (
+			not is_zero_approx(source_direction) and state != State.STRIKE):
+		_start_stagger(source_direction)
 
 
 func _draw() -> void:
@@ -517,7 +558,11 @@ func _draw() -> void:
 	if state == State.NOTICE:
 		stretch += 0.065 * sin(notice_left / NOTICE_TIME * PI)
 		lean -= 0.06
-	if pose >= 0:
+	if state == State.STAGGER:
+		var impact := pow(clampf(stagger_left / float(melee_stagger.duration), 0.0, 1.0), 1.4)
+		Art.draw_attack(self, int(design.sprite_row), AttackPose.RECOVERY, motion_facing, tint, unarmed,
+			1.0 - impact * 0.23, stagger_direction * signf(motion_facing) * impact * 0.20, recoil)
+	elif pose >= 0:
 		if strike > 0.0:
 			motion_facing = facing
 			var swing := sin(_strike_progress() * PI)
