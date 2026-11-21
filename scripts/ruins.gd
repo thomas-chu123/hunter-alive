@@ -95,6 +95,10 @@ func _ready() -> void:
 	hunter.cast.connect(_cast)
 	hunter.defeated.connect(_on_hunter_defeated)
 	add_child(hunter)
+	var listener := AudioListener2D.new()
+	hunter.add_child(listener)
+	listener.make_current()
+	get_node("/root/GameMusic").play_region(region)
 	camera = Camera2D.new()
 	camera.limit_left = 0
 	camera.limit_right = 3330

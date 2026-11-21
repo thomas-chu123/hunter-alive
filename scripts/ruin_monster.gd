@@ -6,6 +6,7 @@ signal launched(origin: Vector2, direction: float, attack: Dictionary)
 
 const Bestiary := preload("res://scripts/ruin_bestiary.gd")
 const Art := preload("res://scripts/ruin_sprite_art.gd")
+const EnemyAudio := preload("res://scripts/ruin_enemy_audio.gd")
 const Effects := preload("res://scripts/ruin_enemy_effects.gd")
 const Hunter := preload("res://scripts/ruin_hunter.gd")
 const SIZE := {"spider": Vector2(76, 55), "lizard": Vector2(92, 70), "treant": Vector2(110, 120),
@@ -32,6 +33,11 @@ var attack_kind := ""
 var attack: Dictionary
 var design: Dictionary
 var animation: Dictionary
+var sound: Dictionary
+var step_voice: AudioStreamPlayer2D
+var attack_voice: AudioStreamPlayer2D
+var step_progress := 0.0
+var step_pitch := 0.96
 var target_mark := Vector2.ZERO
 var ground_mark_valid := false
 var impact_index := 0
@@ -77,6 +83,7 @@ func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
 	target = hunter
 	design = Bestiary.creatures[species]
 	animation = design.get("animation", {})
+	sound = design.sound
 	melee_stagger = design.get("melee_stagger", {})
 	max_health = int(design.health)
 	profile = design.motion
@@ -96,6 +103,17 @@ func _ready() -> void:
 	feet.shape = shape
 	feet.position.y = -shape.size.y / 2.0
 	add_child(feet)
+	step_voice = EnemyAudio.voice(float(sound.get("step_gain_db", -11.0)))
+	attack_voice = EnemyAudio.voice(-3.0)
+	add_child(step_voice)
+	add_child(attack_voice)
+
+
+func _exit_tree() -> void:
+	if is_instance_valid(step_voice):
+		step_voice.stop()
+	if is_instance_valid(attack_voice):
+		attack_voice.stop()
 
 
 func _physics_process(delta: float) -> void:
@@ -107,6 +125,8 @@ func _physics_process(delta: float) -> void:
 	recoil = move_toward(recoil, 0.0, delta * 38.0)
 	if species == "bell_moth":
 		_update_moth(delta)
+		if _attack_pose() == AttackPose.IDLE:
+			_step_sound(delta, float(sound.flap_period))
 		_update_motion_art(delta, 0.0)
 		queue_redraw()
 		return
@@ -165,6 +185,8 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	var travel := absf(position.x - before.x)
 	_update_motion_art(delta, travel)
+	if walking:
+		_step_sound(travel, float(sound.spacing))
 	if state in [State.CHASE, State.RETURN]:
 		_check_progress(delta, travel)
 	if state == State.STRIKE and can_hit:
@@ -382,10 +404,29 @@ func _update_strike() -> void:
 			var outlet := Vector2(facing * float(attack.outlet[0]), float(attack.outlet[1]))
 			if _terrain_ray(Vector2(0, outlet.y), outlet).is_empty():
 				launched.emit(position + outlet, facing, attack)
+				_attack_sound()
 		else:
 			can_hit = true
+			_attack_sound()
 	if progress >= 0.91 or (moments.size() == 2 and progress >= 0.46 and progress < 0.63):
 		can_hit = false
+
+
+func _step_sound(distance: float, interval: float) -> void:
+	step_progress += distance
+	if step_progress < interval:
+		return
+	step_progress = fposmod(step_progress, interval)
+	if position.distance_to(target.position) < EnemyAudio.AUDIBLE_DISTANCE:
+		step_pitch = 2.0 - step_pitch
+		EnemyAudio.play(step_voice, EnemyAudio.STEPS[sound.step], step_pitch)
+
+
+func _attack_sound() -> void:
+	if position.distance_to(target.position) >= EnemyAudio.AUDIBLE_DISTANCE:
+		return
+	var key: String = sound.attack if armed else sound.get("unarmed_attack", sound.attack)
+	EnemyAudio.play(attack_voice, EnemyAudio.ATTACKS[key], 1.0)
 
 
 func _attack_area() -> Rect2:

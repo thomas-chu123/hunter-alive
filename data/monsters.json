@@ -33,6 +33,11 @@
     "animation": {
       "walk": 4,
       "stride": 61
+    },
+    "sound": {
+      "step": "claw",
+      "spacing": 24,
+      "attack": "fang"
     }
   },
   "lizard": {
@@ -70,6 +75,11 @@
     "animation": {
       "walk": 5,
       "stride": 69
+    },
+    "sound": {
+      "step": "claw",
+      "spacing": 31,
+      "attack": "fire"
     }
   },
   "treant": {
@@ -111,6 +121,13 @@
       "transition": 0,
       "unarmed_transition": 1,
       "stride": 92
+    },
+    "sound": {
+      "step": "wood",
+      "spacing": 42,
+      "attack": "wood",
+      "unarmed_attack": "heavy",
+      "step_gain_db": -6.0
     }
   },
   "bell_moth": {
@@ -139,6 +156,12 @@
       "active": 0.58,
       "recovery": 1.1,
       "damage": 0
+    },
+    "sound": {
+      "step": "wing",
+      "spacing": 0,
+      "attack": "pollen",
+      "flap_period": 0.66
     }
   },
   "lantern_crab": {
@@ -180,6 +203,12 @@
       "transition": 3,
       "unarmed_transition": -1,
       "stride": 67
+    },
+    "sound": {
+      "step": "stone",
+      "spacing": 30,
+      "attack": "metal",
+      "unarmed_attack": "heavy"
     }
   },
   "seal_keeper": {
@@ -214,6 +243,12 @@
       "walk": 2,
       "transition": 2,
       "stride": 105
+    },
+    "sound": {
+      "step": "metal",
+      "spacing": 47,
+      "attack": "metal",
+      "step_gain_db": -6.0
     }
   },
   "shale_beetle": {
@@ -242,6 +277,11 @@
       "active": 0.58,
       "recovery": 1.05,
       "damage": 1
+    },
+    "sound": {
+      "step": "stone",
+      "spacing": 30,
+      "attack": "heavy"
     }
   },
   "dust_hare": {
@@ -271,6 +311,11 @@
       "recovery": 0.62,
       "damage": 1,
       "hits": 2
+    },
+    "sound": {
+      "step": "pad",
+      "spacing": 25,
+      "attack": "fang"
     }
   },
   "mirror_eel": {
@@ -304,6 +349,11 @@
         40,
         -40
       ]
+    },
+    "sound": {
+      "step": "pad",
+      "spacing": 26,
+      "attack": "water"
     }
   },
   "root_mole": {
@@ -332,6 +382,11 @@
       "active": 0.4,
       "recovery": 0.94,
       "damage": 1
+    },
+    "sound": {
+      "step": "claw",
+      "spacing": 28,
+      "attack": "heavy"
     }
   },
   "reed_leech": {
@@ -360,6 +415,11 @@
       "active": 0.52,
       "recovery": 0.78,
       "damage": 0
+    },
+    "sound": {
+      "step": "pad",
+      "spacing": 28,
+      "attack": "fang"
     }
   },
   "silt_ray": {
@@ -389,6 +449,11 @@
       "recovery": 0.88,
       "damage": 1,
       "target_mark": true
+    },
+    "sound": {
+      "step": "pad",
+      "spacing": 34,
+      "attack": "stone"
     }
   },
   "sluice_snail": {
@@ -422,6 +487,11 @@
         35,
         -29
       ]
+    },
+    "sound": {
+      "step": "stone",
+      "spacing": 26,
+      "attack": "stone"
     }
   },
   "tide_salamander": {
@@ -455,6 +525,11 @@
         40,
         -33
       ]
+    },
+    "sound": {
+      "step": "claw",
+      "spacing": 31,
+      "attack": "water"
     }
   },
   "thorn_archer": {
@@ -494,6 +569,12 @@
         31,
         -46
       ]
+    },
+    "sound": {
+      "step": "wood",
+      "spacing": 36,
+      "attack": "arrow",
+      "unarmed_attack": "fang"
     }
   },
   "shield_heron": {
@@ -528,6 +609,12 @@
         "extent": 78,
         "windup": 0.46
       }
+    },
+    "sound": {
+      "step": "metal",
+      "spacing": 36,
+      "attack": "metal",
+      "unarmed_attack": "fang"
     }
   },
   "key_jackal": {
@@ -557,6 +644,11 @@
       "recovery": 0.91,
       "damage": 1,
       "hits": 2
+    },
+    "sound": {
+      "step": "pad",
+      "spacing": 30,
+      "attack": "fang"
     }
   },
   "ash_scribe": {
@@ -586,6 +678,11 @@
       "recovery": 1.18,
       "damage": 2,
       "target_mark": true
+    },
+    "sound": {
+      "step": "pad",
+      "spacing": 33,
+      "attack": "rune"
     }
   },
   "shard_warden": {
@@ -618,6 +715,12 @@
     "animation": {
       "walk": 3,
       "stride": 84
+    },
+    "sound": {
+      "step": "stone",
+      "spacing": 42,
+      "attack": "heavy",
+      "step_gain_db": -6.0
     }
   },
   "copper_cicada": {
@@ -646,6 +749,11 @@
       "active": 0.48,
       "recovery": 1.08,
       "damage": 1
+    },
+    "sound": {
+      "step": "metal",
+      "spacing": 30,
+      "attack": "resonance"
     }
   },
   "burial_ram": {
@@ -674,6 +782,12 @@
       "active": 0.72,
       "recovery": 1.19,
       "damage": 1
+    },
+    "sound": {
+      "step": "stone",
+      "spacing": 38,
+      "attack": "heavy",
+      "step_gain_db": -6.0
     }
   }
 }

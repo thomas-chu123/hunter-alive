@@ -19,6 +19,7 @@ var font: SystemFont
 
 
 func _ready() -> void:
+	get_node("/root/GameMusic").play_region(-1)
 	font = SystemFont.new()
 	font.font_names = PackedStringArray(["Noto Sans CJK TC", "Microsoft JhengHei", "sans-serif"])
 
