@@ -1,6 +1,9 @@
-[gd_resource type="TileSet" load_steps=3 format=3]
+[gd_resource type="TileSet" load_steps=6 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/environment/ruins/terrain_atlas.png" id="1_atlas"]
+
+[ext_resource type="PackedScene" path="res://scenes/ruins_props/broken_column.tscn" id="2_column"]
+[ext_resource type="PackedScene" path="res://scenes/ruins_props/fern.tscn" id="3_fern"]
 
 [sub_resource type="TileSetAtlasSource" id="Atlas_ruins"]
 resource_name = "Ruins terrain"
@@ -21,7 +24,13 @@ texture_region_size = Vector2i(128, 64)
 1:1/0/physics_layer_0/polygon_0/one_way = true
 1:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-64, -30, 64, -30, 64, -20, -64, -20)
 
+[sub_resource type="TileSetScenesCollectionSource" id="Scenes_ruins_props"]
+resource_name = "Ruins decorations"
+scenes/1/scene = ExtResource("2_column")
+scenes/2/scene = ExtResource("3_fern")
+
 [resource]
 tile_size = Vector2i(128, 64)
 physics_layer_0/collision_layer = 1
 sources/0 = SubResource("Atlas_ruins")
+sources/1 = SubResource("Scenes_ruins_props")

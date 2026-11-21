@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/ruins/fern.png" id="1_art"]
+
+[node name="Fern" type="Sprite2D"]
+scale = Vector2(0.14815, 0.14815)
+texture = ExtResource("1_art")
+offset = Vector2(0, 135)
