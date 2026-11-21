@@ -4,7 +4,6 @@ const Hunter := preload("res://scripts/ruin_hunter.gd")
 const Monster := preload("res://scripts/ruin_monster.gd")
 const HitEffects := preload("res://scripts/ruin_hit_effects.gd")
 const Landscape := preload("res://scripts/ruin_landscape.gd")
-const BACKDROP := preload("res://assets/environment/ancient_temple.png")
 const START := Vector2(950, 526)
 const SOUL_NAMES := {"lizard": "蜥翼", "spider": "蛛步"}
 const DROP_COLORS := {
@@ -14,9 +13,11 @@ const DROP_COLORS := {
 
 var hunter: Hunter
 var hit_effects: HitEffects
-var landscape: Landscape
+@onready var landscape: Landscape = $Landscape
 var camera: Camera2D
-var background: TextureRect
+@onready var background: Sprite2D = $Backdrop/Temple
+@onready var backdrop_origin := background.position
+@onready var backdrop_scale := background.scale
 var enemies: Array[Monster] = []
 var drops: Array[Dictionary] = []
 var arrows: Array[Dictionary] = []
@@ -46,11 +47,8 @@ var font: SystemFont
 
 func _ready() -> void:
 	rng.randomize()
-	_build_backdrop()
-	landscape = Landscape.new()
-	add_child(landscape)
-	for bounds: Rect2 in Landscape.STONES:
-		_add_stone_collider(bounds)
+	_resize_backdrop()
+	get_viewport().size_changed.connect(_resize_backdrop)
 
 	hunter = Hunter.new()
 	hunter.name = "Hunter"
@@ -77,7 +75,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	elapsed += delta
-	background.position.x = -110.0 - clampf((hunter.position.x - 950.0) * 0.050, -95, 95)
+	background.position.x = backdrop_origin.x - clampf((hunter.position.x - 950.0) * 0.050, -95, 95)
 	notice_left = maxf(0.0, notice_left - delta)
 	notice_label.visible = notice_left > 0 and not completed
 	if not completed:
@@ -123,17 +121,6 @@ func _add_monster(species: String, x: float) -> void:
 	monster.disarmed.connect(_on_monster_disarmed)
 	enemies.append(monster)
 	add_child(monster)
-
-
-func _add_stone_collider(bounds: Rect2) -> void:
-	var body := StaticBody2D.new()
-	var collision := CollisionShape2D.new()
-	var shape := RectangleShape2D.new()
-	shape.size = bounds.size
-	collision.shape = shape
-	body.position = bounds.get_center()
-	body.add_child(collision)
-	add_child(body)
 
 
 func _attack(origin: Vector2, direction: float, ranged: bool, damage: int) -> void:
@@ -261,9 +248,9 @@ func _equip_next_soul() -> void:
 
 
 func _interact() -> void:
-	if _near(Landscape.SHRINE_X):
+	if _near(landscape.shrine.global_position):
 		_set_camp_open(true)
-	elif _near(Landscape.PORTAL_X):
+	elif _near(landscape.portal.global_position):
 		if guardian_felled:
 			_finish()
 		else:
@@ -274,12 +261,12 @@ func _interact() -> void:
 		_notice("石匣裡存有 3 份素材。匣蓋刻著與西側石門相同的名字。", 4.0)
 
 
-func _near(x: float) -> bool:
-	return absf(hunter.position.x - x) < 79 and absf(hunter.position.y - Landscape.FLOOR_Y) < 60
+func _near(at: Vector2) -> bool:
+	return absf(hunter.global_position.x - at.x) < 79 and absf(hunter.global_position.y - at.y) < 60
 
 
 func _near_cache() -> bool:
-	return hunter.position.distance_to(Landscape.OVERLOOK) < 65
+	return hunter.global_position.distance_to(landscape.cache.global_position) < 65
 
 
 func _on_hunter_defeated() -> void:
@@ -319,23 +306,12 @@ func _notice(message: String, seconds: float) -> void:
 	notice_left = seconds
 
 
-func _build_backdrop() -> void:
-	var layer := CanvasLayer.new()
-	layer.layer = -1
-	add_child(layer)
-	background = TextureRect.new()
-	background.texture = BACKDROP
-	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	background.modulate = Color("#a9c1bf")
-	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.add_child(background)
-	_resize_backdrop()
-	get_viewport().size_changed.connect(_resize_backdrop)
-
-
 func _resize_backdrop() -> void:
-	background.size = get_viewport_rect().size + Vector2(220, 10)
+	var texture_size := background.texture.get_size()
+	var visible_size := get_viewport_rect().size + Vector2(220, 10)
+	var cover := maxf(visible_size.x / texture_size.x, visible_size.y / texture_size.y)
+	var editor_cover := 1372.0 / texture_size.x
+	background.scale = backdrop_scale * (cover / editor_cover)
 
 
 func _draw() -> void:
@@ -547,9 +523,9 @@ func _update_hud() -> void:
 		objective_label.text = "崩塌神殿\n回到西側斷橋，用蜥翼抵達石門。"
 
 	prompt_label.text = ""
-	if _near(Landscape.SHRINE_X):
+	if _near(landscape.shrine.global_position):
 		prompt_label.text = "E　打開營火與工坊選單"
-	elif _near(Landscape.PORTAL_X):
+	elif _near(landscape.portal.global_position):
 		prompt_label.text = "E　查看石門"
 	elif _near_cache() and not landscape.cache_open:
 		prompt_label.text = "E　查看觀景台上的石匣"

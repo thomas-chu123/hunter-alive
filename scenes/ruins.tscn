@@ -1,6 +1,1131 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ruins.gd" id="1_ruins"]
+[ext_resource type="Script" path="res://scripts/ruin_landscape.gd" id="2_landscape"]
+[ext_resource type="Texture2D" path="res://assets/environment/ruins/brazier.png" id="brazier"]
+[ext_resource type="Texture2D" path="res://assets/environment/ruins/broken_column.png" id="broken_column"]
+[ext_resource type="Texture2D" path="res://assets/environment/ruins/carved_stone.png" id="carved_stone"]
+[ext_resource type="Texture2D" path="res://assets/environment/ruins/cracked_sandstone.png" id="cracked_sandstone"]
+[ext_resource type="Texture2D" path="res://assets/environment/ruins/fern.png" id="fern"]
+[ext_resource type="Texture2D" path="res://assets/environment/ruins/moss_ledge.png" id="moss_ledge"]
+[ext_resource type="Texture2D" path="res://assets/environment/ruins/moss_stone.png" id="moss_stone"]
+[ext_resource type="Texture2D" path="res://assets/environment/ruins/reliquary.png" id="reliquary"]
+[ext_resource type="Texture2D" path="res://assets/environment/ruins/root_ledge.png" id="root_ledge"]
+[ext_resource type="Texture2D" path="res://assets/environment/ruins/root_stone.png" id="root_stone"]
+[ext_resource type="Texture2D" path="res://assets/environment/ruins/stone_gate.png" id="stone_gate"]
+[ext_resource type="Texture2D" path="res://assets/environment/ancient_temple.png" id="backdrop"]
+
+[sub_resource type="RectangleShape2D" id="Shape_WestBank"]
+size = Vector2(272, 230)
+
+[sub_resource type="RectangleShape2D" id="Shape_MainFloor"]
+size = Vector2(2610, 230)
+
+[sub_resource type="RectangleShape2D" id="Shape_CampLedge"]
+size = Vector2(137, 18)
+
+[sub_resource type="RectangleShape2D" id="Shape_SpiderLedge"]
+size = Vector2(118, 18)
+
+[sub_resource type="RectangleShape2D" id="Shape_LowerSteps"]
+size = Vector2(145, 18)
+
+[sub_resource type="RectangleShape2D" id="Shape_UpperSteps"]
+size = Vector2(119, 18)
+
+[sub_resource type="RectangleShape2D" id="Shape_OverlookPlatform"]
+size = Vector2(434, 30)
+
+[sub_resource type="RectangleShape2D" id="Shape_EastLowerLedge"]
+size = Vector2(140, 20)
+
+[sub_resource type="RectangleShape2D" id="Shape_EastUpperLedge"]
+size = Vector2(124, 18)
+
+[sub_resource type="RectangleShape2D" id="Shape_FarEastShelf"]
+size = Vector2(145, 75)
+
+[sub_resource type="RectangleShape2D" id="Shape_EastWall"]
+size = Vector2(40, 290)
+
+[sub_resource type="RectangleShape2D" id="Shape_WestWall"]
+size = Vector2(20, 190)
 
 [node name="Ruins" type="Node2D"]
 script = ExtResource("1_ruins")
+
+[node name="Backdrop" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="Temple" type="Sprite2D" parent="Backdrop"]
+position = Vector2(-110, 0)
+scale = Vector2(0.77339346, 0.77339346)
+texture = ExtResource("backdrop")
+centered = false
+modulate = Color(0.6627451, 0.7568627, 0.7490196, 1)
+
+[node name="Landscape" type="Node2D" parent="."]
+script = ExtResource("2_landscape")
+
+[node name="Columns" type="Node2D" parent="Landscape"]
+
+[node name="Column1" type="Sprite2D" parent="Landscape/Columns"]
+position = Vector2(204.08477, 387)
+scale = Vector2(0.37592138, 0.37592138)
+texture = ExtResource("broken_column")
+centered = false
+modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
+
+[node name="Column2" type="Sprite2D" parent="Landscape/Columns"]
+position = Vector2(755.38575, 410)
+scale = Vector2(0.31941032, 0.31941032)
+texture = ExtResource("broken_column")
+centered = false
+modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
+
+[node name="Column3" type="Sprite2D" parent="Landscape/Columns"]
+position = Vector2(1079.3182, 355)
+scale = Vector2(0.45454545, 0.45454545)
+texture = ExtResource("broken_column")
+centered = false
+modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
+
+[node name="Column4" type="Sprite2D" parent="Landscape/Columns"]
+position = Vector2(1478.4545, 392)
+scale = Vector2(0.36363636, 0.36363636)
+texture = ExtResource("broken_column")
+centered = false
+modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
+
+[node name="Column5" type="Sprite2D" parent="Landscape/Columns"]
+position = Vector2(1754.4681, 403)
+scale = Vector2(0.33660934, 0.33660934)
+texture = ExtResource("broken_column")
+centered = false
+modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
+
+[node name="Column6" type="Sprite2D" parent="Landscape/Columns"]
+position = Vector2(2461.5639, 407)
+scale = Vector2(0.32678133, 0.32678133)
+texture = ExtResource("broken_column")
+centered = false
+modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
+
+[node name="Column7" type="Sprite2D" parent="Landscape/Columns"]
+position = Vector2(2668.0295, 416)
+scale = Vector2(0.3046683, 0.3046683)
+texture = ExtResource("broken_column")
+centered = false
+modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
+
+[node name="Column8" type="Sprite2D" parent="Landscape/Columns"]
+position = Vector2(3035.3722, 399)
+scale = Vector2(0.34643735, 0.34643735)
+texture = ExtResource("broken_column")
+centered = false
+modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
+
+[node name="Terrain" type="Node2D" parent="Landscape"]
+
+[node name="WestBank" type="StaticBody2D" parent="Landscape/Terrain"]
+position = Vector2(40, 540)
+
+[node name="StoneBacking" type="Polygon2D" parent="Landscape/Terrain/WestBank"]
+polygon = PackedVector2Array(0, 0, 272, 0, 272, 230, 0, 230)
+color = Color(0.1137255, 0.1686275, 0.1686275, 1)
+
+[node name="Stone1_1" type="Sprite2D" parent="Landscape/Terrain/WestBank"]
+position = Vector2(0, 0)
+scale = Vector2(0.21383648, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_2" type="Sprite2D" parent="Landscape/Terrain/WestBank"]
+position = Vector2(90.666667, 0)
+scale = Vector2(0.21587302, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_3" type="Sprite2D" parent="Landscape/Terrain/WestBank"]
+position = Vector2(181.33333, 0)
+scale = Vector2(0.21383648, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone2_1" type="Sprite2D" parent="Landscape/Terrain/WestBank"]
+position = Vector2(0, 57.5)
+scale = Vector2(0.21587302, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_2" type="Sprite2D" parent="Landscape/Terrain/WestBank"]
+position = Vector2(90.666667, 57.5)
+scale = Vector2(0.21383648, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_3" type="Sprite2D" parent="Landscape/Terrain/WestBank"]
+position = Vector2(181.33333, 57.5)
+scale = Vector2(0.21587302, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone3_1" type="Sprite2D" parent="Landscape/Terrain/WestBank"]
+position = Vector2(0, 115)
+scale = Vector2(0.21383648, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_2" type="Sprite2D" parent="Landscape/Terrain/WestBank"]
+position = Vector2(90.666667, 115)
+scale = Vector2(0.21587302, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_3" type="Sprite2D" parent="Landscape/Terrain/WestBank"]
+position = Vector2(181.33333, 115)
+scale = Vector2(0.21383648, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone4_1" type="Sprite2D" parent="Landscape/Terrain/WestBank"]
+position = Vector2(0, 172.5)
+scale = Vector2(0.21587302, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_2" type="Sprite2D" parent="Landscape/Terrain/WestBank"]
+position = Vector2(90.666667, 172.5)
+scale = Vector2(0.21383648, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_3" type="Sprite2D" parent="Landscape/Terrain/WestBank"]
+position = Vector2(181.33333, 172.5)
+scale = Vector2(0.21587302, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/WestBank"]
+position = Vector2(136, 115)
+shape = SubResource("Shape_WestBank")
+
+[node name="MainFloor" type="StaticBody2D" parent="Landscape/Terrain"]
+position = Vector2(720, 540)
+
+[node name="StoneBacking" type="Polygon2D" parent="Landscape/Terrain/MainFloor"]
+polygon = PackedVector2Array(0, 0, 2610, 0, 2610, 230, 0, 230)
+color = Color(0.1137255, 0.1686275, 0.1686275, 1)
+
+[node name="Stone1_1" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(0, 0)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_2" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(118.63636, 0)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_3" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(237.27273, 0)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_4" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(355.90909, 0)
+scale = Vector2(0.27914439, 0.2510917)
+texture = ExtResource("cracked_sandstone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_5" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(474.54545, 0)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_6" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(593.18182, 0)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_7" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(711.81818, 0)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_8" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(830.45455, 0)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_9" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(949.09091, 0)
+scale = Vector2(0.27914439, 0.2510917)
+texture = ExtResource("cracked_sandstone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_10" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1067.7273, 0)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_11" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1186.3636, 0)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_12" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1305, 0)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_13" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1423.6364, 0)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_14" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1542.2727, 0)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_15" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1660.9091, 0)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_16" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1779.5455, 0)
+scale = Vector2(0.27980274, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_17" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1898.1818, 0)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_18" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2016.8182, 0)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_19" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2135.4545, 0)
+scale = Vector2(0.27980274, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_20" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2254.0909, 0)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_21" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2372.7273, 0)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_22" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2491.3636, 0)
+scale = Vector2(0.27980274, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone2_1" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(0, 57.5)
+scale = Vector2(0.27914439, 0.2510917)
+texture = ExtResource("cracked_sandstone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_2" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(118.63636, 57.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_3" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(237.27273, 57.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_4" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(355.90909, 57.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_5" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(474.54545, 57.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_6" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(593.18182, 57.5)
+scale = Vector2(0.27914439, 0.2510917)
+texture = ExtResource("cracked_sandstone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_7" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(711.81818, 57.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_8" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(830.45455, 57.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_9" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(949.09091, 57.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_10" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1067.7273, 57.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_11" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1186.3636, 57.5)
+scale = Vector2(0.27914439, 0.2510917)
+texture = ExtResource("cracked_sandstone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_12" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1305, 57.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_13" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1423.6364, 57.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_14" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1542.2727, 57.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_15" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1660.9091, 57.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_16" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1779.5455, 57.5)
+scale = Vector2(0.27980274, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_17" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1898.1818, 57.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_18" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2016.8182, 57.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_19" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2135.4545, 57.5)
+scale = Vector2(0.27980274, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_20" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2254.0909, 57.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_21" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2372.7273, 57.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_22" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2491.3636, 57.5)
+scale = Vector2(0.27980274, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone3_1" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(0, 115)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_2" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(118.63636, 115)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_3" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(237.27273, 115)
+scale = Vector2(0.27914439, 0.2510917)
+texture = ExtResource("cracked_sandstone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_4" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(355.90909, 115)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_5" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(474.54545, 115)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_6" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(593.18182, 115)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_7" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(711.81818, 115)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_8" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(830.45455, 115)
+scale = Vector2(0.27914439, 0.2510917)
+texture = ExtResource("cracked_sandstone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_9" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(949.09091, 115)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_10" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1067.7273, 115)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_11" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1186.3636, 115)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_12" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1305, 115)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_13" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1423.6364, 115)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_14" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1542.2727, 115)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_15" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1660.9091, 115)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_16" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1779.5455, 115)
+scale = Vector2(0.27980274, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_17" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1898.1818, 115)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_18" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2016.8182, 115)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_19" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2135.4545, 115)
+scale = Vector2(0.27980274, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_20" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2254.0909, 115)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_21" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2372.7273, 115)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone3_22" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2491.3636, 115)
+scale = Vector2(0.27980274, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.496, 0.5203137, 0.4376471, 1)
+
+[node name="Stone4_1" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(0, 172.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_2" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(118.63636, 172.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_3" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(237.27273, 172.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_4" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(355.90909, 172.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_5" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(474.54545, 172.5)
+scale = Vector2(0.27914439, 0.2510917)
+texture = ExtResource("cracked_sandstone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_6" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(593.18182, 172.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_7" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(711.81818, 172.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_8" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(830.45455, 172.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_9" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(949.09091, 172.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_10" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1067.7273, 172.5)
+scale = Vector2(0.27914439, 0.2510917)
+texture = ExtResource("cracked_sandstone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_11" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1186.3636, 172.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_12" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1305, 172.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_13" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1423.6364, 172.5)
+scale = Vector2(0.28246753, 0.25330396)
+texture = ExtResource("moss_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_14" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1542.2727, 172.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_15" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1660.9091, 172.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_16" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1779.5455, 172.5)
+scale = Vector2(0.27980274, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_17" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1898.1818, 172.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_18" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2016.8182, 172.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_19" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2135.4545, 172.5)
+scale = Vector2(0.27980274, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_20" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2254.0909, 172.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_21" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2372.7273, 172.5)
+scale = Vector2(0.28314168, 0.25330396)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Stone4_22" type="Sprite2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(2491.3636, 172.5)
+scale = Vector2(0.27980274, 0.25330396)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.344, 0.3608627, 0.3035294, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/MainFloor"]
+position = Vector2(1305, 115)
+shape = SubResource("Shape_MainFloor")
+
+[node name="CampLedge" type="StaticBody2D" parent="Landscape/Terrain"]
+position = Vector2(1075, 476)
+
+[node name="Ledge1" type="Sprite2D" parent="Landscape/Terrain/CampLedge"]
+position = Vector2(0, -1)
+scale = Vector2(0.32619048, 0.22807018)
+texture = ExtResource("moss_ledge")
+centered = false
+modulate = Color(0.8078431, 0.8352941, 0.7098039, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/CampLedge"]
+position = Vector2(68.5, 9)
+shape = SubResource("Shape_CampLedge")
+
+[node name="SpiderLedge" type="StaticBody2D" parent="Landscape/Terrain"]
+position = Vector2(1435, 449)
+
+[node name="Ledge1" type="Sprite2D" parent="Landscape/Terrain/SpiderLedge"]
+position = Vector2(0, -1)
+scale = Vector2(0.28095238, 0.22807018)
+texture = ExtResource("moss_ledge")
+centered = false
+modulate = Color(0.8078431, 0.8352941, 0.7098039, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/SpiderLedge"]
+position = Vector2(59, 9)
+shape = SubResource("Shape_SpiderLedge")
+
+[node name="LowerSteps" type="StaticBody2D" parent="Landscape/Terrain"]
+position = Vector2(1740, 473)
+
+[node name="Ledge1" type="Sprite2D" parent="Landscape/Terrain/LowerSteps"]
+position = Vector2(0, -1)
+scale = Vector2(0.3452381, 0.18055556)
+texture = ExtResource("root_ledge")
+centered = false
+modulate = Color(0.8078431, 0.8352941, 0.7098039, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/LowerSteps"]
+position = Vector2(72.5, 9)
+shape = SubResource("Shape_LowerSteps")
+
+[node name="UpperSteps" type="StaticBody2D" parent="Landscape/Terrain"]
+position = Vector2(1887, 412)
+
+[node name="Ledge1" type="Sprite2D" parent="Landscape/Terrain/UpperSteps"]
+position = Vector2(0, -1)
+scale = Vector2(0.28333333, 0.18055556)
+texture = ExtResource("root_ledge")
+centered = false
+modulate = Color(0.8078431, 0.8352941, 0.7098039, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/UpperSteps"]
+position = Vector2(59.5, 9)
+shape = SubResource("Shape_UpperSteps")
+
+[node name="OverlookPlatform" type="StaticBody2D" parent="Landscape/Terrain"]
+position = Vector2(2005, 348)
+
+[node name="Shadow" type="Polygon2D" parent="Landscape/Terrain/OverlookPlatform"]
+show_behind_parent = true
+polygon = PackedVector2Array(0, 20, 434, 20, 407, 141, 27, 141)
+vertex_colors = PackedColorArray(0.06, 0.11, 0.13, 0.3, 0.06, 0.11, 0.13, 0.3, 0, 0, 0, 0, 0, 0, 0, 0)
+
+[node name="Ledge1" type="Sprite2D" parent="Landscape/Terrain/OverlookPlatform"]
+position = Vector2(0, -1)
+scale = Vector2(0.3515873, 0.3245614)
+texture = ExtResource("moss_ledge")
+centered = false
+modulate = Color(0.8078431, 0.8352941, 0.7098039, 1)
+
+[node name="Ledge2" type="Sprite2D" parent="Landscape/Terrain/OverlookPlatform"]
+position = Vector2(144.66667, -1)
+scale = Vector2(0.3515873, 0.3245614)
+texture = ExtResource("moss_ledge")
+centered = false
+modulate = Color(0.8078431, 0.8352941, 0.7098039, 1)
+
+[node name="Ledge3" type="Sprite2D" parent="Landscape/Terrain/OverlookPlatform"]
+position = Vector2(289.33333, -1)
+scale = Vector2(0.34444444, 0.3245614)
+texture = ExtResource("moss_ledge")
+centered = false
+modulate = Color(0.8078431, 0.8352941, 0.7098039, 1)
+
+[node name="Fern" type="Sprite2D" parent="Landscape/Terrain/OverlookPlatform"]
+position = Vector2(386.33333, -24)
+scale = Vector2(0.11111111, 0.11111111)
+texture = ExtResource("fern")
+centered = false
+modulate = Color(0.6941176, 0.7490196, 0.5372549, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/OverlookPlatform"]
+position = Vector2(217, 15)
+shape = SubResource("Shape_OverlookPlatform")
+
+[node name="EastLowerLedge" type="StaticBody2D" parent="Landscape/Terrain"]
+position = Vector2(2370, 496)
+
+[node name="Ledge1" type="Sprite2D" parent="Landscape/Terrain/EastLowerLedge"]
+position = Vector2(0, -1)
+scale = Vector2(0.33333333, 0.1875)
+texture = ExtResource("root_ledge")
+centered = false
+modulate = Color(0.8078431, 0.8352941, 0.7098039, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/EastLowerLedge"]
+position = Vector2(70, 10)
+shape = SubResource("Shape_EastLowerLedge")
+
+[node name="EastUpperLedge" type="StaticBody2D" parent="Landscape/Terrain"]
+position = Vector2(2550, 438)
+
+[node name="Ledge1" type="Sprite2D" parent="Landscape/Terrain/EastUpperLedge"]
+position = Vector2(0, -1)
+scale = Vector2(0.2952381, 0.18055556)
+texture = ExtResource("root_ledge")
+centered = false
+modulate = Color(0.8078431, 0.8352941, 0.7098039, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/EastUpperLedge"]
+position = Vector2(62, 9)
+shape = SubResource("Shape_EastUpperLedge")
+
+[node name="FarEastShelf" type="StaticBody2D" parent="Landscape/Terrain"]
+position = Vector2(3135, 465)
+
+[node name="StoneBacking" type="Polygon2D" parent="Landscape/Terrain/FarEastShelf"]
+polygon = PackedVector2Array(0, 0, 145, 0, 145, 75, 0, 75)
+color = Color(0.1137255, 0.1686275, 0.1686275, 1)
+
+[node name="Stone1_1" type="Sprite2D" parent="Landscape/Terrain/FarEastShelf"]
+position = Vector2(0, 0)
+scale = Vector2(0.17099057, 0.16519824)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone1_2" type="Sprite2D" parent="Landscape/Terrain/FarEastShelf"]
+position = Vector2(72.5, 0)
+scale = Vector2(0.17303103, 0.16519824)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.8, 0.8392157, 0.7058824, 1)
+
+[node name="Stone2_1" type="Sprite2D" parent="Landscape/Terrain/FarEastShelf"]
+position = Vector2(0, 37.5)
+scale = Vector2(0.17099057, 0.16519824)
+texture = ExtResource("carved_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Stone2_2" type="Sprite2D" parent="Landscape/Terrain/FarEastShelf"]
+position = Vector2(72.5, 37.5)
+scale = Vector2(0.17303103, 0.16519824)
+texture = ExtResource("root_stone")
+centered = false
+modulate = Color(0.648, 0.6797647, 0.5717647, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/FarEastShelf"]
+position = Vector2(72.5, 37.5)
+shape = SubResource("Shape_FarEastShelf")
+
+[node name="EastWall" type="StaticBody2D" parent="Landscape/Terrain"]
+position = Vector2(3290, 250)
+
+[node name="WallArt" type="Sprite2D" parent="Landscape/Terrain/EastWall"]
+position = Vector2(0, 0)
+scale = Vector2(0.1793722, 0.71253071)
+texture = ExtResource("broken_column")
+centered = false
+modulate = Color(0.6705882, 0.7137255, 0.6431373, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/EastWall"]
+position = Vector2(20, 145)
+shape = SubResource("Shape_EastWall")
+
+[node name="WestWall" type="StaticBody2D" parent="Landscape/Terrain"]
+position = Vector2(20, 350)
+
+[node name="WallArt" type="Sprite2D" parent="Landscape/Terrain/WestWall"]
+position = Vector2(0, 0)
+scale = Vector2(0.089686099, 0.46683047)
+texture = ExtResource("broken_column")
+centered = false
+modulate = Color(0.6705882, 0.7137255, 0.6431373, 1)
+
+[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/WestWall"]
+position = Vector2(10, 95)
+shape = SubResource("Shape_WestWall")
+
+[node name="Ferns" type="Node2D" parent="Landscape"]
+
+[node name="Fern1" type="Sprite2D" parent="Landscape/Ferns"]
+position = Vector2(273.68519, 507)
+scale = Vector2(0.15432099, 0.15432099)
+texture = ExtResource("fern")
+centered = false
+modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
+
+[node name="Fern2" type="Sprite2D" parent="Landscape/Ferns"]
+position = Vector2(708.87037, 509.64)
+scale = Vector2(0.14197531, 0.14197531)
+texture = ExtResource("fern")
+centered = false
+modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
+
+[node name="Fern3" type="Sprite2D" parent="Landscape/Ferns"]
+position = Vector2(1369.787, 515.58)
+scale = Vector2(0.11419753, 0.11419753)
+texture = ExtResource("fern")
+centered = false
+modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
+
+[node name="Fern4" type="Sprite2D" parent="Landscape/Ferns"]
+position = Vector2(1637.6019, 512.94)
+scale = Vector2(0.12654321, 0.12654321)
+texture = ExtResource("fern")
+centered = false
+modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
+
+[node name="Fern5" type="Sprite2D" parent="Landscape/Ferns"]
+position = Vector2(1944.3241, 508.98)
+scale = Vector2(0.14506173, 0.14506173)
+texture = ExtResource("fern")
+centered = false
+modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
+
+[node name="Fern6" type="Sprite2D" parent="Landscape/Ferns"]
+position = Vector2(2433.3333, 516.24)
+scale = Vector2(0.11111111, 0.11111111)
+texture = ExtResource("fern")
+centered = false
+modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
+
+[node name="Fern7" type="Sprite2D" parent="Landscape/Ferns"]
+position = Vector2(2756.787, 515.58)
+scale = Vector2(0.11419753, 0.11419753)
+texture = ExtResource("fern")
+centered = false
+modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
+
+[node name="Fern8" type="Sprite2D" parent="Landscape/Ferns"]
+position = Vector2(3181.5926, 505.68)
+scale = Vector2(0.16049383, 0.16049383)
+texture = ExtResource("fern")
+centered = false
+modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
+
+[node name="Props" type="Node2D" parent="Landscape"]
+
+[node name="Campfire" type="Node2D" parent="Landscape/Props"]
+position = Vector2(885, 540)
+
+[node name="Sprite" type="Sprite2D" parent="Landscape/Props/Campfire"]
+position = Vector2(-33.077273, -57)
+scale = Vector2(0.17272727, 0.17272727)
+texture = ExtResource("brazier")
+centered = false
+modulate = Color(1, 1, 1, 1)
+
+[node name="Portal" type="Node2D" parent="Landscape/Props"]
+position = Vector2(122, 540)
+
+[node name="Sprite" type="Sprite2D" parent="Landscape/Props/Portal"]
+position = Vector2(-54.513064, -136)
+scale = Vector2(0.16152019, 0.16152019)
+texture = ExtResource("stone_gate")
+centered = false
+modulate = Color(1, 1, 1, 1)
+
+[node name="Reliquary" type="Node2D" parent="Landscape/Props"]
+position = Vector2(2270, 348)
+
+[node name="Sprite" type="Sprite2D" parent="Landscape/Props/Reliquary"]
+position = Vector2(-23.928832, -31)
+scale = Vector2(0.11313869, 0.11313869)
+texture = ExtResource("reliquary")
+centered = false
+modulate = Color(1, 1, 1, 1)
