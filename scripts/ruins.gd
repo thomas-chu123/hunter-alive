@@ -132,6 +132,7 @@ func _ready() -> void:
 	hunter.add_child(camera)
 	camera.reset_smoothing()
 	hit_effects = HitEffects.new()
+	hit_effects.camera = camera
 	add_child(hit_effects)
 	if get_tree().has_meta(CampSave.RESTORE_META):
 		_restore_camp(get_tree().get_meta(CampSave.RESTORE_META))
@@ -230,6 +231,9 @@ func _attack(origin: Vector2, direction: float, ranged: bool, damage: int, weapo
 			"weapon": weapon, "pierce": int(weapon == "thorn_bow"), "hit_ids": []})
 		return
 	var reach: float = Armory.WEAPONS[weapon][4] if Armory.WEAPONS.has(weapon) else 51.0
+	var blade_step := maxi(1, hunter.blade_step) if weapon in Hunter.SHORT_BLADES else 0
+	if blade_step > 0:
+		hit_effects.swing(origin, direction, reach, blade_step)
 	var hitbox := Rect2(origin.x if direction > 0 else origin.x - reach, origin.y - 17, reach, 42)
 	var candidates := enemies.duplicate()
 	candidates.sort_custom(func(a, b): return absf(a.position.x - origin.x) < absf(b.position.x - origin.x))
@@ -248,7 +252,8 @@ func _attack(origin: Vector2, direction: float, ranged: bool, damage: int, weapo
 			applied += int(fang_hits % 3 == 0)
 		else:
 			fang_hits = 0
-		_hit_monster(monster, applied, weapon_hit, hitbox.intersection(bounds).get_center(), direction, false, weapon)
+		_hit_monster(monster, applied, weapon_hit, hitbox.intersection(bounds).get_center(),
+			direction, false, weapon, blade_step)
 		hit_count += 1
 		if hit_count >= (2 if weapon == "gate_halberd" else 1):
 			break
@@ -354,14 +359,22 @@ func _arrow_hits_monster(hitbox: Rect2, arrow: Dictionary) -> int:
 
 
 func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector2, direction: float,
-		projectile: bool = false, weapon: String = "") -> void:
-	monster.receive_hit(damage, weapon_hit, projectile, weapon, direction)
+		projectile: bool = false, weapon: String = "", blade_step: int = 0) -> void:
+	var result := monster.receive_hit(damage, weapon_hit, projectile, weapon, direction)
 	if not projectile and not monster.is_queued_for_deletion():
 		if hunter.gear.get("手部") == "stonegrip_gloves" and monster.attack_kind == "roll" and monster.recovery > 0.0:
 			monster.apply_equipment_push(direction, 110.0)
 		elif hunter.gear.get("手部") == "hardroot_bracers" and not hunter.is_on_floor():
 			monster.apply_equipment_push(direction, 85.0)
-	hit_effects.impact(point, direction, weapon_hit)
+	if blade_step == 0:
+		hit_effects.impact(point, direction, weapon_hit)
+		return
+	var blocked := result == Monster.HitResult.BLOCKED
+	hit_effects.blade_impact(point, direction, blade_step, blocked, result == Monster.HitResult.DISARMED)
+	if not blocked:
+		hunter.blade_recoil = -direction * (52.0 if blade_step == 3 else 34.0)
+		if not monster.is_queued_for_deletion():
+			monster.flash_blade_hit()
 
 
 func _on_monster_felled(monster: Monster) -> void:

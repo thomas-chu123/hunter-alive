@@ -13,6 +13,8 @@ const CROUCH_SPEED := 64.0
 const KNIFE_DURATION := 0.29
 const BOW_DURATION := 0.39
 const ATTACK_BUFFER := 0.22
+const BLADE_CHAIN_WINDOW := 0.46
+const SHORT_BLADES := ["hunter_knife", "fang_dagger"]
 const LAND_DURATION := 0.15
 const HURT_DURATION := 0.23
 const STANDING_HEIGHT := 48.0
@@ -65,6 +67,10 @@ var attack_queued := false
 var attack_with_bow := false
 var attack_with_staff := false
 var attack_duration := KNIFE_DURATION
+var blade_step := 0
+var blade_chain_left := 0.0
+var blade_chain_weapon := ""
+var blade_recoil := 0.0
 var collider: CollisionShape2D
 var animation_time := 0.0
 var wall_holding := false
@@ -93,6 +99,7 @@ func _physics_process(delta: float) -> void:
 
 	attack_left = maxf(attack_left - delta, 0)
 	attack_buffer_left = maxf(attack_buffer_left - delta, 0)
+	blade_chain_left = maxf(blade_chain_left - delta, 0)
 	landing_left = maxf(landing_left - delta, 0)
 	rise_left = maxf(rise_left - delta, 0)
 	hurt_left = maxf(hurt_left - delta, 0)
@@ -151,8 +158,12 @@ func _physics_process(delta: float) -> void:
 		speed *= 1.20 if gear.get("腿部") == "eel_greaves" else 1.0
 		current_force = -16.0 if gear.get("腿部") == "sluice_boots" else -32.0
 	velocity.x = move_toward(velocity.x, direction * speed + current_force, 2100.0 * delta)
+	velocity.x += blade_recoil
 	var fall_speed := velocity.y
 	move_and_slide()
+	if not is_on_wall():
+		velocity.x -= blade_recoil
+	blade_recoil = move_toward(blade_recoil, 0.0, 1250.0 * delta)
 	if is_on_floor() and not grounded and fall_speed > 245.0:
 		landing_left = LAND_DURATION * (0.5 if gear.get("腿部") == "cliff_boots" else 1.0)
 	animation_time += delta
@@ -178,6 +189,11 @@ func _physics_process(delta: float) -> void:
 			var damage := weapon_damage(attack_weapon)
 			var height := 21.0 if crouching else 30.0
 			var origin := HunterAnimation.bow_origin(facing) if attack_with_bow else Vector2(facing * 14, -height)
+			if attack_weapon in SHORT_BLADES:
+				var continues := blade_chain_left > 0 and blade_chain_weapon == attack_weapon
+				blade_step = blade_step % 3 + 1 if continues else 1
+				blade_chain_left = BLADE_CHAIN_WINDOW
+				blade_chain_weapon = attack_weapon
 			attacked.emit(position + origin, facing, attack_with_bow, damage, attack_weapon)
 	queue_redraw()
 
@@ -229,6 +245,8 @@ func hurt(source_x: float, damage: int = 1, effect: String = "") -> void:
 	attack_left = 0.0
 	attack_buffer_left = 0.0
 	attack_queued = false
+	blade_chain_left = 0.0
+	blade_recoil = 0.0
 	var force := 270.0
 	if (effect == "spray" and gear.get("頭部") == "sealed_cap") or (effect == "ram" and gear.get("腿部") == "ram_boots"):
 		force *= 0.55
@@ -309,6 +327,8 @@ func weapon_damage(id: String, rank: int = 0) -> int:
 func select_weapon(id: String) -> void:
 	if not unlocked_weapons.has(id):
 		id = unlocked_weapons[0] if not unlocked_weapons.is_empty() else "unarmed"
+	if selected_weapon() != id:
+		blade_chain_left = 0.0
 	equipped_weapon = id if Armory.WEAPONS.has(id) or id == "unarmed" else ""
 	with_staff = id in ["ember_staff", "scribe_staff"]
 	with_bow = id in ["hunter_bow", "thorn_bow"]
@@ -331,6 +351,8 @@ func respawn(at: Vector2) -> void:
 	attack_left = 0.0
 	attack_buffer_left = 0.0
 	attack_queued = false
+	blade_chain_left = 0.0
+	blade_recoil = 0.0
 	velocity = Vector2.ZERO
 	rest()
 	invincible_left = 0.9
@@ -377,7 +399,10 @@ func _draw() -> void:
 	elif absf(velocity.x) > 18:
 		action = "walk" if walking else "run"
 		frame = int(animation_time * (9 if walking else 14)) % HunterAnimation.FRAME_COUNT
-	HunterAnimation.draw_frame(self, action, frame, facing)
+	if action == "knife_attack" and attack_weapon in SHORT_BLADES:
+		HunterAnimation.draw_short_blade(self, frame, facing)
+	else:
+		HunterAnimation.draw_frame(self, action, frame, facing)
 	if with_staff or (attack_with_staff and attack_left > 0):
 		var grip := Vector2(facing * 11, -24)
 		var tip := grip + Vector2(facing * 12, -22)

@@ -9,12 +9,14 @@ const Art := preload("res://scripts/ruin_sprite_art.gd")
 const EnemyAudio := preload("res://scripts/ruin_enemy_audio.gd")
 const Effects := preload("res://scripts/ruin_enemy_effects.gd")
 const Hunter := preload("res://scripts/ruin_hunter.gd")
+const HIT_FLASH := preload("res://scripts/ruin_hit_flash.gdshader")
 const SIZE := {"spider": Vector2(76, 55), "lizard": Vector2(92, 70), "treant": Vector2(110, 120),
 	"bell_moth": Vector2(64, 49), "lantern_crab": Vector2(97, 60), "seal_keeper": Vector2(102, 136)}
 const ART_ROWS := {"spider": 0, "lizard": 1, "treant": 2}
 const ART_SCALES := {"spider": 0.30, "lizard": 0.33, "treant": 0.46}
 enum State { PATROL, NOTICE, CHASE, WINDUP, STRIKE, RECOVER, RETURN, STAGGER }
 enum AttackPose { IDLE = -1, ANTICIPATION, RELEASE, RECOVERY }
+enum HitResult { BLOCKED, DAMAGED, DISARMED }
 
 const GRAVITY := 1380.0
 const NOTICE_TIME := 0.13
@@ -47,6 +49,9 @@ var armed := false
 var facing := -1.0
 var age := 0.0
 var flash := 0.0
+var blade_flash_left := 0.0
+var actor_art: Node2D
+var flash_material: ShaderMaterial
 var recovery := 0.0
 var windup := 0.0
 var strike := 0.0
@@ -110,6 +115,12 @@ func _ready() -> void:
 	feet.shape = shape
 	feet.position.y = -shape.size.y / 2.0
 	add_child(feet)
+	actor_art = Node2D.new()
+	actor_art.show_behind_parent = true
+	actor_art.draw.connect(_draw_actor)
+	add_child(actor_art)
+	flash_material = ShaderMaterial.new()
+	flash_material.shader = HIT_FLASH
 	step_voice = EnemyAudio.voice(float(sound.get("step_gain_db", -11.0)))
 	attack_voice = EnemyAudio.voice(-3.0)
 	add_child(step_voice)
@@ -128,6 +139,11 @@ func _physics_process(delta: float) -> void:
 		return
 	age += delta
 	flash = maxf(flash - delta, 0)
+	if blade_flash_left > 0.0:
+		blade_flash_left = maxf(blade_flash_left - delta, 0.0)
+		if blade_flash_left == 0.0:
+			actor_art.material = null
+	actor_art.queue_redraw()
 	hit_left = maxf(hit_left - delta, 0.0)
 	reacquire_left = maxf(reacquire_left - delta, 0)
 	recoil = move_toward(recoil, 0.0, delta * 38.0)
@@ -563,9 +579,9 @@ func weapon_hitbox() -> Rect2:
 	return Rect2(position + Vector2(facing * 81 - 24, -71), Vector2(48, 56))
 
 
-func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false, source_weapon: String = "", source_direction: float = 0.0) -> void:
+func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false, source_weapon: String = "", source_direction: float = 0.0) -> HitResult:
 	if health <= 0:
-		return
+		return HitResult.BLOCKED
 	flash = 0.15
 	var direction := source_direction
 	if is_zero_approx(direction):
@@ -575,21 +591,21 @@ func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false, source
 
 	if weapon_hit and armed and windup > 0:
 		if species in ["lantern_crab", "thorn_archer"] and not projectile:
-			return
+			return HitResult.BLOCKED
 		armed = false
 		_start_recovery(0.50)
 		_flinch(direction)
 		disarmed.emit(self)
-		return
+		return HitResult.DISARMED
 	if attack_kind in ["shell", "roll", "burrow"] and recovery <= 0.0 and state != State.RECOVER:
 		if source_weapon == "tide_hammer" and attack_kind == "shell":
 			_start_recovery(1.25)
 		else:
-			return
+			return HitResult.BLOCKED
 	if attack_kind == "shield" and armed and source_direction * facing < 0:
-		return
+		return HitResult.BLOCKED
 	if species == "seal_keeper" and armed:
-		return
+		return HitResult.BLOCKED
 
 	var before := health
 	var minimum := 1 if species == "lantern_crab" and armed else 0
@@ -598,11 +614,11 @@ func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false, source
 		minimum = 13
 	health = maxi(minimum, health - damage)
 	if health >= before and not triggers_seal:
-		return
+		return HitResult.BLOCKED
 	if health == 0:
 		felled.emit(self)
 		queue_free()
-		return
+		return HitResult.DAMAGED
 	_flinch(direction)
 
 	# Encounter-specific interruptions take priority over general stagger.
@@ -620,9 +636,17 @@ func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false, source
 	elif not projectile and state not in [State.STRIKE, State.STAGGER] and (
 			windup <= 0.0 or hit_reaction.interrupt_windup):
 		_start_stagger(direction)
+	return HitResult.DAMAGED
 
 
-func _draw() -> void:
+func flash_blade_hit() -> void:
+	flash = 0.0
+	blade_flash_left = 0.048
+	actor_art.material = flash_material
+	actor_art.queue_redraw()
+
+
+func _draw_actor() -> void:
 	var tint := Color(1.23, 1.16, 1.07) if flash > 0 else Color.WHITE
 	var pose := _attack_pose()
 	var unarmed := not armed and attack.has("unarmed")
@@ -642,7 +666,7 @@ func _draw() -> void:
 	var squash := hit * float(hit_reaction.squash)
 	var hit_lean := hit_direction * signf(motion_facing) * squash * 0.9
 	if state == State.STAGGER or (pose == AttackPose.IDLE and hit > 0.0):
-		Art.draw_attack(self, int(design.sprite_row), AttackPose.RECOVERY, motion_facing, tint, unarmed,
+		Art.draw_attack(actor_art, int(design.sprite_row), AttackPose.RECOVERY, motion_facing, tint, unarmed,
 			1.0 - squash, hit_lean, recoil)
 	elif pose >= 0:
 		if strike > 0.0:
@@ -655,26 +679,31 @@ func _draw() -> void:
 		stretch *= 1.0 - squash
 		lean += hit_direction * signf(motion_facing) * squash * 0.9
 		if phase >= 0:
-			Art.draw_transition(self, transition_row, phase, motion_facing, tint, stretch, lean, recoil)
+			Art.draw_transition(actor_art, transition_row, phase, motion_facing, tint, stretch, lean, recoil)
 		else:
-			Art.draw_attack(self, int(design.sprite_row), pose, motion_facing, tint, unarmed, stretch, lean, recoil)
+			Art.draw_attack(actor_art, int(design.sprite_row), pose, motion_facing, tint, unarmed, stretch, lean, recoil)
 	elif walk_row >= 0 and gait_weight > 0.24:
-		Art.draw_walk(self, walk_row, floori(fposmod(gait_distance, stride) / stride * 4.0),
+		Art.draw_walk(actor_art, walk_row, floori(fposmod(gait_distance, stride) / stride * 4.0),
 			motion_facing, tint, stretch, lean, recoil)
 	elif species == "bell_moth":
 		var flap := 1.0 + sin(age * 19.0) * 0.08
-		Art.draw_bell_moth(self, 0, motion_facing, flap, tint)
+		Art.draw_bell_moth(actor_art, 0, motion_facing, flap, tint)
 	elif species in ["lantern_crab", "seal_keeper"]:
-		Art.draw_stage_guard(self, species == "lantern_crab", motion_facing, armed, lean, tint)
+		Art.draw_stage_guard(actor_art, species == "lantern_crab", motion_facing, armed, lean, tint)
 	elif ART_ROWS.has(species):
 		var idle := 3 if species == "treant" and not armed else 0
-		Art.draw_actor(self, ART_ROWS[species], idle, ART_SCALES[species], motion_facing, (1.0 - stretch) * size.y, tint)
-		draw_set_transform(Vector2.ZERO)
+		Art.draw_actor(actor_art, ART_ROWS[species], idle, ART_SCALES[species], motion_facing,
+			(1.0 - stretch) * size.y, tint)
+		actor_art.draw_set_transform(Vector2.ZERO)
 	elif unarmed and species in ["thorn_archer", "shield_heron"]:
-		Art.draw_attack(self, int(design.sprite_row), AttackPose.RECOVERY, motion_facing,
+		Art.draw_attack(actor_art, int(design.sprite_row), AttackPose.RECOVERY, motion_facing,
 			tint, unarmed, stretch, lean, recoil)
 	else:
-		Art.draw_bestiary(self, int(design.idle_atlas_index), motion_facing, lean, tint, stretch, recoil)
+		Art.draw_bestiary(actor_art, int(design.idle_atlas_index), motion_facing, lean, tint, stretch, recoil)
+
+
+func _draw() -> void:
+	var size: Vector2 = SIZE.get(species, Vector2(82, 69))
 	if species == "seal_keeper" and armed:
 		draw_arc(Vector2(0, -70), 65, 0, TAU, 48, Color(0.62, 0.71, 1.0, 0.68), 3, true)
 	_draw_attack_effect(size)
