@@ -10,6 +10,7 @@ const SIZE := {"spider": Vector2(76, 55), "lizard": Vector2(92, 70), "treant": V
 const ART_ROWS := {"spider": 0, "lizard": 1, "treant": 2}
 const ART_SCALES := {"spider": 0.30, "lizard": 0.33, "treant": 0.46}
 enum State { PATROL, CHASE, WINDUP, STRIKE, RECOVER, RETURN }
+enum MothPose { HOVER, WINDUP, POLLEN, RECOVER }
 
 const GRAVITY := 1380.0
 const PROFILES := {
@@ -322,23 +323,29 @@ func _update_moth(delta: float) -> void:
 	elif recovery > 0:
 		recovery = maxf(0, recovery - delta)
 	elif absf(offset.x) < 150.0 and absf(offset.y) < 130.0 and _clear_to_target():
+		if absf(offset.x) > 8.0:
+			facing = signf(offset.x)
 		windup = profile.tell
 
 
-func _draw_moth() -> void:
-	var wing_span := 27.0 + sin(age * 19.0) * (4.0 if windup > 0 else 9.0)
-	var shade := Color("#f1d99b") if flash > 0 else Color("#a7867a")
-	for side in [-1.0, 1.0]:
-		var points := PackedVector2Array([Vector2(0, -31), Vector2(side * wing_span, -49),
-			Vector2(side * (wing_span + 5.0), -26), Vector2(side * 19, -12), Vector2(0, -18)])
-		draw_colored_polygon(points, shade)
-		draw_line(Vector2(side * 4, -27), Vector2(side * wing_span, -45), Color("#5c4856"), 2, true)
-		draw_circle(Vector2(side * 18, -29), 5, Color("#604b5d"))
-		draw_line(Vector2(side * 2, -36), Vector2(side * 12, -49), Color("#d4ae87"), 1.5, true)
-	draw_circle(Vector2(0, -34), 7, Color("#443945"))
-	draw_circle(Vector2(0, -22), 9, Color("#ffcd63") if windup > 0 else Color("#c89b6d"))
+func _moth_pose() -> MothPose:
 	if windup > 0:
-		draw_circle(Vector2(0, -22), 16, Color(1.0, 0.76, 0.28, 0.30))
+		return MothPose.WINDUP
+	if strike > 0:
+		return MothPose.POLLEN
+	if recovery > 0 or flash > 0:
+		return MothPose.RECOVER
+	return MothPose.HOVER
+
+
+func _draw_moth() -> void:
+	var pose := _moth_pose()
+	var flap := 1.0 + sin(age * 19.0) * (0.07 if pose == MothPose.HOVER else 0.035)
+	var tint := Color(1.25, 1.16, 1.07) if flash > 0 else Color.WHITE
+	Art.draw_bell_moth(self, pose, facing, flap, tint)
+	if windup > 0:
+		var pulse := 0.16 + (sin(age * 14.0) + 1.0) * 0.09
+		draw_circle(Vector2(0, -22), 14, Color(1.0, 0.76, 0.28, pulse))
 	if strike > 0:
 		var progress := 1.0 - strike / float(profile.strike)
 		for i in range(12):
