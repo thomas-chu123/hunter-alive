@@ -16,7 +16,7 @@ func check(condition: bool, description: String) -> void:
 
 
 func run_checks() -> void:
-	var scene: PackedScene = load(ProjectSettings.get_setting("application/run/main_scene"))
+	var scene: PackedScene = load("res://scenes/ruins.tscn")
 	var ruins = scene.instantiate()
 	root.add_child(ruins)
 	await physics_frame
@@ -24,7 +24,7 @@ func run_checks() -> void:
 	var species: Array[String] = []
 	for monster in ruins.enemies:
 		species.append(monster.species)
-	check(species == ["spider", "lizard", "spider", "treant"], "prototype spawns four enemies across three species")
+	check(species == ["spider", "lizard", "spider", "treant", "bell_moth"], "ruins spawn five enemies across four species")
 	if failures > 0:
 		quit(1)
 		return
@@ -35,6 +35,7 @@ func run_checks() -> void:
 
 	# Arrange combat states directly. The bridge below uses real input and physics.
 	var lizard = ruins.enemies[1]
+	var guardian = ruins.enemies[3]
 	lizard.receive_hit(lizard.health, false)
 	for drop: Dictionary in ruins.drops:
 		if drop.kind == "lizard":
@@ -44,7 +45,6 @@ func run_checks() -> void:
 	ruins._equip_next_soul()
 	check(ruins.hunter.equipped_soul == "lizard", "lizard defeat yields an equippable wing soul")
 
-	var guardian = ruins.enemies.back()
 	guardian.windup = 0.5
 	guardian.receive_hit(1, true)
 	check(not guardian.armed and ruins._has_drop("blade"), "guardian disarm yields its blade")

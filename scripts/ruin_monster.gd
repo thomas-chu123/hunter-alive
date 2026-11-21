@@ -5,8 +5,8 @@ signal disarmed(monster: Node2D)
 
 const Art := preload("res://scripts/ruin_sprite_art.gd")
 const COLORS := {"spider": Color("#ae745d"), "lizard": Color("#77c6ad"), "treant": Color("#d5a56d")}
-const HP := {"spider": 5, "lizard": 6, "treant": 20}
-const SIZE := {"spider": Vector2(76, 55), "lizard": Vector2(92, 70), "treant": Vector2(110, 120)}
+const HP := {"spider": 5, "lizard": 6, "treant": 20, "bell_moth": 6}
+const SIZE := {"spider": Vector2(76, 55), "lizard": Vector2(92, 70), "treant": Vector2(110, 120), "bell_moth": Vector2(64, 49)}
 const ART_ROWS := {"spider": 0, "lizard": 1, "treant": 2}
 const ART_SCALES := {"spider": 0.30, "lizard": 0.33, "treant": 0.46}
 enum State { PATROL, CHASE, WINDUP, STRIKE, RECOVER, RETURN }
@@ -19,6 +19,7 @@ const PROFILES := {
 		"reach": 188.0, "tell": 0.43, "strike": 0.59, "recover": 0.67},
 	"treant": {"speed": 96.0, "sight": 480.0, "leash": 510.0, "jump": 0.0,
 		"reach": 148.0, "tell": 0.78, "strike": 0.34, "recover": 0.92},
+	"bell_moth": {"tell": 0.95, "strike": 0.58, "recover": 1.1},
 }
 
 var species: String
@@ -69,6 +70,10 @@ func _physics_process(delta: float) -> void:
 		return
 	age += delta
 	flash = maxf(flash - delta, 0)
+	if species == "bell_moth":
+		_update_moth(delta)
+		queue_redraw()
+		return
 	jump_delay = maxf(jump_delay - delta, 0)
 	velocity.y = minf(velocity.y + GRAVITY * delta, 850.0)
 
@@ -245,10 +250,13 @@ func weapon_hitbox() -> Rect2:
 	return Rect2(position + Vector2(facing * 81 - 24, -71), Vector2(48, 56))
 
 
-func receive_hit(damage: int, weapon_hit: bool) -> void:
+func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false) -> void:
 	if health <= 0:
 		return
 	flash = 0.15
+	if species == "bell_moth" and projectile and windup > 0:
+		windup = 0.0
+		recovery = profile.recover
 	if weapon_hit and armed and windup > 0:
 		armed = false
 		windup = 0.0
@@ -262,6 +270,9 @@ func receive_hit(damage: int, weapon_hit: bool) -> void:
 
 
 func _draw() -> void:
+	if species == "bell_moth":
+		_draw_moth()
+		return
 	var pose := 1 if walking and sin(age * 13.0) > 0 else 0
 	var torso_motion := sin(age * (9.0 if walking else 3.0)) * 1.5
 	if windup > 0:
@@ -291,3 +302,45 @@ func _draw() -> void:
 		draw_rect(bar, Color("#172c2a"))
 		bar.size.x *= float(health) / int(HP[species])
 		draw_rect(bar, COLORS[species])
+
+
+func _update_moth(delta: float) -> void:
+	position = home + Vector2(sin(age * 1.2) * 32.0, -63.0 + sin(age * 3.1) * 9.0)
+	var offset := target.position - position
+	if windup > 0:
+		windup = maxf(0, windup - delta)
+		if windup == 0:
+			strike = profile.strike
+			can_hit = true
+	elif strike > 0:
+		strike = maxf(0, strike - delta)
+		if can_hit and absf(offset.x) < 82.0 and offset.y >= -5.0 and offset.y < 130.0 and _clear_to_target():
+			target.apply_pollen()
+			can_hit = false
+		if strike == 0:
+			recovery = profile.recover
+	elif recovery > 0:
+		recovery = maxf(0, recovery - delta)
+	elif absf(offset.x) < 150.0 and absf(offset.y) < 130.0 and _clear_to_target():
+		windup = profile.tell
+
+
+func _draw_moth() -> void:
+	var wing_span := 27.0 + sin(age * 19.0) * (4.0 if windup > 0 else 9.0)
+	var shade := Color("#f1d99b") if flash > 0 else Color("#a7867a")
+	for side in [-1.0, 1.0]:
+		var points := PackedVector2Array([Vector2(0, -31), Vector2(side * wing_span, -49),
+			Vector2(side * (wing_span + 5.0), -26), Vector2(side * 19, -12), Vector2(0, -18)])
+		draw_colored_polygon(points, shade)
+		draw_line(Vector2(side * 4, -27), Vector2(side * wing_span, -45), Color("#5c4856"), 2, true)
+		draw_circle(Vector2(side * 18, -29), 5, Color("#604b5d"))
+		draw_line(Vector2(side * 2, -36), Vector2(side * 12, -49), Color("#d4ae87"), 1.5, true)
+	draw_circle(Vector2(0, -34), 7, Color("#443945"))
+	draw_circle(Vector2(0, -22), 9, Color("#ffcd63") if windup > 0 else Color("#c89b6d"))
+	if windup > 0:
+		draw_circle(Vector2(0, -22), 16, Color(1.0, 0.76, 0.28, 0.30))
+	if strike > 0:
+		var progress := 1.0 - strike / float(profile.strike)
+		for i in range(12):
+			var at := Vector2(sin(i * 4.9) * (18.0 + 56.0 * progress), i * 7.0 - 10.0 + progress * 34.0)
+			draw_circle(at, 4.0 + i % 3, Color(0.93, 0.77, 0.48, 0.75 * (1.0 - progress)))

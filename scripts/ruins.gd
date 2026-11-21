@@ -4,7 +4,11 @@ const Hunter := preload("res://scripts/ruin_hunter.gd")
 const Monster := preload("res://scripts/ruin_monster.gd")
 const HitEffects := preload("res://scripts/ruin_hit_effects.gd")
 const Landscape := preload("res://scripts/ruin_landscape.gd")
+const CampSave := preload("res://scripts/camp_save.gd")
+const Preferences := preload("res://scripts/game_preferences.gd")
+const Equipment := preload("res://scripts/ruin_equipment.gd")
 const START := Vector2(950, 526)
+const MOTH_X := 2330.0
 const SOUL_NAMES := {"lizard": "蜥翼", "spider": "蛛步"}
 const DROP_COLORS := {
 	"material": Color("#eac18c"), "lizard": Color("#a4f2d0"),
@@ -23,6 +27,7 @@ var drops: Array[Dictionary] = []
 var arrows: Array[Dictionary] = []
 var collected_souls: Array[String] = []
 var materials := 0
+var owned_equipment: Array[String] = []
 var guardian_felled := false
 var completed := false
 var restarting := false
@@ -42,6 +47,15 @@ var camp_stock: Label
 var camp_rest: Button
 var camp_knife: Button
 var camp_bow: Button
+var pause_menu: CenterContainer
+var pause_volume: HSlider
+var pause_fullscreen: CheckButton
+var gear_menu: CenterContainer
+var gear_list: ItemList
+var gear_slots: Label
+var gear_detail: Label
+var gear_apply: Button
+var gear_ids: Array[String] = []
 var font: SystemFont
 
 
@@ -54,6 +68,7 @@ func _ready() -> void:
 	hunter.name = "Hunter"
 	hunter.position = START
 	hunter.attacked.connect(_attack)
+	hunter.cast.connect(_cast)
 	hunter.defeated.connect(_on_hunter_defeated)
 	add_child(hunter)
 	camera = Camera2D.new()
@@ -68,6 +83,9 @@ func _ready() -> void:
 	camera.reset_smoothing()
 	hit_effects = HitEffects.new()
 	add_child(hit_effects)
+	if get_tree().has_meta(CampSave.RESTORE_META):
+		_restore_camp(get_tree().get_meta(CampSave.RESTORE_META))
+		get_tree().remove_meta(CampSave.RESTORE_META)
 	_spawn_enemies()
 	_build_hud()
 	_notice("前世的記憶停在墜落那一刻。神殿深處也許有回家的線索。", 5.0)
@@ -84,7 +102,7 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if completed or restarting or camp_menu.visible:
+	if completed or restarting or camp_menu.visible or gear_menu.visible or pause_menu.visible:
 		return
 	if hunter.position.y > 790:
 		_on_hunter_defeated()
@@ -98,8 +116,17 @@ func _physics_process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if not completed and not restarting and not camp_menu.visible and not pause_menu.visible:
+		if event.is_action_pressed("hunt_gear") or (gear_menu.visible and event.is_action_pressed("ui_cancel")):
+			_set_gear_open(not gear_menu.visible)
+			get_viewport().set_input_as_handled()
+			return
 	if camp_menu.visible and (event.is_action_pressed("ui_cancel") or event.is_action_pressed("hunt_interact")):
 		_set_camp_open(false)
+		get_viewport().set_input_as_handled()
+		return
+	if not completed and not restarting and event.is_action_pressed("ui_cancel"):
+		_set_pause_open(not pause_menu.visible)
 		get_viewport().set_input_as_handled()
 		return
 	if completed and event.is_action_pressed("hunt_interact"):
@@ -112,6 +139,7 @@ func _spawn_enemies() -> void:
 	_add_monster("spider", 2240)
 	if not guardian_felled:
 		_add_monster("treant", 2840)
+	_add_monster("bell_moth", MOTH_X)
 
 
 func _add_monster(species: String, x: float) -> void:
@@ -135,16 +163,24 @@ func _attack(origin: Vector2, direction: float, ranged: bool, damage: int) -> vo
 			_hit_monster(monster, damage, false, hitbox.intersection(monster.body_hitbox()).get_center(), direction)
 
 
+func _cast(origin: Vector2, direction: float) -> void:
+	arrows.append({"at": origin, "direction": direction, "damage": 3, "left": 0.44, "spell": true})
+
+
 func _update_arrows(delta: float) -> void:
 	for index in range(arrows.size() - 1, -1, -1):
 		var arrow := arrows[index]
 		var from: Vector2 = arrow.at
-		var to := from + Vector2(arrow.direction * 850.0 * delta, 0)
+		var spell: bool = arrow.get("spell", false)
+		var velocity := Vector2(arrow.direction * 710.0, -245.0) if spell else Vector2(arrow.direction * 850.0, 0)
+		var to := from + velocity * delta
 		var ray := PhysicsRayQueryParameters2D.create(from, to, 1)
 		var wall := get_world_2d().direct_space_state.intersect_ray(ray)
 		if not wall.is_empty():
 			to = wall.position
 		var hitbox := Rect2(Vector2(minf(from.x, to.x), from.y - 4), Vector2(absf(to.x - from.x), 8))
+		if spell:
+			hitbox = Rect2(from, Vector2.ZERO).expand(to).grow(5)
 		var hit := _arrow_hits_monster(hitbox, arrow.direction, arrow.damage)
 		arrow.left -= delta
 		if hit or not wall.is_empty() or arrow.left <= 0:
@@ -172,12 +208,12 @@ func _arrow_hits_monster(hitbox: Rect2, direction: float, damage: int) -> bool:
 			hits_weapon = weapon_hit
 	if nearest == null:
 		return false
-	_hit_monster(nearest, damage, hits_weapon, impact_point, direction)
+	_hit_monster(nearest, damage, hits_weapon, impact_point, direction, true)
 	return true
 
 
-func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector2, direction: float) -> void:
-	monster.receive_hit(damage, weapon_hit)
+func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector2, direction: float, projectile: bool = false) -> void:
+	monster.receive_hit(damage, weapon_hit, projectile)
 	hit_effects.impact(point, direction, weapon_hit)
 
 
@@ -191,6 +227,9 @@ func _on_monster_felled(monster: Monster) -> void:
 		"lizard":
 			if not collected_souls.has("lizard"):
 				_drop("lizard", x - 12)
+		"bell_moth":
+			if not owned_equipment.has("scaleveil_hood") and not _has_drop("scaleveil_hood"):
+				_drop("scaleveil_hood", x - 12)
 		"treant":
 			guardian_felled = true
 			landscape.portal_open = true
@@ -232,6 +271,9 @@ func _collect_drops() -> void:
 			"blade":
 				hunter.stolen_blade = true
 				_notice("取得樹靈木刃。近戰傷害提升。", 3.0)
+			"scaleveil_hood":
+				_grant_equipment("scaleveil_hood")
+				_notice("取得鱗紗兜帽。按 I 看裝備。", 3.0)
 			_:
 				collected_souls.append(drop.kind)
 				_notice("拾得%s之魂。按 F 裝備，按住 Shift 使用魂技。" % SOUL_NAMES[drop.kind], 4.0)
@@ -249,7 +291,12 @@ func _equip_next_soul() -> void:
 
 func _interact() -> void:
 	if _near(landscape.shrine.global_position):
+		var first_visit := not owned_equipment.has("linen_hood")
+		_grant_equipment("linen_hood")
+		_grant_equipment("hunter_wraps")
 		_set_camp_open(true)
+		if first_visit:
+			_notice("取得營火布兜與獵人纏手。返回探索後按 I 看裝備。", 4.0)
 	elif _near(landscape.portal.global_position):
 		if guardian_felled:
 			_finish()
@@ -258,7 +305,9 @@ func _interact() -> void:
 	elif _near_cache() and not landscape.cache_open:
 		landscape.cache_open = true
 		materials += 3
-		_notice("石匣裡存有 3 份素材。匣蓋刻著與西側石門相同的名字。", 4.0)
+		_grant_equipment("moss_vest")
+		_grant_equipment("ember_staff")
+		_notice("取得苔織獵衣、餘火魔法杖和 3 份素材。按 I 看裝備。", 4.0)
 
 
 func _near(at: Vector2) -> bool:
@@ -317,11 +366,15 @@ func _resize_backdrop() -> void:
 func _draw() -> void:
 	for projectile: Dictionary in arrows:
 		var at: Vector2 = projectile.at
+		if projectile.get("spell", false):
+			draw_circle(at, 12, Color(0.95, 0.33, 0.11, 0.33))
+			draw_circle(at, 6, Color("#ffd078"))
+			continue
 		draw_line(at - Vector2(projectile.direction * 26, 0), at, Color("#ffe7a6"), 2, true)
 		draw_circle(at, 2, Color("#fff7d7"))
 	for drop: Dictionary in drops:
 		var at: Vector2 = drop.at + Vector2(0, sin(elapsed * 4.8 + float(drop.at.x)) * 5.0)
-		var color: Color = DROP_COLORS[drop.kind]
+		var color: Color = DROP_COLORS.get(drop.kind, Color("#dfb9ff"))
 		draw_circle(at, 15, Color(color, 0.16))
 		if drop.kind == "blade":
 			draw_line(at - Vector2(10, -7), at + Vector2(12, -8), color, 4, true)
@@ -380,7 +433,7 @@ func _build_hud() -> void:
 	prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	footer_rows.add_child(prompt_label)
 	var help := _label(15, Color("#b6c9bc"))
-	help.text = "A / D 跑步　 Ctrl 慢走　 S 蹲下　 空白鍵 跳躍　 J 攻擊　 Q 換武器　 F 裝魂　 Shift 魂技　 E 互動"
+	help.text = "A / D 跑步　 Ctrl 慢走　 S 蹲下　 空白鍵 跳躍　 J 攻擊　 Q 換武器　 F 裝魂　 Shift 魂技　 E 互動　 I 裝備　 Esc 暫停"
 	help.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	footer_rows.add_child(help)
 
@@ -405,6 +458,8 @@ func _build_hud() -> void:
 	card_rows.add_child(replay)
 	end_screen.hide()
 	_build_camp_menu(root)
+	_build_gear_menu(root)
+	_build_pause_menu(root)
 
 
 func _build_camp_menu(root: Control) -> void:
@@ -421,10 +476,11 @@ func _build_camp_menu(root: Control) -> void:
 	rows.add_child(title)
 	camp_stock = _label(16, Color("#d8e4d4"))
 	rows.add_child(camp_stock)
-	camp_rest = _camp_button(rows, "休息並恢復體力", _camp_heal)
+	camp_rest = _camp_button(rows, "休息、恢復體力與存檔", _camp_heal)
 	camp_knife = _camp_button(rows, "", _upgrade_weapon.bind(false))
 	camp_bow = _camp_button(rows, "", _upgrade_weapon.bind(true))
 	_camp_button(rows, "返回探索　Esc", _set_camp_open.bind(false))
+	_camp_button(rows, "存檔並返回開始頁面", _camp_return_to_title)
 	camp_menu.hide()
 
 
@@ -441,9 +497,7 @@ func _camp_button(rows: VBoxContainer, label: String, action: Callable) -> Butto
 
 func _set_camp_open(open: bool) -> void:
 	camp_menu.visible = open
-	hunter.set_physics_process(not open)
-	for monster: Monster in enemies:
-		monster.set_physics_process(not open)
+	_set_world_locked(open)
 	if open:
 		_update_camp_menu()
 		camp_rest.grab_focus()
@@ -452,8 +506,69 @@ func _set_camp_open(open: bool) -> void:
 
 
 func _camp_heal() -> void:
-	hunter.health = Hunter.MAX_HEALTH
+	hunter.rest()
+	_save_camp()
+
+
+func _camp_return_to_title() -> void:
+	if _save_camp():
+		get_tree().change_scene_to_file("res://scenes/title.tscn")
+
+
+func _save_camp() -> bool:
 	_update_camp_menu()
+	var state := {
+		"materials": materials,
+		"souls": collected_souls,
+		"equipped_soul": hunter.equipped_soul,
+		"with_bow": hunter.with_bow,
+		"weapon": hunter.selected_weapon(),
+		"owned_equipment": owned_equipment,
+		"gear": hunter.gear,
+		"knife_level": hunter.knife_level,
+		"bow_level": hunter.bow_level,
+		"stolen_blade": hunter.stolen_blade,
+		"guardian_felled": guardian_felled,
+		"cache_open": landscape.cache_open,
+	}
+	if guardian_felled:
+		for drop in drops:
+			if drop.kind == "blade":
+				state["blade_x"] = drop.at.x
+				break
+	var saved := CampSave.write(state) == OK
+	camp_stock.text += "\n" + ("已保存營火進度" if saved else "存檔失敗，請重試")
+	return saved
+
+
+func _restore_camp(state: Dictionary) -> void:
+	materials = maxi(0, state.get("materials", 0))
+	for soul in state.get("souls", []):
+		if SOUL_NAMES.has(soul) and not collected_souls.has(soul):
+			collected_souls.append(soul)
+	var equipped: String = state.get("equipped_soul", "")
+	if collected_souls.has(equipped):
+		hunter.equipped_soul = equipped
+	for item in state.get("owned_equipment", []):
+		if Equipment.ITEMS.has(item):
+			_grant_equipment(item)
+	if state.get("cache_open", false):
+		_grant_equipment("moss_vest")
+		_grant_equipment("ember_staff")
+	for slot in state.get("gear", {}):
+		var item = state.gear[slot]
+		if owned_equipment.has(item) and Equipment.ITEMS[item][1] == slot and slot != "武器":
+			hunter.gear[slot] = item
+	hunter.select_weapon(state.get("weapon", "hunter_bow" if state.get("with_bow", false) else "hunter_knife"))
+	hunter.rest()
+	hunter.knife_level = clampi(state.get("knife_level", 0), 0, 2)
+	hunter.bow_level = clampi(state.get("bow_level", 0), 0, 2)
+	hunter.stolen_blade = state.get("stolen_blade", false)
+	guardian_felled = state.get("guardian_felled", false)
+	landscape.portal_open = guardian_felled
+	landscape.cache_open = state.get("cache_open", false)
+	if guardian_felled and not hunter.stolen_blade and state.has("blade_x"):
+		_drop("blade", state.blade_x)
 
 
 func _upgrade_weapon(bow: bool) -> void:
@@ -472,7 +587,7 @@ func _upgrade_weapon(bow: bool) -> void:
 
 
 func _update_camp_menu() -> void:
-	camp_stock.text = "素材 %d　｜　體力 %d / %d" % [materials, hunter.health, Hunter.MAX_HEALTH]
+	camp_stock.text = "素材 %d　｜　體力 %d / %d" % [materials, hunter.health, hunter.max_health()]
 	_update_upgrade_button(camp_knife, "近戰武器", hunter.knife_level)
 	_update_upgrade_button(camp_bow, "獵弓", hunter.bow_level)
 
@@ -510,11 +625,17 @@ func _label(size: int, color: Color) -> Label:
 
 func _update_hud() -> void:
 	var soul_name := String(SOUL_NAMES.get(hunter.equipped_soul, "未裝備"))
-	var weapon_name := "獵弓" if hunter.with_bow else ("樹靈木刃" if hunter.stolen_blade else "短刀")
-	health_label.text = "體力  %s%s" % ["◆".repeat(hunter.health), "◇".repeat(Hunter.MAX_HEALTH - hunter.health)]
-	var level := hunter.bow_level if hunter.with_bow else hunter.knife_level
+	var weapon_name: String = Equipment.ITEMS[hunter.selected_weapon()][0]
+	if not hunter.with_bow and not hunter.with_staff:
+		weapon_name = "樹靈木刃" if hunter.stolen_blade else "短刀"
+	health_label.text = "體力  %s%s" % ["◆".repeat(hunter.health), "◇".repeat(hunter.max_health() - hunter.health)]
+	var level := hunter.bow_level if hunter.with_bow else (0 if hunter.with_staff else hunter.knife_level)
 	var upgrade := (" +%d" % level) if level > 0 else ""
 	loadout_label.text = "%s%s　｜　%s　｜　素材 %d" % [weapon_name, upgrade, soul_name, materials]
+	if hunter.staff_unlocked:
+		loadout_label.text += "　｜　法力 %d/%d" % [hunter.mana, Hunter.MAX_MANA]
+	if hunter.pollen_left > 0:
+		loadout_label.text += "　｜　鱗粉緩速"
 	if not collected_souls.has("lizard"):
 		objective_label.text = "崩塌神殿\n往東狩獵滑翔蜥蜴，取得蜥翼之魂。"
 	elif not guardian_felled:
@@ -533,3 +654,156 @@ func _update_hud() -> void:
 		prompt_label.text = "斷橋　／　裝備蜥翼，跳起後按住 Shift 滑翔"
 	elif hunter.position.x > 2560 and not guardian_felled:
 		prompt_label.text = "樹靈舉起木刃時，攻擊握刃處的亮點可以繳械"
+	elif absf(hunter.position.x - MOTH_X) < 175.0 and not owned_equipment.has("scaleveil_hood"):
+		prompt_label.text = "石鐘蛾腹部發光時，向上攻擊可打斷落粉。"
+
+
+func _grant_equipment(id: String) -> void:
+	if not owned_equipment.has(id):
+		owned_equipment.append(id)
+	if id == "ember_staff":
+		hunter.staff_unlocked = true
+
+
+func _build_gear_menu(root: Control) -> void:
+	gear_menu = CenterContainer.new()
+	root.add_child(gear_menu)
+	gear_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var panel := _panel(gear_menu)
+	panel.custom_minimum_size.x = 440
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 10)
+	panel.add_child(rows)
+	var heading := _label(24, Color("#ffe0a1"))
+	heading.text = "裝備"
+	rows.add_child(heading)
+	gear_slots = _label(15, Color("#d8e4d4"))
+	rows.add_child(gear_slots)
+	gear_list = ItemList.new()
+	gear_list.custom_minimum_size.y = 232
+	gear_list.add_theme_font_override("font", font)
+	gear_list.add_theme_constant_override("v_separation", 7)
+	gear_list.item_selected.connect(_show_gear)
+	gear_list.item_activated.connect(func(_index): _apply_gear())
+	rows.add_child(gear_list)
+	gear_detail = _label(16, Color("#d8e4d4"))
+	rows.add_child(gear_detail)
+	gear_apply = _camp_button(rows, "裝備", _apply_gear)
+	_camp_button(rows, "返回探索　I / Esc", _set_gear_open.bind(false))
+	gear_menu.hide()
+
+
+func _set_gear_open(open: bool) -> void:
+	gear_menu.visible = open
+	_set_world_locked(open)
+	if open:
+		_refresh_gear(hunter.selected_weapon())
+		gear_list.grab_focus()
+	else:
+		camp_closed_frame = Engine.get_physics_frames() + 1
+
+
+func _refresh_gear(selected: String) -> void:
+	var slots: Array[String] = []
+	for slot in ["頭部", "身體", "手部", "腿部"]:
+		var id: String = hunter.gear.get(slot, "")
+		slots.append("%s %s" % [slot, Equipment.ITEMS[id][0] if not id.is_empty() else "—"])
+	gear_slots.text = "%s　｜　%s\n%s　｜　%s" % slots
+	gear_list.clear()
+	gear_ids.assign(Equipment.STARTING_WEAPONS)
+	for id: String in Equipment.ITEMS:
+		if owned_equipment.has(id) and not gear_ids.has(id):
+			gear_ids.append(id)
+	for id in gear_ids:
+		var item: Array = Equipment.ITEMS[id]
+		var text := "%s　｜　%s" % [item[1], item[0]]
+		if _is_equipped(id):
+			text += "　✓"
+		gear_list.add_item(text)
+	var index := maxi(0, gear_ids.find(selected))
+	gear_list.select(index)
+	gear_list.ensure_current_is_visible()
+	_show_gear(index)
+
+
+func _is_equipped(id: String) -> bool:
+	var slot: String = Equipment.ITEMS[id][1]
+	return hunter.selected_weapon() == id if slot == "武器" else hunter.gear.get(slot) == id
+
+
+func _show_gear(index: int) -> void:
+	var id := gear_ids[index]
+	gear_detail.text = Equipment.ITEMS[id][2]
+	gear_apply.disabled = Equipment.ITEMS[id][1] == "武器" and _is_equipped(id)
+	gear_apply.text = "卸下" if _is_equipped(id) and not gear_apply.disabled else "裝備"
+
+
+func _apply_gear() -> void:
+	var selection := gear_list.get_selected_items()
+	if selection.is_empty():
+		return
+	var id := gear_ids[selection[0]]
+	var slot: String = Equipment.ITEMS[id][1]
+	if slot == "武器":
+		hunter.select_weapon(id)
+	elif _is_equipped(id):
+		hunter.gear.erase(slot)
+	else:
+		hunter.gear[slot] = id
+	hunter.health = mini(hunter.health, hunter.max_health())
+	_refresh_gear(id)
+	gear_list.grab_focus()
+
+
+func _build_pause_menu(root: Control) -> void:
+	pause_menu = CenterContainer.new()
+	root.add_child(pause_menu)
+	pause_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var panel := _panel(pause_menu)
+	panel.custom_minimum_size.x = 320
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 10)
+	panel.add_child(rows)
+	var heading := _label(24, Color("#ffe0a1"))
+	heading.text = "暫停"
+	rows.add_child(heading)
+	var volume_label := _label(16, Color("#d8e4d4"))
+	volume_label.text = "主音量"
+	rows.add_child(volume_label)
+	pause_volume = HSlider.new()
+	pause_volume.max_value = 100.0
+	pause_volume.step = 1.0
+	pause_volume.custom_minimum_size.y = 30
+	rows.add_child(pause_volume)
+	pause_fullscreen = CheckButton.new()
+	pause_fullscreen.text = "全螢幕"
+	pause_fullscreen.add_theme_font_override("font", font)
+	rows.add_child(pause_fullscreen)
+	pause_volume.value_changed.connect(_apply_pause_settings.unbind(1))
+	pause_fullscreen.toggled.connect(_apply_pause_settings.unbind(1))
+	_camp_button(rows, "繼續探索　Esc", _set_pause_open.bind(false))
+	pause_menu.hide()
+
+
+func _set_pause_open(open: bool) -> void:
+	pause_menu.visible = open
+	_set_world_locked(open)
+	if open:
+		var file := Preferences.read()
+		pause_volume.set_value_no_signal(float(file.get_value("audio", "volume", 100)))
+		pause_fullscreen.set_pressed_no_signal(bool(file.get_value("display", "fullscreen", false)))
+		pause_volume.grab_focus()
+	else:
+		camp_closed_frame = Engine.get_physics_frames() + 1
+
+
+func _apply_pause_settings() -> void:
+	Preferences.apply(get_window(), pause_volume.value, pause_fullscreen.button_pressed)
+	if Preferences.write(pause_volume.value, pause_fullscreen.button_pressed) != OK:
+		_notice("無法儲存設定。", 4.0)
+
+
+func _set_world_locked(locked: bool) -> void:
+	hunter.set_physics_process(not locked)
+	for monster: Monster in enemies:
+		monster.set_physics_process(not locked)
