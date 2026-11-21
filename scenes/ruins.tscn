@@ -15,6 +15,8 @@
 [ext_resource type="Texture2D" path="res://assets/environment/ruins/stone_gate.png" id="stone_gate"]
 [ext_resource type="Texture2D" path="res://assets/environment/ancient_temple.png" id="backdrop"]
 
+[ext_resource type="TileSet" path="res://assets/environment/ruins/terrain_tileset.tres" id="terrain_tileset"]
+
 [sub_resource type="RectangleShape2D" id="Shape_WestBank"]
 size = Vector2(272, 230)
 
@@ -1039,6 +1041,11 @@ modulate = Color(0.6705882, 0.7137255, 0.6431373, 1)
 [node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/WestWall"]
 position = Vector2(10, 95)
 shape = SubResource("Shape_WestWall")
+
+[node name="PaintableTerrain" type="TileMapLayer" parent="Landscape"]
+editor_description = "Select this layer and use the TileMap panel to paint new terrain. Existing platforms live under Terrain."
+position = Vector2(0, 28)
+tile_set = ExtResource("terrain_tileset")
 
 [node name="Ferns" type="Node2D" parent="Landscape"]
 
