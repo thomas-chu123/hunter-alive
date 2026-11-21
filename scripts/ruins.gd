@@ -2,6 +2,7 @@ extends Node2D
 
 const Hunter := preload("res://scripts/ruin_hunter.gd")
 const Monster := preload("res://scripts/ruin_monster.gd")
+const HitEffects := preload("res://scripts/ruin_hit_effects.gd")
 const Landscape := preload("res://scripts/ruin_landscape.gd")
 const BACKDROP := preload("res://assets/environment/ancient_temple.png")
 const START := Vector2(950, 526)
@@ -12,6 +13,7 @@ const DROP_COLORS := {
 }
 
 var hunter: Hunter
+var hit_effects: HitEffects
 var landscape: Landscape
 var camera: Camera2D
 var background: TextureRect
@@ -66,6 +68,8 @@ func _ready() -> void:
 	camera.position_smoothing_speed = 7.0
 	hunter.add_child(camera)
 	camera.reset_smoothing()
+	hit_effects = HitEffects.new()
+	add_child(hit_effects)
 	_spawn_enemies()
 	_build_hud()
 	_notice("前世的記憶停在墜落那一刻。神殿深處也許有回家的線索。", 5.0)
@@ -139,9 +143,9 @@ func _attack(origin: Vector2, direction: float, ranged: bool, damage: int) -> vo
 	var hitbox := Rect2(origin.x if direction > 0 else origin.x - 51.0, origin.y - 17, 51, 42)
 	for monster: Monster in enemies.duplicate():
 		if monster.armed and monster.windup > 0 and hitbox.intersects(monster.weapon_hitbox()):
-			monster.receive_hit(damage, true)
+			_hit_monster(monster, damage, true, hitbox.intersection(monster.weapon_hitbox()).get_center(), direction)
 		elif hitbox.intersects(monster.body_hitbox()):
-			monster.receive_hit(damage, false)
+			_hit_monster(monster, damage, false, hitbox.intersection(monster.body_hitbox()).get_center(), direction)
 
 
 func _update_arrows(delta: float) -> void:
@@ -165,20 +169,29 @@ func _update_arrows(delta: float) -> void:
 func _arrow_hits_monster(hitbox: Rect2, direction: float, damage: int) -> bool:
 	var nearest: Monster
 	var nearest_x := INF
+	var impact_point := Vector2.ZERO
 	var hits_weapon := false
 	for monster: Monster in enemies:
 		var weapon_hit := monster.armed and monster.windup > 0 and hitbox.intersects(monster.weapon_hitbox())
-		if not weapon_hit and not hitbox.intersects(monster.body_hitbox()):
+		var bounds := monster.weapon_hitbox() if weapon_hit else monster.arrow_hitbox(hitbox.get_center().y)
+		var overlap := hitbox.intersection(bounds)
+		if not overlap.has_area():
 			continue
-		var hit_x := monster.weapon_hitbox().get_center().x if weapon_hit else monster.position.x
+		var hit_x := overlap.position.x if direction > 0 else overlap.end.x
 		if hit_x * direction < nearest_x:
 			nearest = monster
 			nearest_x = hit_x * direction
+			impact_point = Vector2(hit_x, hitbox.get_center().y)
 			hits_weapon = weapon_hit
 	if nearest == null:
 		return false
-	nearest.receive_hit(damage, hits_weapon)
+	_hit_monster(nearest, damage, hits_weapon, impact_point, direction)
 	return true
+
+
+func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector2, direction: float) -> void:
+	monster.receive_hit(damage, weapon_hit)
+	hit_effects.impact(point, direction, weapon_hit)
 
 
 func _on_monster_felled(monster: Monster) -> void:
@@ -283,6 +296,7 @@ func _retry() -> void:
 		monster.queue_free()
 	enemies.clear()
 	arrows.clear()
+	hit_effects.clear()
 	# A disarmed guardian stays dead after victory. Keep its unclaimed weapon reachable.
 	drops = drops.filter(func(drop: Dictionary) -> bool: return guardian_felled and drop.kind == "blade")
 	hunter.respawn(START)

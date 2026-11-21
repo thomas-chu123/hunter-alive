@@ -120,12 +120,13 @@ func _physics_process(delta: float) -> void:
 		attack_with_bow = with_bow
 		attack_left = BOW_DURATION if with_bow else KNIFE_DURATION
 		attack_queued = true
-	var hit_at := BOW_DURATION * 0.26 if attack_with_bow else KNIFE_DURATION * 0.74
+	var hit_at := BOW_DURATION * (1.0 - float(HunterAnimation.BOW_RELEASE_FRAME) / HunterAnimation.FRAME_COUNT) if attack_with_bow else KNIFE_DURATION * 0.74
 	if attack_queued and attack_left <= hit_at:
 		attack_queued = false
 		var damage := 1 + bow_level if attack_with_bow else 2 + knife_level + int(stolen_blade)
 		var height := 21.0 if crouching else 30.0
-		attacked.emit(position + Vector2(facing * 14, -height), facing, attack_with_bow, damage)
+		var origin := HunterAnimation.bow_origin(facing) if attack_with_bow else Vector2(facing * 14, -height)
+		attacked.emit(position + origin, facing, attack_with_bow, damage)
 	queue_redraw()
 
 

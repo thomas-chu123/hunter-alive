@@ -15,6 +15,15 @@ const FRAMES := {
 const FRAME_WIDTH := 443
 const FRAME_COUNT := 4
 const SCALE := 0.38
+const BOW_RELEASE_FRAME := 3
+# Pixel position of the grip on the release frame, measured from its left edge.
+const BOW_GRIP := Vector2(290, 61)
+
+
+static func bow_origin(facing: float) -> Vector2:
+	var height: float = FRAMES["bow_attack"].get_height()
+	var local := (BOW_GRIP - Vector2(FRAME_WIDTH * 0.5, height)) * SCALE
+	return Vector2(local.x * facing, local.y)
 
 
 static func draw_frame(canvas: Node2D, action: String, frame: int, facing: float) -> void:

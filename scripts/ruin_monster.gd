@@ -6,7 +6,7 @@ signal disarmed(monster: Node2D)
 const Art := preload("res://scripts/ruin_sprite_art.gd")
 const COLORS := {"spider": Color("#ae745d"), "lizard": Color("#77c6ad"), "treant": Color("#d5a56d")}
 const HP := {"spider": 5, "lizard": 6, "treant": 20}
-const SIZE := {"spider": Vector2(76, 42), "lizard": Vector2(92, 70), "treant": Vector2(110, 120)}
+const SIZE := {"spider": Vector2(76, 55), "lizard": Vector2(92, 70), "treant": Vector2(110, 120)}
 const ART_ROWS := {"spider": 0, "lizard": 1, "treant": 2}
 const ART_SCALES := {"spider": 0.30, "lizard": 0.33, "treant": 0.46}
 enum State { PATROL, CHASE, WINDUP, STRIKE, RECOVER, RETURN }
@@ -232,6 +232,13 @@ func _start_recovery(seconds: float) -> void:
 func body_hitbox() -> Rect2:
 	var size: Vector2 = SIZE[species]
 	return Rect2(position - Vector2(size.x / 2.0, size.y), size)
+
+
+func arrow_hitbox(arrow_y: float) -> Rect2:
+	if species == "spider" and arrow_y < position.y - 40.0:
+		# Above the legs, only the narrower abdomen reaches the level of a standing shot.
+		return Rect2(position + Vector2(-20.0 - facing * 7.0, -53.0), Vector2(40, 16))
+	return body_hitbox()
 
 
 func weapon_hitbox() -> Rect2:
