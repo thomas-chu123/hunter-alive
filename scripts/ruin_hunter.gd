@@ -21,6 +21,10 @@ const JUMP_SPEED := 525.0
 const MAX_HEALTH := 6
 const MAX_MANA := 4
 const STAFF_DURATION := 0.54
+const STAFF_DAMAGE := 3
+const STAFF_MANA_COST := 1
+const WRAPS_KNIFE_DURATION := 0.23
+const POLLEN_DURATION := 2.4
 
 var health := MAX_HEALTH
 var mana := MAX_MANA
@@ -134,27 +138,21 @@ func _physics_process(delta: float) -> void:
 		else:
 			select_weapon("hunter_bow")
 	var wants_attack := attack_buffer_left > 0 or Input.is_action_pressed("hunt_attack")
-	if wants_attack and attack_left <= 0 and hurt_left <= 0 and (not with_staff or mana > 0):
+	if wants_attack and attack_left <= 0 and hurt_left <= 0 and (not with_staff or mana >= STAFF_MANA_COST):
 		attack_buffer_left = 0.0
 		attack_with_bow = with_bow
 		attack_with_staff = with_staff
-		attack_duration = KNIFE_DURATION
-		if with_bow:
-			attack_duration = BOW_DURATION
-		elif with_staff:
-			attack_duration = STAFF_DURATION
-		elif gear.get("手部") == "hunter_wraps":
-			attack_duration = 0.23
+		attack_duration = weapon_period(selected_weapon())
 		attack_left = attack_duration
 		attack_queued = true
 	var hit_at := attack_duration * (1.0 - float(HunterAnimation.BOW_RELEASE_FRAME) / HunterAnimation.FRAME_COUNT) if attack_with_bow else attack_duration * 0.74
 	if attack_queued and attack_left <= hit_at:
 		attack_queued = false
 		if attack_with_staff:
-			mana -= 1
+			mana -= STAFF_MANA_COST
 			cast.emit(position + Vector2(facing * 22, -37), facing)
 		else:
-			var damage := 1 + bow_level if attack_with_bow else 2 + knife_level + int(stolen_blade)
+			var damage := weapon_damage("hunter_bow" if attack_with_bow else "hunter_knife")
 			var height := 21.0 if crouching else 30.0
 			var origin := HunterAnimation.bow_origin(facing) if attack_with_bow else Vector2(facing * 14, -height)
 			attacked.emit(position + origin, facing, attack_with_bow, damage)
@@ -213,7 +211,27 @@ func rest() -> void:
 
 
 func apply_pollen() -> void:
-	pollen_left = 1.2 if gear.get("頭部") == "scaleveil_hood" else 2.4
+	pollen_left = POLLEN_DURATION * (0.5 if gear.get("頭部") == "scaleveil_hood" else 1.0)
+
+
+func weapon_period(id: String) -> float:
+	match id:
+		"hunter_bow":
+			return BOW_DURATION
+		"ember_staff":
+			return STAFF_DURATION
+		_:
+			return WRAPS_KNIFE_DURATION if gear.get("手部") == "hunter_wraps" else KNIFE_DURATION
+
+
+func weapon_damage(id: String) -> int:
+	match id:
+		"hunter_bow":
+			return 1 + bow_level
+		"ember_staff":
+			return STAFF_DAMAGE
+		_:
+			return 2 + knife_level + int(stolen_blade)
 
 
 func select_weapon(id: String) -> void:

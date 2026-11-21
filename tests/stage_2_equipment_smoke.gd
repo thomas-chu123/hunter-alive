@@ -28,10 +28,16 @@ func run() -> void:
 	await wait_frames(4)
 	await key(KEY_I)
 	check(ruins.gear_menu.visible and not hunter.is_physics_processing(), "I opens gear and pauses combat")
+	var portrait = ruins.gear_menu.find_child("HunterPortrait", true, false)
+	check(portrait is TextureRect and portrait.texture != null, "left panel displays the hunter")
 	await equip(ruins, "linen_hood")
 	check(hunter.max_health() == 7, "hood raises maximum HP")
+	check(ruins.gear_slot_images["頭部"].texture == ruins.gear_list.get_item_icon(ruins.gear_ids.find("linen_hood"))
+		and ruins.gear_values.text == "最大體力　6 → 7", "hood image and numerical values match the equipped slot")
+	await show_view()
 	await equip(ruins, "linen_hood")
 	check(hunter.max_health() == 6, "removing hood restores base maximum HP")
+	check(ruins.gear_slot_images["頭部"].texture == null, "removing hood clears the slot image")
 	await equip(ruins, "hunter_wraps")
 	await show_view()
 	await key(KEY_I)
@@ -66,6 +72,9 @@ func run() -> void:
 	await equip(ruins, "moss_vest")
 	await equip(ruins, "ember_staff")
 	check(hunter.with_staff and ruins.gear_list.item_count == 6, "loadout contains three weapons and supports staff selection")
+	check(ruins.gear_slot_images["武器"].texture == ruins.gear_list.get_item_icon(ruins.gear_ids.find("ember_staff"))
+		and ruins.gear_values.text.contains("傷害 3") and ruins.gear_values.text.contains("法力 1"),
+		"staff image and damage and mana values match selection")
 	await show_view()
 	await key(KEY_I)
 
@@ -128,6 +137,8 @@ func run() -> void:
 	check(ruins.owned_equipment.size() == 5 and ruins.hunter.selected_weapon() == "ember_staff", "Continue restores four pieces and the selected staff")
 	check(ruins.hunter.gear.get("頭部") == "scaleveil_hood" and ruins.hunter.gear.get("手部") == "hunter_wraps" and ruins.hunter.gear.get("身體") == "moss_vest", "Continue restores all equipped slots")
 	await key(KEY_I)
+	for index in range(ruins.gear_list.item_count):
+		check(ruins.gear_list.get_item_icon(index) != null, "inventory icon loads for " + ruins.gear_ids[index])
 	await show_view()
 	quit(1 if failed else 0)
 
@@ -136,8 +147,21 @@ func equip(ruins: Node, id: String) -> void:
 	var index: int = ruins.gear_ids.find(id)
 	if not check(index >= 0, "gear list contains " + id):
 		return
-	ruins.gear_list.select(index)
-	ruins.gear_list.item_selected.emit(index)
+	if DisplayServer.get_name() == "headless":
+		ruins.gear_list.select(index)
+		ruins.gear_list.item_selected.emit(index)
+	else:
+		await process_frame
+		var list: ItemList = ruins.gear_list
+		var click := InputEventMouseButton.new()
+		click.button_index = MOUSE_BUTTON_LEFT
+		click.position = list.get_global_transform_with_canvas() * list.get_item_rect(index, false).get_center()
+		click.pressed = true
+		root.push_input(click, true)
+		var release := click.duplicate() as InputEventMouseButton
+		release.pressed = false
+		root.push_input(release, true)
+		check(list.get_selected_items() == PackedInt32Array([index]), "click selects item icon for " + id)
 	await press(ruins.gear_apply)
 
 

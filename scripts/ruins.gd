@@ -6,6 +6,7 @@ const HitEffects := preload("res://scripts/ruin_hit_effects.gd")
 const Landscape := preload("res://scripts/ruin_landscape.gd")
 const CampSave := preload("res://scripts/camp_save.gd")
 const Preferences := preload("res://scripts/game_preferences.gd")
+const HunterAnimation := preload("res://scripts/hunter_animation.gd")
 const Equipment := preload("res://scripts/ruin_equipment.gd")
 const START := Vector2(950, 526)
 const MOTH_X := 2330.0
@@ -52,7 +53,9 @@ var pause_volume: HSlider
 var pause_fullscreen: CheckButton
 var gear_menu: CenterContainer
 var gear_list: ItemList
-var gear_slots: Label
+var gear_slot_images: Dictionary = {}
+var gear_name: Label
+var gear_values: Label
 var gear_detail: Label
 var gear_apply: Button
 var gear_ids: Array[String] = []
@@ -164,7 +167,7 @@ func _attack(origin: Vector2, direction: float, ranged: bool, damage: int) -> vo
 
 
 func _cast(origin: Vector2, direction: float) -> void:
-	arrows.append({"at": origin, "direction": direction, "damage": 3, "left": 0.44, "spell": true})
+	arrows.append({"at": origin, "direction": direction, "damage": Hunter.STAFF_DAMAGE, "left": 0.44, "spell": true})
 
 
 func _update_arrows(delta: float) -> void:
@@ -484,7 +487,7 @@ func _build_camp_menu(root: Control) -> void:
 	camp_menu.hide()
 
 
-func _camp_button(rows: VBoxContainer, label: String, action: Callable) -> Button:
+func _camp_button(rows: Container, label: String, action: Callable) -> Button:
 	var button := Button.new()
 	button.text = label
 	button.custom_minimum_size.y = 40
@@ -670,27 +673,145 @@ func _build_gear_menu(root: Control) -> void:
 	root.add_child(gear_menu)
 	gear_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var panel := _panel(gear_menu)
-	panel.custom_minimum_size.x = 440
+	var backdrop: StyleBoxFlat = panel.get_theme_stylebox("panel").duplicate()
+	backdrop.bg_color = Color("#0d1d1e")
+	backdrop.border_color = Color("#887454")
+	panel.add_theme_stylebox_override("panel", backdrop)
 	var rows := VBoxContainer.new()
-	rows.add_theme_constant_override("separation", 10)
+	rows.add_theme_constant_override("separation", 12)
 	panel.add_child(rows)
 	var heading := _label(24, Color("#ffe0a1"))
 	heading.text = "裝備"
 	rows.add_child(heading)
-	gear_slots = _label(15, Color("#d8e4d4"))
-	rows.add_child(gear_slots)
+
+	var columns := HBoxContainer.new()
+	columns.add_theme_constant_override("separation", 20)
+	rows.add_child(columns)
+	_build_gear_portrait(columns)
+
+	var inventory := VBoxContainer.new()
+	inventory.custom_minimum_size.x = 410
+	inventory.add_theme_constant_override("separation", 8)
+	columns.add_child(inventory)
+	var inventory_label := _label(16, Color("#d8e4d4"))
+	inventory_label.text = "持有物品"
+	inventory.add_child(inventory_label)
 	gear_list = ItemList.new()
-	gear_list.custom_minimum_size.y = 232
+	gear_list.custom_minimum_size.y = 252
+	gear_list.icon_mode = ItemList.ICON_MODE_TOP
+	gear_list.fixed_icon_size = Vector2i(46, 46)
+	gear_list.max_columns = 3
+	gear_list.fixed_column_width = 124
+	gear_list.same_column_width = true
+	gear_list.max_text_lines = 1
 	gear_list.add_theme_font_override("font", font)
+	gear_list.add_theme_font_size_override("font_size", 14)
 	gear_list.add_theme_constant_override("v_separation", 7)
+	var selected := StyleBoxFlat.new()
+	selected.bg_color = Color("#344640")
+	selected.border_color = Color("#bba272")
+	selected.set_border_width_all(1)
+	selected.set_corner_radius_all(4)
+	gear_list.add_theme_stylebox_override("selected", selected)
+	gear_list.add_theme_stylebox_override("selected_focus", selected)
 	gear_list.item_selected.connect(_show_gear)
 	gear_list.item_activated.connect(func(_index): _apply_gear())
-	rows.add_child(gear_list)
-	gear_detail = _label(16, Color("#d8e4d4"))
-	rows.add_child(gear_detail)
-	gear_apply = _camp_button(rows, "裝備", _apply_gear)
-	_camp_button(rows, "返回探索　I / Esc", _set_gear_open.bind(false))
+	inventory.add_child(gear_list)
+
+	var details := _panel(inventory)
+	var detail_rows := VBoxContainer.new()
+	detail_rows.add_theme_constant_override("separation", 4)
+	details.add_child(detail_rows)
+	gear_name = _label(18, Color("#f4d698"))
+	detail_rows.add_child(gear_name)
+	gear_values = _label(16, Color("#f2e9d2"))
+	detail_rows.add_child(gear_values)
+	gear_detail = _label(14, Color("#adbfba"))
+	detail_rows.add_child(gear_detail)
+
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 10)
+	inventory.add_child(actions)
+	gear_apply = _camp_button(actions, "裝備", _apply_gear)
+	gear_apply.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var close := _camp_button(actions, "返回探索　I / Esc", _set_gear_open.bind(false))
+	close.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	gear_menu.hide()
+
+
+func _build_gear_portrait(parent: HBoxContainer) -> void:
+	var panel := _panel(parent)
+	panel.custom_minimum_size.x = 306
+	var style: StyleBoxFlat = panel.get_theme_stylebox("panel").duplicate()
+	style.bg_color = Color("#152a29")
+	panel.add_theme_stylebox_override("panel", style)
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 10)
+	panel.add_child(rows)
+	var heading := _label(16, Color("#d8e4d4"))
+	heading.text = "目前裝備"
+	rows.add_child(heading)
+
+	var portrait_row := HBoxContainer.new()
+	portrait_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	portrait_row.add_theme_constant_override("separation", 8)
+	portrait_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	rows.add_child(portrait_row)
+	var left := _gear_slot_column(portrait_row)
+	_add_gear_slot(left, "頭部")
+	_add_gear_slot(left, "手部")
+
+	var portrait := TextureRect.new()
+	portrait.name = "HunterPortrait"
+	var frame := AtlasTexture.new()
+	frame.atlas = HunterAnimation.FRAMES["idle"]
+	frame.region = Rect2(151, 0, 133, 182)
+	frame.filter_clip = true
+	portrait.texture = frame
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait.custom_minimum_size = Vector2(144, 248)
+	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portrait_row.add_child(portrait)
+
+	var right := _gear_slot_column(portrait_row)
+	_add_gear_slot(right, "身體")
+	_add_gear_slot(right, "腿部")
+	var weapon := _gear_slot_column(rows)
+	weapon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_add_gear_slot(weapon, "武器")
+
+
+func _gear_slot_column(parent: Container) -> VBoxContainer:
+	var column := VBoxContainer.new()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 8)
+	parent.add_child(column)
+	return column
+
+
+func _add_gear_slot(parent: VBoxContainer, slot: String) -> void:
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 2)
+	parent.add_child(rows)
+	var tile := PanelContainer.new()
+	tile.custom_minimum_size = Vector2(54, 54)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("#0d1d1e")
+	style.border_color = Color("#637569")
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(4)
+	tile.add_theme_stylebox_override("panel", style)
+	rows.add_child(tile)
+	var icon := TextureRect.new()
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tile.add_child(icon)
+	gear_slot_images[slot] = icon
+	var caption := _label(13, Color("#b3c4bc"))
+	caption.text = slot
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rows.add_child(caption)
 
 
 func _set_gear_open(open: bool) -> void:
@@ -704,22 +825,22 @@ func _set_gear_open(open: bool) -> void:
 
 
 func _refresh_gear(selected: String) -> void:
-	var slots: Array[String] = []
-	for slot in ["頭部", "身體", "手部", "腿部"]:
-		var id: String = hunter.gear.get(slot, "")
-		slots.append("%s %s" % [slot, Equipment.ITEMS[id][0] if not id.is_empty() else "—"])
-	gear_slots.text = "%s　｜　%s\n%s　｜　%s" % slots
+	for slot in gear_slot_images:
+		var id: String = hunter.selected_weapon() if slot == "武器" else hunter.gear.get(slot, "")
+		var icon: TextureRect = gear_slot_images[slot]
+		icon.texture = _gear_icon(id)
+		icon.tooltip_text = "%s　%s" % [slot, _gear_item_name(id) if not id.is_empty() else "未裝備"]
 	gear_list.clear()
 	gear_ids.assign(Equipment.STARTING_WEAPONS)
 	for id: String in Equipment.ITEMS:
 		if owned_equipment.has(id) and not gear_ids.has(id):
 			gear_ids.append(id)
 	for id in gear_ids:
-		var item: Array = Equipment.ITEMS[id]
-		var text := "%s　｜　%s" % [item[1], item[0]]
+		var text := _gear_item_name(id)
 		if _is_equipped(id):
-			text += "　✓"
-		gear_list.add_item(text)
+			text += " ✓"
+		var index := gear_list.add_item(text, _gear_icon(id))
+		gear_list.set_item_tooltip(index, _gear_item_name(id))
 	var index := maxi(0, gear_ids.find(selected))
 	gear_list.select(index)
 	gear_list.ensure_current_is_visible()
@@ -733,9 +854,38 @@ func _is_equipped(id: String) -> bool:
 
 func _show_gear(index: int) -> void:
 	var id := gear_ids[index]
+	gear_name.text = "%s　·　%s" % [_gear_item_name(id), Equipment.ITEMS[id][1]]
+	gear_values.text = _gear_item_values(id)
 	gear_detail.text = Equipment.ITEMS[id][2]
 	gear_apply.disabled = Equipment.ITEMS[id][1] == "武器" and _is_equipped(id)
 	gear_apply.text = "卸下" if _is_equipped(id) and not gear_apply.disabled else "裝備"
+
+
+func _gear_icon(id: String) -> Texture2D:
+	return Equipment.ICONS.get("root_blade" if id == "hunter_knife" and hunter.stolen_blade else id) as Texture2D
+
+
+func _gear_item_name(id: String) -> String:
+	if id == "hunter_knife":
+		return "樹靈木刃" if hunter.stolen_blade else "短刀"
+	return Equipment.ITEMS[id][0]
+
+
+func _gear_item_values(id: String) -> String:
+	match id:
+		"linen_hood":
+			return "最大體力　%d → %d" % [Hunter.MAX_HEALTH, Hunter.MAX_HEALTH + 1]
+		"scaleveil_hood":
+			return "鱗粉緩速　%.1f 秒 → %.1f 秒" % [Hunter.POLLEN_DURATION, Hunter.POLLEN_DURATION * 0.5]
+		"moss_vest":
+			return "每次休息後　格擋 1 次傷害"
+		"hunter_wraps":
+			return "近戰攻擊週期　%.2f 秒 → %.2f 秒" % [Hunter.KNIFE_DURATION, Hunter.WRAPS_KNIFE_DURATION]
+		_:
+			var stats := "傷害 %d　｜　攻擊週期 %.2f 秒" % [hunter.weapon_damage(id), hunter.weapon_period(id)]
+			if id == "ember_staff":
+				stats += "　｜　法力 %d" % Hunter.STAFF_MANA_COST
+			return stats
 
 
 func _apply_gear() -> void:

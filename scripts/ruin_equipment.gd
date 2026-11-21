@@ -11,3 +11,13 @@ const ITEMS := {
 }
 
 const STARTING_WEAPONS := ["hunter_knife", "hunter_bow"]
+const ICONS := {
+	"hunter_knife": preload("res://assets/items/hunter_knife.png"),
+	"hunter_bow": preload("res://assets/items/hunter_bow.png"),
+	"linen_hood": preload("res://assets/items/linen_hood.png"),
+	"scaleveil_hood": preload("res://assets/items/scaleveil_hood.png"),
+	"moss_vest": preload("res://assets/items/moss_vest.png"),
+	"hunter_wraps": preload("res://assets/items/hunter_wraps.png"),
+	"ember_staff": preload("res://assets/items/ember_staff.png"),
+	"root_blade": preload("res://assets/items/root_blade.png"),
+}
