@@ -63,3 +63,38 @@ static func icon(id: String) -> Texture2D:
 	texture.region = Rect2(Vector2(index % 4, 0 if index < 4 else 1) * cell, cell)
 	texture.filter_clip = true
 	return texture
+
+
+const Progression := preload("res://scripts/ruin_progression.gd")
+const ICON_SIZE := 64
+static var ranked_icons := {}
+
+
+static func catalog_ids() -> Array[String]:
+	var ids: Array[String] = []
+	ids.assign(ITEMS.keys() + Armory.WEAR.keys() + Armory.WEAPONS.keys())
+	return ids
+
+
+static func ranked_icon(id: String, rank: int) -> Texture2D:
+	if id.is_empty():
+		return null
+	var key := "%s:%d" % [id, rank]
+	if ranked_icons.has(key):
+		return ranked_icons[key]
+	var texture := icon(id)
+	if texture == null:
+		return null
+	var artwork := texture.get_image()
+	var size := Vector2(artwork.get_size())
+	var fitted := Vector2i((size * (54.0 / maxf(size.x, size.y))).round())
+	artwork.convert(Image.FORMAT_RGBA8)
+	artwork.resize(maxi(1, fitted.x), maxi(1, fitted.y), Image.INTERPOLATE_LANCZOS)
+	var framed := Image.create_empty(ICON_SIZE, ICON_SIZE, false, Image.FORMAT_RGBA8)
+	framed.fill(Progression.COLORS[rank])
+	framed.fill_rect(Rect2i(3, 3, 58, 58), Color("#102120"))
+	framed.blend_rect(artwork, Rect2i(Vector2i.ZERO, artwork.get_size()),
+		(Vector2i(ICON_SIZE, ICON_SIZE) - artwork.get_size()) / 2)
+	var result := ImageTexture.create_from_image(framed)
+	ranked_icons[key] = result
+	return result

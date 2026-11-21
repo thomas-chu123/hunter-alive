@@ -29,6 +29,8 @@ var target: CharacterBody2D
 var home := Vector2.ZERO
 var health := 0
 var max_health := 0
+var level := 1
+var soul_reward: Array
 var attack_kind := ""
 var attack: Dictionary
 var design: Dictionary
@@ -89,6 +91,8 @@ func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
 	sound = design.sound
 	hit_reaction = design.hit_reaction
 	max_health = int(design.health)
+	level = int(design.level)
+	soul_reward = design.soul_reward
 	profile = design.motion
 	attack = design.attack
 	attack_kind = attack.kind
@@ -674,7 +678,13 @@ func _draw() -> void:
 	if species == "seal_keeper" and armed:
 		draw_arc(Vector2(0, -70), 65, 0, TAU, 48, Color(0.62, 0.71, 1.0, 0.68), 3, true)
 	_draw_attack_effect(size)
-	if health < max_health or species in ["lantern_crab", "seal_keeper"]:
+	if absf(target.position.x - position.x) < 310.0 or health < max_health:
+		var caption := "Lv.%d  %d/%d" % [level, health, max_health]
+		var typeface := ThemeDB.fallback_font
+		var caption_width := typeface.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+		var label_at := Vector2(-caption_width * 0.5, -size.y - 26.0)
+		draw_string_outline(typeface, label_at, caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, 4, Color("#142522"))
+		draw_string(typeface, label_at, caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("#ecd9a8"))
 		var bar := Rect2(-27, -size.y - 22, 54, 4)
 		draw_rect(bar, Color("#172c2a"))
 		bar.size.x *= float(health) / max_health

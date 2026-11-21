@@ -10,6 +10,7 @@ const Preferences := preload("res://scripts/game_preferences.gd")
 const HunterAnimation := preload("res://scripts/hunter_animation.gd")
 const Equipment := preload("res://scripts/ruin_equipment.gd")
 const Bestiary := preload("res://scripts/ruin_bestiary.gd")
+const Progression := preload("res://scripts/ruin_progression.gd")
 const Armory := preload("res://scripts/ruin_armory.gd")
 const CacheTexture := preload("res://assets/environment/ruins/reliquary.png")
 const Campaign := preload("res://scripts/campaign.gd")
@@ -19,7 +20,7 @@ const MOTH_X := 2330.0
 const SOUL_NAMES := {"lizard": "蜥翼", "spider": "蛛步"}
 const DROP_COLORS := {
 	"material": Color("#eac18c"), "lizard": Color("#a4f2d0"),
-	"spider": Color("#ed9e96"), "blade": Color("#ffda84"),
+	"spider": Color("#ed9e96"), "blade": Color("#ffda84"), "soul_currency": Color("#8de7fb"),
 }
 
 var hunter: Hunter
@@ -36,10 +37,18 @@ var glyphs: Array[Dictionary] = []
 var fang_target: Monster
 var fang_hits := 0
 var collected_souls: Array[String] = []
+var soul_balance := 0
+var loot_rng := RandomNumberGenerator.new()
+var loot_catalog: Array[String]
 var materials := 0
 var fangs := 0
 var forge_fang: Button
 var owned_equipment: Array[String] = []
+var inventory: Array[Dictionary] = []
+var obtained_equipment: Dictionary = {}
+var armor_equipped: Dictionary = {}
+var preferred_weapons: Dictionary = {}
+var next_item_uid := 1
 @export_enum("Temple", "Flooded Corridor", "Buried Court") var region := 0
 
 var guardian_felled := false
@@ -69,6 +78,10 @@ var camp_stock: Label
 var camp_rest: Button
 var camp_knife: Button
 var camp_bow: Button
+var camp_level_up: Button
+var camp_rank_items: OptionButton
+var camp_rank_up: Button
+var camp_salvage: Button
 var pause_menu: CenterContainer
 var pause_volume: HSlider
 var pause_fullscreen: CheckButton
@@ -80,11 +93,18 @@ var gear_values: Label
 var gear_detail: Label
 var gear_apply: Button
 var gear_ids: Array[String] = []
+var gear_uids: Array[int] = []
+var bag_count: Label
+var destroy_item: Button
+var destroy_dialog: ConfirmationDialog
+var pending_destroy_uid := 0
 var font: SystemFont
 
 
 func _ready() -> void:
 	rng.randomize()
+	loot_rng.randomize()
+	loot_catalog = Equipment.catalog_ids()
 	_resize_backdrop()
 	get_viewport().size_changed.connect(_resize_backdrop)
 
@@ -95,6 +115,8 @@ func _ready() -> void:
 	hunter.cast.connect(_cast)
 	hunter.defeated.connect(_on_hunter_defeated)
 	add_child(hunter)
+	for id: String in Equipment.STARTING_WEAPONS:
+		_grant_equipment(id)
 	var listener := AudioListener2D.new()
 	hunter.add_child(listener)
 	listener.make_current()
@@ -240,7 +262,7 @@ func _cast(origin: Vector2, direction: float, weapon: String) -> void:
 		if not ground.is_empty():
 			glyphs.append({"at": ground.position, "left": 0.46, "damage": hunter.weapon_damage(weapon), "direction": direction})
 		return
-	arrows.append({"at": origin, "direction": direction, "damage": Hunter.STAFF_DAMAGE, "left": 0.44,
+	arrows.append({"at": origin, "direction": direction, "damage": hunter.weapon_damage(weapon), "left": 0.44,
 		"spell": true, "weapon": weapon, "hit_ids": []})
 
 
@@ -345,10 +367,16 @@ func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector
 func _on_monster_felled(monster: Monster) -> void:
 	enemies.erase(monster)
 	var x := monster.position.x
+	var reward := loot_rng.randi_range(int(monster.soul_reward[0]), int(monster.soul_reward[1]))
+	_drop("soul_currency", x, reward)
+	var rank := Progression.drop_rank(loot_rng.randf())
+	if rank > 0:
+		var item := loot_catalog[loot_rng.randi_range(0, loot_catalog.size() - 1)]
+		_drop(item, x + 22, 1, rank, true)
 	var loot: String = Bestiary.DROPS.get(monster.species, "")
-	if not loot.is_empty() and not owned_equipment.has(loot) and not _has_drop(loot):
+	if not loot.is_empty() and not obtained_equipment.has(loot) and not _has_drop(loot):
 		_drop(loot, x - 12)
-	if monster.species == "ash_scribe" and not owned_equipment.has("scribe_staff") and not _has_drop("scribe_staff"):
+	if monster.species == "ash_scribe" and not obtained_equipment.has("scribe_staff") and not _has_drop("scribe_staff"):
 		_drop("scribe_staff", x + 28)
 	match monster.species:
 		"spider":
@@ -360,7 +388,7 @@ func _on_monster_felled(monster: Monster) -> void:
 			if not collected_souls.has("lizard"):
 				_drop("lizard", x - 12)
 		"bell_moth":
-			if not owned_equipment.has("scaleveil_hood") and not _has_drop("scaleveil_hood"):
+			if not obtained_equipment.has("scaleveil_hood") and not _has_drop("scaleveil_hood"):
 				_drop("scaleveil_hood", x - 12)
 		"seal_keeper":
 			keeper_felled = true
@@ -385,7 +413,7 @@ func _on_monster_disarmed(monster: Monster) -> void:
 		return
 	if monster.species in ["thorn_archer", "shield_heron"]:
 		var item := "thorn_bow" if monster.species == "thorn_archer" else "earthen_armor"
-		if not owned_equipment.has(item) and not _has_drop(item):
+		if not obtained_equipment.has(item) and not _has_drop(item):
 			_drop(item, monster.position.x + monster.facing * 50.0)
 		return
 	if monster.species == "seal_keeper":
@@ -405,9 +433,9 @@ func _has_drop(kind: String) -> bool:
 	return false
 
 
-func _drop(kind: String, x: float, amount: int = 1) -> void:
+func _drop(kind: String, x: float, amount: int = 1, rank: int = 1, rolled: bool = false) -> void:
 	drops.append({"kind": kind, "at": Vector2(clampf(x, 736 if region == Campaign.Region.TEMPLE else 60, 3240), Landscape.FLOOR_Y - 27),
-		"amount": amount, "spawn": elapsed})
+		"amount": amount, "spawn": elapsed, "rank": rank, "rolled": rolled})
 
 
 func _collect_drops() -> void:
@@ -415,8 +443,13 @@ func _collect_drops() -> void:
 		var drop := drops[index]
 		if elapsed - drop.spawn < 0.22 or (hunter.position - Vector2(0, 25)).distance_to(drop.at) > 43:
 			continue
+		if _bag_full() and (drop.kind == "blade" or not Equipment.item(drop.kind).is_empty()):
+			_warn_full_bag()
+			continue
 		drops.remove_at(index)
 		match drop.kind:
+			"soul_currency":
+				soul_balance += int(drop.amount)
 			"material":
 				materials += int(drop.amount)
 			"blade":
@@ -431,17 +464,15 @@ func _collect_drops() -> void:
 				lantern_found = true
 				_sync_region_gate()
 				_notice("取得潮火提燈，暗水道已照亮。", 4.0)
-			"scaleveil_hood":
-				_grant_equipment("scaleveil_hood")
-				_notice("取得鱗紗兜帽。按 I 看裝備。", 3.0)
 			_:
 				if SOUL_NAMES.has(drop.kind):
 					if not collected_souls.has(drop.kind):
 						collected_souls.append(drop.kind)
 					_notice("拾得%s之魂。按 F 裝備，按住 Shift 使用魂技。" % SOUL_NAMES[drop.kind], 4.0)
 				elif not Equipment.item(drop.kind).is_empty():
-					_grant_equipment(drop.kind)
-					_notice("取得%s。按 I 看裝備。" % Equipment.item(drop.kind)[0], 3.0)
+					var rank := int(drop.rank)
+					if _grant_equipment(drop.kind, rank, drop.rolled):
+						_notice("取得%s　%s。按 I 看裝備。" % [_gear_item_name(drop.kind), Progression.rank_name(rank)], 3.0)
 
 
 func _equip_next_soul() -> void:
@@ -457,15 +488,15 @@ func _equip_next_soul() -> void:
 func _interact() -> void:
 	var loot := _near_treasure()
 	if not loot.is_empty():
-		_grant_equipment(loot)
-		_notice("石匣內有%s。按 I 看裝備。" % Equipment.item(loot)[0], 4.0)
+		if _grant_equipment(loot):
+			_notice("石匣內有%s。按 I 看裝備。" % Equipment.item(loot)[0], 4.0)
+		else:
+			_warn_full_bag()
 	elif _near(landscape.shrine.global_position):
-		var first_visit := not owned_equipment.has("linen_hood")
-		_grant_equipment("linen_hood")
-		_grant_equipment("hunter_wraps")
+		for id in ["linen_hood", "hunter_wraps"]:
+			if not obtained_equipment.has(id):
+				_grant_equipment(id)
 		_set_camp_open(true)
-		if first_visit:
-			_notice("取得營火布兜與獵人纏手。返回探索後按 I 看裝備。", 4.0)
 	elif _near(landscape.portal.global_position):
 		match region:
 			Campaign.Region.TEMPLE:
@@ -486,11 +517,17 @@ func _interact() -> void:
 				else:
 					_notice("主祭壇被封印者封鎖。", 3.0)
 	elif _near_cache() and not landscape.cache_open:
+		if region == Campaign.Region.TEMPLE:
+			var needed := int(not obtained_equipment.has("moss_vest")) + int(not obtained_equipment.has("ember_staff"))
+			if inventory.size() + needed > Progression.bag_capacity(hunter.level):
+				_warn_full_bag()
+				return
 		landscape.cache_open = true
 		materials += 3
 		if region == Campaign.Region.TEMPLE:
-			_grant_equipment("moss_vest")
-			_grant_equipment("ember_staff")
+			for id in ["moss_vest", "ember_staff"]:
+				if not obtained_equipment.has(id):
+					_grant_equipment(id)
 			_notice("取得苔織獵衣、餘火魔法杖和 3 份素材。按 I 看裝備。", 4.0)
 		else:
 			_notice("從石匣取得 3 份工坊素材。", 4.0)
@@ -502,7 +539,7 @@ func _near(at: Vector2) -> bool:
 
 func _near_treasure() -> String:
 	for chest in Armory.CHESTS[region]:
-		if not owned_equipment.has(chest[0]) and hunter.position.distance_to(Vector2(chest[1], chest[2])) < 50:
+		if not obtained_equipment.has(chest[0]) and hunter.position.distance_to(Vector2(chest[1], chest[2])) < 50:
 			return chest[0]
 	return ""
 
@@ -597,7 +634,7 @@ func _resize_backdrop() -> void:
 
 func _draw() -> void:
 	for chest in Armory.CHESTS[region]:
-		if not owned_equipment.has(chest[0]):
+		if not obtained_equipment.has(chest[0]):
 			var at := Vector2(chest[1], chest[2])
 			draw_texture_rect(CacheTexture, Rect2(at - Vector2(21, 24), Vector2(42, 24)), false)
 			draw_circle(at - Vector2(0, 26), 3.5, Color(1.0, 0.79, 0.46, 0.62))
@@ -623,6 +660,9 @@ func _draw() -> void:
 				MonsterArt.LANTERN_REGION)
 		elif drop.kind == "blade":
 			draw_line(at - Vector2(10, -7), at + Vector2(12, -8), color, 4, true)
+		elif not Equipment.item(drop.kind).is_empty():
+			draw_texture_rect(Equipment.ranked_icon(drop.kind, int(drop.rank)),
+				Rect2(at - Vector2(13, 13), Vector2(26, 26)), false)
 		else:
 			draw_colored_polygon(PackedVector2Array([at + Vector2(0, -10), at + Vector2(7, 0),
 				at + Vector2(0, 10), at + Vector2(-7, 0)]), color)
@@ -724,6 +764,18 @@ func _build_camp_menu(root: Control) -> void:
 	camp_stock = _label(16, Color("#d8e4d4"))
 	rows.add_child(camp_stock)
 	camp_rest = _camp_button(rows, "休息、恢復體力與存檔", _camp_heal)
+	camp_level_up = _camp_button(rows, "", _level_up)
+	camp_rank_items = OptionButton.new()
+	camp_rank_items.add_theme_font_override("font", font)
+	camp_rank_items.get_popup().add_theme_font_override("font", font)
+	camp_rank_items.item_selected.connect(_show_camp_rank_cost.unbind(1))
+	rows.add_child(camp_rank_items)
+	var item_actions := HBoxContainer.new()
+	item_actions.add_theme_constant_override("separation", 8)
+	rows.add_child(item_actions)
+	camp_rank_up = _camp_button(item_actions, "", _rank_up)
+	camp_rank_up.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	camp_salvage = _camp_button(item_actions, "", _salvage_item)
 	camp_knife = _camp_button(rows, "", _upgrade_weapon.bind(false))
 	camp_bow = _camp_button(rows, "", _upgrade_weapon.bind(true))
 	forge_fang = _camp_button(rows, "用蛛牙製作短刃", _forge_fang_dagger)
@@ -781,6 +833,13 @@ func _checkpoint_state() -> Dictionary:
 		"cache_flags": cache_flags,
 		"materials": materials,
 		"fangs": fangs,
+		"soul_balance": soul_balance,
+		"player_level": hunter.level,
+		"inventory": inventory,
+		"next_item_uid": next_item_uid,
+		"obtained_equipment": obtained_equipment,
+		"armor_equipped": armor_equipped,
+		"preferred_weapons": preferred_weapons,
 		"souls": collected_souls,
 		"equipped_soul": hunter.equipped_soul,
 		"with_bow": hunter.with_bow,
@@ -799,31 +858,22 @@ func _checkpoint_state() -> Dictionary:
 
 
 func _restore_camp(state: Dictionary) -> void:
+	soul_balance = maxi(0, int(state.get("soul_balance", 0)))
+	hunter.level = clampi(int(state.get("player_level", 0)), 0, Progression.MAX_LEVEL)
 	materials = maxi(0, state.get("materials", 0))
 	fangs = maxi(0, state.get("fangs", 0))
 	hunter.stolen_blade = state.get("stolen_blade", false)
-	if hunter.stolen_blade:
-		_grant_equipment("root_blade")
 	for soul in state.get("souls", []):
 		if SOUL_NAMES.has(soul) and not collected_souls.has(soul):
 			collected_souls.append(soul)
 	var equipped: String = state.get("equipped_soul", "")
 	if collected_souls.has(equipped):
 		hunter.equipped_soul = equipped
-	for item in state.get("owned_equipment", []):
-		if not Equipment.item(item).is_empty():
-			_grant_equipment(item)
-	if state.get("cache_open", false):
-		_grant_equipment("moss_vest")
-		_grant_equipment("ember_staff")
-	for slot in state.get("gear", {}):
-		var item = state.gear[slot]
-		if owned_equipment.has(item) and Equipment.item(item)[1] == slot and slot != "武器":
-			hunter.gear[slot] = item
+	_restore_inventory(state)
 	var previous_weapon: String = state.get("weapon", "hunter_bow" if state.get("with_bow", false) else "hunter_knife")
-	if hunter.stolen_blade and previous_weapon == "hunter_knife" and not state.get("owned_equipment", []).has("root_blade"):
+	if not state.has("inventory") and hunter.stolen_blade and previous_weapon == "hunter_knife" and not state.get("owned_equipment", []).has("root_blade"):
 		previous_weapon = "root_blade"
-	hunter.select_weapon(previous_weapon)
+	_sync_equipment(previous_weapon)
 	hunter.rest()
 	hunter.knife_level = clampi(state.get("knife_level", 0), 0, 2)
 	hunter.bow_level = clampi(state.get("bow_level", 0), 0, 2)
@@ -838,7 +888,7 @@ func _restore_camp(state: Dictionary) -> void:
 
 
 func _forge_fang_dagger() -> void:
-	if fangs > 0 and not owned_equipment.has("fang_dagger"):
+	if fangs > 0 and not owned_equipment.has("fang_dagger") and not _bag_full():
 		fangs -= 1
 		_grant_equipment("fang_dagger")
 		_update_camp_menu()
@@ -860,11 +910,113 @@ func _upgrade_weapon(bow: bool) -> void:
 		camp_rest.grab_focus()
 
 
+func _level_up() -> void:
+	var level := hunter.level
+	var cost := Progression.level_cost(level)
+	if not camp_menu.visible or level >= Progression.MAX_LEVEL or soul_balance < cost:
+		return
+	var previous_health := hunter.health
+	soul_balance -= cost
+	hunter.level += 1
+	hunter.health += 1
+	if not _save_camp():
+		hunter.level = level
+		hunter.health = previous_health
+		soul_balance += cost
+		_show_failed_upgrade()
+
+
+func _rank_up() -> void:
+	var entry := _inventory_item(_selected_camp_item())
+	if not camp_menu.visible or entry.is_empty():
+		return
+	var rank := int(entry.rank)
+	var cost := Progression.gear_cost(rank)
+	if rank >= Progression.MAX_RANK or soul_balance < cost:
+		return
+	soul_balance -= cost
+	entry.rank = rank + 1
+	_sync_equipment()
+	if not _save_camp():
+		entry.rank = rank
+		soul_balance += cost
+		_sync_equipment()
+		_show_failed_upgrade()
+
+
+func _salvage_item() -> void:
+	var uid := _selected_camp_item()
+	var entry := _inventory_item(uid)
+	if not camp_menu.visible or entry.is_empty():
+		return
+	var index := inventory.find(entry)
+	var old_armor := armor_equipped.duplicate()
+	var old_preferences := preferred_weapons.duplicate()
+	var old_weapon := hunter.selected_weapon()
+	var old_health := hunter.health
+	var value := Progression.salvage_value(int(entry.rank))
+	soul_balance += value
+	_remove_inventory_item(uid)
+	if not _save_camp():
+		inventory.insert(index, entry)
+		armor_equipped = old_armor
+		preferred_weapons = old_preferences
+		_sync_equipment(old_weapon)
+		hunter.health = old_health
+		soul_balance -= value
+		_show_failed_upgrade()
+
+
+func _show_failed_upgrade() -> void:
+	_update_camp_menu()
+	camp_stock.text += "\n存檔失敗，保留原等級與魂量"
+
+
+func _selected_camp_item() -> int:
+	var selection := camp_rank_items.selected
+	return 0 if selection < 0 else int(camp_rank_items.get_item_metadata(selection))
+
+
+func _show_camp_rank_cost() -> void:
+	var entry := _inventory_item(_selected_camp_item())
+	camp_salvage.disabled = entry.is_empty()
+	camp_salvage.text = "換取 %d 魂" % Progression.salvage_value(int(entry.get("rank", 0)))
+	if entry.is_empty():
+		camp_rank_up.disabled = true
+		camp_rank_up.text = "背包沒有裝備"
+		return
+	var rank := int(entry.rank)
+	var cost := Progression.gear_cost(rank)
+	camp_rank_up.disabled = rank >= Progression.MAX_RANK or soul_balance < cost
+	camp_rank_up.text = "品質已達金 +5" if rank >= Progression.MAX_RANK else (
+		"%s → %s　花費 %d 魂" % [Progression.rank_name(rank), Progression.rank_name(rank + 1), cost])
+
+
 func _update_camp_menu() -> void:
-	camp_stock.text = "素材 %d　｜　體力 %d / %d" % [materials, hunter.health, hunter.max_health()]
-	_update_upgrade_button(camp_knife, "近戰武器", hunter.knife_level)
-	_update_upgrade_button(camp_bow, "獵弓", hunter.bow_level)
+	camp_stock.text = "Lv.%d　｜　魂 %d　｜　體力 %d/%d　｜　素材 %d　｜　背包 %d/%d" % [
+		hunter.level, soul_balance, hunter.health, hunter.max_health(), materials,
+		inventory.size(), Progression.bag_capacity(hunter.level)]
+	var cost := Progression.level_cost(hunter.level)
+	camp_level_up.disabled = hunter.level >= Progression.MAX_LEVEL or soul_balance < cost
+	camp_level_up.text = "角色 Lv.10　已達上限" if hunter.level >= Progression.MAX_LEVEL else (
+		"角色 Lv.%d → Lv.%d　體力上限 +1　花費 %d 魂" % [hunter.level, hunter.level + 1, cost])
+	var selected := _selected_camp_item()
+	if selected == 0:
+		selected = _equipped_uid("武器")
+	camp_rank_items.clear()
+	for entry in inventory:
+		camp_rank_items.add_item("%s　%s" % [_gear_item_name(entry.item), Progression.rank_name(int(entry.rank))])
+		var index := camp_rank_items.item_count - 1
+		camp_rank_items.set_item_metadata(index, entry.uid)
+		if entry.uid == selected:
+			camp_rank_items.select(index)
+	if camp_rank_items.item_count > 0 and camp_rank_items.selected < 0:
+		camp_rank_items.select(0)
+	_show_camp_rank_cost()
+	_update_upgrade_button(camp_knife, "近戰素材改造", hunter.knife_level)
+	_update_upgrade_button(camp_bow, "獵弓素材改造", hunter.bow_level)
 	forge_fang.visible = fangs > 0 and not owned_equipment.has("fang_dagger")
+	forge_fang.disabled = _bag_full()
 
 
 func _update_upgrade_button(button: Button, weapon: String, level: int) -> void:
@@ -901,10 +1053,14 @@ func _label(size: int, color: Color) -> Label:
 func _update_hud() -> void:
 	var soul_name := String(SOUL_NAMES.get(hunter.equipped_soul, "未裝備"))
 	var weapon_name := _gear_item_name(hunter.selected_weapon())
-	health_label.text = "體力  %s%s" % ["◆".repeat(hunter.health), "◇".repeat(hunter.max_health() - hunter.health)]
+	health_label.text = "Lv.%d　體力 %d/%d　%s%s" % [hunter.level, hunter.health, hunter.max_health(),
+		"◆".repeat(hunter.health), "◇".repeat(hunter.max_health() - hunter.health)]
 	var level := hunter.bow_level if hunter.with_bow else (0 if hunter.with_staff else hunter.knife_level)
-	var upgrade := (" +%d" % level) if level > 0 else ""
-	loadout_label.text = "%s%s　｜　%s　｜　素材 %d" % [weapon_name, upgrade, soul_name, materials]
+	var upgrade := ("　素材改造 +%d" % level) if level > 0 else ""
+	loadout_label.text = "%s %s%s　｜　%s　｜　魂 %d" % [
+		weapon_name, "" if hunter.selected_weapon() == "unarmed" else Progression.rank_name(hunter.item_rank(hunter.selected_weapon())), upgrade, soul_name, soul_balance]
+	if _bag_full():
+		loadout_label.text += "　｜　背包已滿"
 	if hunter.staff_unlocked:
 		loadout_label.text += "　｜　法力 %d/%d" % [hunter.mana, Hunter.MAX_MANA]
 	if hunter.pollen_left > 0:
@@ -954,13 +1110,132 @@ func _update_region_hud() -> void:
 		prompt_label.text = "E　打開石匣"
 
 
-func _grant_equipment(id: String) -> void:
-	if not owned_equipment.has(id):
-		owned_equipment.append(id)
-	if id == "ember_staff":
-		hunter.staff_unlocked = true
-	if Equipment.item(id)[1] == "武器" and not hunter.unlocked_weapons.has(id):
-		hunter.unlocked_weapons.append(id)
+func _bag_full() -> bool:
+	return inventory.size() >= Progression.bag_capacity(hunter.level)
+
+
+func _warn_full_bag() -> void:
+	if notice_left <= 0.0:
+		_notice("背包已滿。按 I 銷毀裝備，或回營火換魂。", 2.7)
+
+
+func _inventory_item(uid: int) -> Dictionary:
+	for entry in inventory:
+		if int(entry.uid) == uid:
+			return entry
+	return {}
+
+
+func _first_item(id: String) -> int:
+	for entry in inventory:
+		if entry.item == id:
+			return int(entry.uid)
+	return 0
+
+
+func _grant_equipment(id: String, rank: int = 1, allow_duplicate: bool = false) -> bool:
+	if Equipment.item(id).is_empty() or _bag_full() or (not allow_duplicate and _first_item(id) != 0):
+		return false
+	inventory.append({"uid": next_item_uid, "item": id, "rank": clampi(rank, 1, Progression.MAX_RANK)})
+	next_item_uid += 1
+	obtained_equipment[id] = true
+	_sync_equipment()
+	return true
+
+
+func _remove_inventory_item(uid: int) -> void:
+	var entry := _inventory_item(uid)
+	if entry.is_empty():
+		return
+	inventory.erase(entry)
+	_sync_equipment()
+
+
+func _sync_equipment(desired_weapon: String = "") -> void:
+	var weapon := desired_weapon if not desired_weapon.is_empty() else hunter.selected_weapon()
+	var known := {}
+	hunter.unlocked_weapons.clear()
+	owned_equipment.clear()
+	for entry in inventory:
+		var id: String = entry.item
+		if known.has(id):
+			continue
+		known[id] = true
+		if id not in Equipment.STARTING_WEAPONS:
+			owned_equipment.append(id)
+		if Equipment.item(id)[1] == "武器":
+			hunter.unlocked_weapons.append(id)
+	hunter.staff_unlocked = hunter.unlocked_weapons.has("ember_staff") or hunter.unlocked_weapons.has("scribe_staff")
+	hunter.item_ranks.clear()
+	for id in preferred_weapons.keys():
+		if not hunter.unlocked_weapons.has(id):
+			preferred_weapons.erase(id)
+	for id in hunter.unlocked_weapons:
+		var entry := _inventory_item(int(preferred_weapons.get(id, 0)))
+		if entry.is_empty() or entry.item != id:
+			entry = _inventory_item(_first_item(id))
+		preferred_weapons[id] = entry.uid
+		hunter.item_ranks[id] = entry.rank
+	hunter.gear.clear()
+	for slot in armor_equipped.keys():
+		var entry := _inventory_item(int(armor_equipped[slot]))
+		if entry.is_empty() or Equipment.item(entry.item)[1] != slot or slot == "武器":
+			armor_equipped.erase(slot)
+		else:
+			hunter.gear[slot] = entry.item
+			hunter.item_ranks[entry.item] = entry.rank
+	hunter.select_weapon(weapon)
+	hunter.health = mini(hunter.health, hunter.max_health())
+
+
+func _restore_inventory(state: Dictionary) -> void:
+	if state.has("inventory"):
+		inventory.clear()
+		var used := {}
+		next_item_uid = maxi(1, int(state.get("next_item_uid", 1)))
+		for value in state.inventory:
+			if value is not Dictionary:
+				continue
+			var uid := int(value.get("uid", 0))
+			var id := String(value.get("item", ""))
+			if uid <= 0 or used.has(uid) or Equipment.item(id).is_empty():
+				continue
+			inventory.append({"uid": uid, "item": id, "rank": clampi(int(value.get("rank", 1)), 1, Progression.MAX_RANK)})
+			used[uid] = true
+			next_item_uid = maxi(next_item_uid, uid + 1)
+		obtained_equipment = state.get("obtained_equipment", {}).duplicate()
+		for entry in inventory:
+			obtained_equipment[entry.item] = true
+		armor_equipped = state.get("armor_equipped", {}).duplicate()
+		preferred_weapons = state.get("preferred_weapons", {}).duplicate()
+	else:
+		if state.get("stolen_blade", false):
+			_append_legacy_item("root_blade", state)
+		for id in state.get("owned_equipment", []):
+			_append_legacy_item(id, state)
+		if state.get("cache_open", false):
+			_append_legacy_item("moss_vest", state)
+			_append_legacy_item("ember_staff", state)
+		for slot in state.get("gear", {}):
+			var uid := _first_item(state.gear[slot])
+			if uid != 0:
+				armor_equipped[slot] = uid
+		for id: String in Equipment.STARTING_WEAPONS:
+			var entry := _inventory_item(_first_item(id))
+			entry.rank = clampi(int(state.get("item_ranks", {}).get(id, 1)), 1, Progression.MAX_RANK)
+
+
+func _append_legacy_item(id: String, state: Dictionary) -> void:
+	if Equipment.item(id).is_empty() or _first_item(id) != 0:
+		return
+	var rank := clampi(int(state.get("item_ranks", {}).get(id, 1)), 1, Progression.MAX_RANK)
+	inventory.append({"uid": next_item_uid, "item": id, "rank": rank})
+	next_item_uid += 1
+	obtained_equipment[id] = true
+
+
+func _equipped_uid(slot: String) -> int:
+	return int(preferred_weapons.get(hunter.selected_weapon(), 0)) if slot == "武器" else int(armor_equipped.get(slot, 0))
 
 
 func _build_gear_menu(root: Control) -> void:
@@ -988,9 +1263,8 @@ func _build_gear_menu(root: Control) -> void:
 	inventory.custom_minimum_size.x = 410
 	inventory.add_theme_constant_override("separation", 8)
 	columns.add_child(inventory)
-	var inventory_label := _label(16, Color("#d8e4d4"))
-	inventory_label.text = "持有物品"
-	inventory.add_child(inventory_label)
+	bag_count = _label(16, Color("#d8e4d4"))
+	inventory.add_child(bag_count)
 	gear_list = ItemList.new()
 	gear_list.custom_minimum_size.y = 252
 	gear_list.icon_mode = ItemList.ICON_MODE_TOP
@@ -1029,6 +1303,13 @@ func _build_gear_menu(root: Control) -> void:
 	inventory.add_child(actions)
 	gear_apply = _camp_button(actions, "裝備", _apply_gear)
 	gear_apply.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	destroy_item = _camp_button(actions, "銷毀", _ask_destroy_item)
+	destroy_dialog = ConfirmationDialog.new()
+	destroy_dialog.title = "銷毀裝備"
+	destroy_dialog.get_ok_button().text = "銷毀"
+	destroy_dialog.get_cancel_button().text = "取消"
+	destroy_dialog.confirmed.connect(_destroy_gear_item)
+	gear_menu.add_child(destroy_dialog)
 	var close := _camp_button(actions, "返回探索　I / Esc", _set_gear_open.bind(false))
 	close.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	gear_menu.hide()
@@ -1113,63 +1394,81 @@ func _set_gear_open(open: bool) -> void:
 	gear_menu.visible = open
 	_set_world_locked(open)
 	if open:
-		_refresh_gear(hunter.selected_weapon())
+		_refresh_gear(_equipped_uid("武器"))
 		gear_list.grab_focus()
 	else:
 		camp_closed_frame = Engine.get_physics_frames() + 1
 
 
-func _refresh_gear(selected: String) -> void:
+func _refresh_gear(selected: int) -> void:
 	for slot in gear_slot_images:
-		var id: String = hunter.selected_weapon() if slot == "武器" else hunter.gear.get(slot, "")
+		var entry := _inventory_item(_equipped_uid(slot))
 		var icon: TextureRect = gear_slot_images[slot]
-		icon.texture = _gear_icon(id)
-		icon.tooltip_text = "%s　%s" % [slot, _gear_item_name(id) if not id.is_empty() else "未裝備"]
+		icon.texture = null if entry.is_empty() else Equipment.ranked_icon(entry.item, int(entry.rank))
+		icon.tooltip_text = "%s　%s" % [slot, "未裝備" if entry.is_empty() else _entry_name(entry)]
+	bag_count.text = "背包　%d / %d" % [inventory.size(), Progression.bag_capacity(hunter.level)]
 	gear_list.clear()
-	gear_ids.assign(Equipment.STARTING_WEAPONS)
-	for id: String in owned_equipment:
-		if not gear_ids.has(id):
-			gear_ids.append(id)
-	for id in gear_ids:
-		var text := _gear_item_name(id)
-		if _is_equipped(id):
+	gear_ids.clear()
+	gear_uids.clear()
+	for entry in inventory:
+		gear_ids.append(entry.item)
+		gear_uids.append(int(entry.uid))
+		var rank := int(entry.rank)
+		var text := "%s +%d" % [_gear_item_name(entry.item), rank]
+		if _is_equipped(entry):
 			text += " ✓"
-		var index := gear_list.add_item(text, _gear_icon(id))
-		gear_list.set_item_tooltip(index, _gear_item_name(id))
-	var index := maxi(0, gear_ids.find(selected))
+		var index := gear_list.add_item(text, Equipment.ranked_icon(entry.item, rank))
+		gear_list.set_item_tooltip(index, _entry_name(entry))
+	if gear_uids.is_empty():
+		gear_name.text = "背包沒有裝備"
+		gear_values.text = ""
+		gear_detail.text = ""
+		destroy_item.disabled = true
+		gear_apply.disabled = true
+		return
+	var index := maxi(0, gear_uids.find(selected))
 	gear_list.select(index)
 	gear_list.ensure_current_is_visible()
 	_show_gear(index)
 
 
-func _is_equipped(id: String) -> bool:
-	var slot: String = Equipment.item(id)[1]
-	return hunter.selected_weapon() == id if slot == "武器" else hunter.gear.get(slot) == id
+func _entry_name(entry: Dictionary) -> String:
+	return "%s　%s" % [_gear_item_name(entry.item), Progression.rank_name(int(entry.rank))]
+
+
+func _is_equipped(entry: Dictionary) -> bool:
+	var slot: String = Equipment.item(entry.item)[1]
+	return _equipped_uid(slot) == int(entry.uid)
 
 
 func _show_gear(index: int) -> void:
-	var id := gear_ids[index]
-	gear_name.text = "%s　·　%s" % [_gear_item_name(id), Equipment.item(id)[1]]
-	gear_values.text = _gear_item_values(id)
+	var entry := _inventory_item(gear_uids[index])
+	var id: String = entry.item
+	var rank := int(entry.rank)
+	gear_name.text = "%s　·　%s" % [_entry_name(entry), Equipment.item(id)[1]]
+	gear_name.add_theme_color_override("font_color", Progression.COLORS[rank])
+	gear_values.text = _gear_item_values(id, rank)
+	if Equipment.item(id)[1] != "武器":
+		gear_values.text += "\n護甲 +%d　｜　目前減傷 %d%%" % [rank, hunter.armor_reduction()]
 	gear_detail.text = Equipment.item(id)[2]
-	gear_apply.disabled = Equipment.item(id)[1] == "武器" and _is_equipped(id)
-	gear_apply.text = "卸下" if _is_equipped(id) and not gear_apply.disabled else "裝備"
-
-
-func _gear_icon(id: String) -> Texture2D:
-	return Equipment.icon(id)
+	gear_apply.disabled = Equipment.item(id)[1] == "武器" and _is_equipped(entry)
+	gear_apply.text = "卸下" if _is_equipped(entry) and not gear_apply.disabled else "裝備"
+	destroy_item.disabled = false
 
 
 func _gear_item_name(id: String) -> String:
+	if id == "unarmed":
+		return "徒手"
 	if id == "hunter_knife":
 		return "短刀"
 	return Equipment.item(id)[0]
 
 
-func _gear_item_values(id: String) -> String:
+func _gear_item_values(id: String, rank: int) -> String:
 	match id:
 		"linen_hood":
-			return "最大體力　%d → %d" % [Hunter.MAX_HEALTH, Hunter.MAX_HEALTH + 1]
+			var base := Hunter.MAX_HEALTH + hunter.level
+			return "最大體力　%d → %d" % [base, base + 1]
 		"scaleveil_hood":
 			return "鱗粉緩速　%.1f 秒 → %.1f 秒" % [Hunter.POLLEN_DURATION, Hunter.POLLEN_DURATION * 0.5]
 		"moss_vest":
@@ -1179,26 +1478,50 @@ func _gear_item_values(id: String) -> String:
 		_:
 			if Equipment.item(id)[1] != "武器":
 				return Equipment.item(id)[1] + "裝備"
-			var stats := "傷害 %d　｜　攻擊週期 %.2f 秒" % [hunter.weapon_damage(id), hunter.weapon_period(id)]
+			var stats := "傷害 %d　｜　攻擊週期 %.2f 秒" % [hunter.weapon_damage(id, rank), hunter.weapon_period(id)]
 			if id in ["ember_staff", "scribe_staff"]:
 				stats += "　｜　法力 %d" % Hunter.STAFF_MANA_COST
 			return stats
 
 
-func _apply_gear() -> void:
+func _selected_gear_uid() -> int:
 	var selection := gear_list.get_selected_items()
-	if selection.is_empty():
+	return 0 if selection.is_empty() else gear_uids[selection[0]]
+
+
+func _apply_gear() -> void:
+	var uid := _selected_gear_uid()
+	var entry := _inventory_item(uid)
+	if entry.is_empty():
 		return
-	var id := gear_ids[selection[0]]
+	var id: String = entry.item
 	var slot: String = Equipment.item(id)[1]
 	if slot == "武器":
-		hunter.select_weapon(id)
-	elif _is_equipped(id):
-		hunter.gear.erase(slot)
+		preferred_weapons[id] = uid
+		_sync_equipment(id)
 	else:
-		hunter.gear[slot] = id
-	hunter.health = mini(hunter.health, hunter.max_health())
-	_refresh_gear(id)
+		if _is_equipped(entry):
+			armor_equipped.erase(slot)
+		else:
+			armor_equipped[slot] = uid
+		_sync_equipment()
+	_refresh_gear(uid)
+	gear_list.grab_focus()
+
+
+func _ask_destroy_item() -> void:
+	pending_destroy_uid = _selected_gear_uid()
+	var entry := _inventory_item(pending_destroy_uid)
+	if entry.is_empty():
+		return
+	destroy_dialog.dialog_text = "確定銷毀%s？這件裝備將永久消失。" % _entry_name(entry)
+	destroy_dialog.popup_centered()
+
+
+func _destroy_gear_item() -> void:
+	_remove_inventory_item(pending_destroy_uid)
+	pending_destroy_uid = 0
+	_refresh_gear(_equipped_uid("武器"))
 	gear_list.grab_focus()
 
 

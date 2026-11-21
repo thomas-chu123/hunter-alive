@@ -34,7 +34,7 @@ func run() -> void:
 	await equip(ruins, "linen_hood")
 	check(hunter.max_health() == 7, "hood raises maximum HP")
 	check(ruins.gear_slot_images["頭部"].texture == ruins.gear_list.get_item_icon(ruins.gear_ids.find("linen_hood"))
-		and ruins.gear_values.text == "最大體力　6 → 7", "hood image and numerical values match the equipped slot")
+		and ruins.gear_values.text.begins_with("最大體力　6 → 7"), "hood image and numerical values match the equipped slot")
 	await show_view()
 	await equip(ruins, "linen_hood")
 	check(hunter.max_health() == 6, "removing hood restores base maximum HP")

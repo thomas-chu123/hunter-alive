@@ -40,7 +40,12 @@
       "speed": 148,
       "squash": 0.23,
       "interrupt_windup": true
-    }
+    },
+    "level": 1,
+    "soul_reward": [
+      1,
+      2
+    ]
   },
   "lizard": {
     "name": "滑翔蜥蜴",
@@ -88,7 +93,12 @@
       "speed": 120,
       "squash": 0.19,
       "interrupt_windup": true
-    }
+    },
+    "level": 2,
+    "soul_reward": [
+      2,
+      3
+    ]
   },
   "treant": {
     "name": "埋根樹靈",
@@ -142,7 +152,12 @@
       "speed": 54,
       "squash": 0.12,
       "interrupt_windup": false
-    }
+    },
+    "level": 5,
+    "soul_reward": [
+      8,
+      10
+    ]
   },
   "bell_moth": {
     "name": "石鐘蛾",
@@ -182,7 +197,12 @@
       "speed": 106,
       "squash": 0.22,
       "interrupt_windup": true
-    }
+    },
+    "level": 2,
+    "soul_reward": [
+      1,
+      3
+    ]
   },
   "lantern_crab": {
     "name": "提燈石蟹",
@@ -235,7 +255,12 @@
       "speed": 73,
       "squash": 0.15,
       "interrupt_windup": false
-    }
+    },
+    "level": 4,
+    "soul_reward": [
+      3,
+      5
+    ]
   },
   "seal_keeper": {
     "name": "古封守衛",
@@ -281,7 +306,12 @@
       "speed": 43,
       "squash": 0.1,
       "interrupt_windup": false
-    }
+    },
+    "level": 10,
+    "soul_reward": [
+      16,
+      20
+    ]
   },
   "shale_beetle": {
     "name": "頁岩甲蟲",
@@ -320,7 +350,12 @@
       "speed": 72,
       "squash": 0.15,
       "interrupt_windup": false
-    }
+    },
+    "level": 3,
+    "soul_reward": [
+      2,
+      3
+    ]
   },
   "dust_hare": {
     "name": "塵躍野兔",
@@ -360,7 +395,12 @@
       "speed": 159,
       "squash": 0.24,
       "interrupt_windup": true
-    }
+    },
+    "level": 1,
+    "soul_reward": [
+      1,
+      2
+    ]
   },
   "mirror_eel": {
     "name": "鏡潭長鰻",
@@ -404,7 +444,12 @@
       "speed": 126,
       "squash": 0.22,
       "interrupt_windup": true
-    }
+    },
+    "level": 4,
+    "soul_reward": [
+      3,
+      5
+    ]
   },
   "root_mole": {
     "name": "鑿根鼴獸",
@@ -443,7 +488,12 @@
       "speed": 95,
       "squash": 0.17,
       "interrupt_windup": false
-    }
+    },
+    "level": 5,
+    "soul_reward": [
+      3,
+      5
+    ]
   },
   "reed_leech": {
     "name": "蘆苔水蛭",
@@ -482,7 +532,12 @@
       "speed": 115,
       "squash": 0.22,
       "interrupt_windup": true
-    }
+    },
+    "level": 3,
+    "soul_reward": [
+      2,
+      3
+    ]
   },
   "silt_ray": {
     "name": "淤泥鰩",
@@ -522,7 +577,12 @@
       "speed": 104,
       "squash": 0.2,
       "interrupt_windup": true
-    }
+    },
+    "level": 4,
+    "soul_reward": [
+      3,
+      4
+    ]
   },
   "sluice_snail": {
     "name": "水閘岩螺",
@@ -566,7 +626,12 @@
       "speed": 64,
       "squash": 0.13,
       "interrupt_windup": false
-    }
+    },
+    "level": 5,
+    "soul_reward": [
+      4,
+      6
+    ]
   },
   "tide_salamander": {
     "name": "潮汐蠑螈",
@@ -610,7 +675,12 @@
       "speed": 113,
       "squash": 0.19,
       "interrupt_windup": true
-    }
+    },
+    "level": 6,
+    "soul_reward": [
+      4,
+      6
+    ]
   },
   "thorn_archer": {
     "name": "荊骨弓衛",
@@ -661,7 +731,12 @@
       "speed": 111,
       "squash": 0.18,
       "interrupt_windup": true
-    }
+    },
+    "level": 6,
+    "soul_reward": [
+      4,
+      7
+    ]
   },
   "shield_heron": {
     "name": "陶盾長腳鳥",
@@ -707,7 +782,12 @@
       "speed": 83,
       "squash": 0.14,
       "interrupt_windup": false
-    }
+    },
+    "level": 7,
+    "soul_reward": [
+      5,
+      7
+    ]
   },
   "key_jackal": {
     "name": "逐鑰豺獸",
@@ -747,7 +827,12 @@
       "speed": 124,
       "squash": 0.19,
       "interrupt_windup": true
-    }
+    },
+    "level": 6,
+    "soul_reward": [
+      4,
+      6
+    ]
   },
   "ash_scribe": {
     "name": "灰燼抄寫員",
@@ -787,7 +872,12 @@
       "speed": 101,
       "squash": 0.17,
       "interrupt_windup": true
-    }
+    },
+    "level": 7,
+    "soul_reward": [
+      5,
+      8
+    ]
   },
   "shard_warden": {
     "name": "碎岩守衛",
@@ -831,7 +921,12 @@
       "speed": 52,
       "squash": 0.11,
       "interrupt_windup": false
-    }
+    },
+    "level": 8,
+    "soul_reward": [
+      6,
+      9
+    ]
   },
   "copper_cicada": {
     "name": "銅翼蟬",
@@ -870,7 +965,12 @@
       "speed": 97,
       "squash": 0.19,
       "interrupt_windup": true
-    }
+    },
+    "level": 7,
+    "soul_reward": [
+      5,
+      7
+    ]
   },
   "burial_ram": {
     "name": "埋碑岩羊",
@@ -910,6 +1010,11 @@
       "speed": 59,
       "squash": 0.13,
       "interrupt_windup": false
-    }
+    },
+    "level": 8,
+    "soul_reward": [
+      6,
+      9
+    ]
   }
 }

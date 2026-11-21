@@ -14,7 +14,7 @@ func _initialize() -> void:
 
 
 func run() -> void:
-	var state: Dictionary = {}
+	var state: Dictionary = {"player_level": 10}
 	var ordinary := {}
 	for region in range(3):
 		state["region"] = region
@@ -55,6 +55,8 @@ func run() -> void:
 			if Bestiary.DROPS.has(id) or id in ["spider", "bell_moth"]:
 				monster.state = monster.State.RECOVER
 				monster.receive_hit(200, false)
+		# Catalog verification uses the dedicated sources. Random copies are tested separately.
+		area.drops = area.drops.filter(func(drop: Dictionary) -> bool: return not drop.rolled)
 		for drop in area.drops.duplicate():
 			drop.spawn = area.elapsed - 1.0
 			area.hunter.position = drop.at + Vector2(0, 25)

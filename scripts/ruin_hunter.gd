@@ -4,6 +4,7 @@ signal attacked(origin: Vector2, facing: float, ranged: bool, damage: int, weapo
 signal cast(origin: Vector2, direction: float, weapon: String)
 signal defeated
 
+const Progression := preload("res://scripts/ruin_progression.gd")
 const Armory := preload("res://scripts/ruin_armory.gd")
 const HunterAnimation := preload("res://scripts/hunter_animation.gd")
 const RUN_SPEED := 250.0
@@ -28,6 +29,9 @@ const WRAPS_KNIFE_DURATION := 0.23
 const POLLEN_DURATION := 2.4
 
 var health := MAX_HEALTH
+var level := 0
+var item_ranks: Dictionary = {}
+var armor_credit := 0
 var mana := MAX_MANA
 var facing := 1.0
 var with_bow := false
@@ -152,7 +156,7 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor() and not grounded and fall_speed > 245.0:
 		landing_left = LAND_DURATION * (0.5 if gear.get("腿部") == "cliff_boots" else 1.0)
 	animation_time += delta
-	if Input.is_action_just_pressed("hunt_switch"):
+	if Input.is_action_just_pressed("hunt_switch") and not unlocked_weapons.is_empty():
 		var slot := unlocked_weapons.find(selected_weapon())
 		select_weapon(unlocked_weapons[(slot + 1) % unlocked_weapons.size()])
 	var wants_attack := attack_buffer_left > 0 or Input.is_action_pressed("hunt_attack")
@@ -208,6 +212,12 @@ func hurt(source_x: float, damage: int = 1, effect: String = "") -> void:
 		return
 	if effect == "rune" and gear.get("頭部") == "ash_cowl":
 		damage = maxi(1, damage - 1)
+	armor_credit += damage * armor_reduction()
+	damage = maxi(0, damage - floori(armor_credit / 100.0))
+	armor_credit %= 100
+	if damage == 0:
+		invincible_left = 0.45
+		return
 	health = maxi(0, health - damage)
 	if health == 0:
 		defeated.emit()
@@ -226,10 +236,22 @@ func hurt(source_x: float, damage: int = 1, effect: String = "") -> void:
 
 
 func max_health() -> int:
-	return MAX_HEALTH + int(gear.get("頭部") == "linen_hood")
+	return MAX_HEALTH + level + int(gear.get("頭部") == "linen_hood")
+
+
+func item_rank(id: String) -> int:
+	return int(item_ranks.get(id, 1))
+
+
+func armor_reduction() -> int:
+	var points := 0
+	for id: String in gear.values():
+		points += item_rank(id)
+	return Progression.armor_percent(points)
 
 
 func rest() -> void:
+	armor_credit = 0
 	health = max_health()
 	mana = MAX_MANA
 	vest_ready = gear.get("身體") in ["moss_vest", "earthen_armor"]
@@ -268,22 +290,26 @@ func weapon_period(id: String) -> float:
 	return duration
 
 
-func weapon_damage(id: String) -> int:
+func weapon_damage(id: String, rank: int = 0) -> int:
+	# Existing wood weapons keep their old damage curve; higher quality adds one per tier.
+	var bonus := (item_rank(id) if rank <= 0 else rank) - 1
 	if Armory.WEAPONS.has(id):
-		return int(Armory.WEAPONS[id][2]) + (0 if id == "scribe_staff" else (bow_level if id == "thorn_bow" else knife_level))
+		return int(Armory.WEAPONS[id][2]) + bonus + (0 if id == "scribe_staff" else (bow_level if id == "thorn_bow" else knife_level))
 	match id:
+		"unarmed":
+			return 1
 		"hunter_bow":
-			return 1 + bow_level
+			return 1 + bow_level + bonus
 		"ember_staff":
-			return STAFF_DAMAGE
+			return STAFF_DAMAGE + bonus
 		_:
-			return 2 + knife_level
+			return 2 + knife_level + bonus
 
 
 func select_weapon(id: String) -> void:
 	if not unlocked_weapons.has(id):
-		id = "hunter_knife"
-	equipped_weapon = id if Armory.WEAPONS.has(id) else ""
+		id = unlocked_weapons[0] if not unlocked_weapons.is_empty() else "unarmed"
+	equipped_weapon = id if Armory.WEAPONS.has(id) or id == "unarmed" else ""
 	with_staff = id in ["ember_staff", "scribe_staff"]
 	with_bow = id in ["hunter_bow", "thorn_bow"]
 
