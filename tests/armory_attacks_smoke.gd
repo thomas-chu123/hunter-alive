@@ -4,6 +4,7 @@ const Ruins := preload("res://scripts/ruins.gd")
 const Equipment := preload("res://scripts/ruin_equipment.gd")
 const Armory := preload("res://scripts/ruin_armory.gd")
 const Monster := preload("res://scripts/ruin_monster.gd")
+const HunterAnimation := preload("res://scripts/hunter_animation.gd")
 const ORDER := ["sluice_spear", "tide_hammer", "gate_halberd", "root_blade", "fang_dagger",
 	"thorn_bow", "scribe_staff", "ember_staff", "hunter_bow", "hunter_knife"]
 
@@ -49,6 +50,13 @@ func run() -> void:
 			await key(KEY_E)
 		check(hunter.selected_weapon() == weapon, "equipped through inventory: " + weapon)
 		check(level.gear_portrait_pose.is_visible_in_tree() == (weapon != "hunter_knife"), "portrait matches weapon: " + weapon)
+		var base_size := level.gear_portrait_base.get_size()
+		var portrait_size := level.gear_portrait.size
+		var base_height := minf(portrait_size.y, base_size.y * portrait_size.x / base_size.x)
+		var pose_height := base_size.y * HunterAnimation.SCALE * level.gear_portrait_pose.scale.y
+		check(is_equal_approx(pose_height, base_height)
+			and is_equal_approx(level.gear_portrait_pose.position.y, (portrait_size.y + base_height) * 0.5),
+			"portrait keeps the original body size and foot position: " + weapon)
 		await frames(22 if weapon == "sluice_spear" else 8)
 		await key(KEY_I)
 		await frames(9)

@@ -1604,8 +1604,12 @@ func _build_gear_portrait(parent: HBoxContainer) -> void:
 
 func _layout_gear_portrait() -> void:
 	var size := gear_portrait.size
-	gear_portrait_pose.position = Vector2(size.x * 0.45, size.y * 0.88)
-	gear_portrait_pose.scale = Vector2.ONE * minf(size.x / 76.0, size.y / 110.0)
+	var base_region := gear_portrait_base.region
+	var fit := minf(size.x / base_region.size.x, size.y / base_region.size.y)
+	# Match the centered short-knife portrait's pixel scale and foot position.
+	var foot := Vector2(HunterAnimation.FRAME_WIDTH * 0.5, base_region.end.y)
+	gear_portrait_pose.position = size * 0.5 + (foot - base_region.get_center()) * fit
+	gear_portrait_pose.scale = Vector2.ONE * (fit / HunterAnimation.SCALE)
 
 
 func _draw_gear_portrait() -> void:
