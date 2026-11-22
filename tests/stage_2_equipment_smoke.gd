@@ -33,10 +33,15 @@ func run() -> void:
 	check(portrait is TextureRect and portrait.texture != null, "left panel displays the hunter")
 	await equip(ruins, "linen_hood")
 	check(hunter.max_health() == 7, "hood raises maximum HP")
-	check(ruins.gear_name.text == "+1木質營火布兜" and ruins.gear_slot.text == "頭部  ·  已裝備"
+	check(ruins.gear_name.text == "+1 營火布兜" and ruins.gear_slot.text == "頭部  ·  已裝備"
 		and ruins.gear_apply.text == "卸下　E" and ruins.destroy_item.text == "銷毀　D",
 		"hood details show the ranked name, slot, status and shortcuts")
-	check(ruins.gear_slot_images["頭部"].texture == ruins.gear_list.get_item_icon(ruins.gear_ids.find("linen_hood"))
+	var linen_index: int = ruins.gear_ids.find("linen_hood")
+	check(ruins.gear_list.get_item_text(linen_index) == "+1 營火布兜 ✓"
+		and ruins.gear_list.get_item_tooltip(linen_index) == "+1 營火布兜"
+		and ruins.gear_slot_images["頭部"].tooltip_text == "頭部　+1 營火布兜",
+		"inventory, item tooltip and equipped slot use the same ranked name")
+	check(ruins.gear_slot_images["頭部"].texture == ruins.gear_list.get_item_icon(linen_index)
 		and ruins.gear_values.text.begins_with("最大體力　6 → 7"), "hood image and numerical values match the equipped slot")
 	await show_view()
 	await equip(ruins, "linen_hood")
@@ -73,6 +78,9 @@ func run() -> void:
 	Input.action_release("hunt_right")
 	await action("hunt_interact")
 	check(ruins.owned_equipment.has("ember_staff") and ruins.owned_equipment.has("moss_vest"), "stone cache grants staff and vest")
+	check(ruins.notice_label.text == "取得+1 苔織獵衣、+1 餘火魔法杖和 3 份素材。按 I 看裝備。", "cache notice uses ranked item names")
+	if OS.has_feature("movie"):
+		await show_view()
 	await key(KEY_I)
 	await equip(ruins, "moss_vest")
 	await equip(ruins, "ember_staff")
@@ -114,6 +122,7 @@ func run() -> void:
 	if OS.has_feature("movie"):
 		print("TIMING first staff hit checked at %.2fs" % (Engine.get_process_frames() / 60.0))
 	await wait_frames(21)
+	ruins.loot_rng.seed = 2 # Keep the guaranteed hood pickup separate from random gear.
 	Input.action_press("hunt_attack")
 	await wait_frames(5)
 	Input.action_press("hunt_jump")
@@ -128,6 +137,9 @@ func run() -> void:
 			break
 	await wait_frames(19)
 	check(ruins.owned_equipment.has("scaleveil_hood"), "moth hood is collected from the ground")
+	check(ruins.notice_label.text == "取得+1 鱗紗兜帽。按 I 看裝備。", "drop pickup notice uses the ranked item name")
+	if OS.has_feature("movie"):
+		await show_view()
 	await key(KEY_I)
 	await equip(ruins, "scaleveil_hood")
 	await show_view()

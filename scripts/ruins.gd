@@ -8,6 +8,7 @@ const Landscape := preload("res://scripts/ruin_landscape.gd")
 const CampSave := preload("res://scripts/camp_save.gd")
 const Preferences := preload("res://scripts/game_preferences.gd")
 const HunterAnimation := preload("res://scripts/hunter_animation.gd")
+const WeaponArt := preload("res://scripts/hunter_weapon_art.gd")
 const Equipment := preload("res://scripts/ruin_equipment.gd")
 const Bestiary := preload("res://scripts/ruin_bestiary.gd")
 const Progression := preload("res://scripts/ruin_progression.gd")
@@ -22,6 +23,8 @@ const DROP_COLORS := {
 	"material": Color("#eac18c"), "lizard": Color("#a4f2d0"),
 	"spider": Color("#ed9e96"), "blade": Color("#ffda84"), "soul_currency": Color("#8de7fb"),
 }
+const PICKUP_DURATION := 1.3
+const PICKUP_FONT_SIZE := 19
 
 var hunter: Hunter
 var hit_effects: HitEffects
@@ -32,6 +35,7 @@ var camera: Camera2D
 @onready var backdrop_scale := background.scale
 var enemies: Array[Monster] = []
 var drops: Array[Dictionary] = []
+var pickup_feedback: Array[Dictionary] = []
 var arrows: Array[Dictionary] = []
 var glyphs: Array[Dictionary] = []
 var fang_target: Monster
@@ -95,10 +99,14 @@ var pause_menu: CenterContainer
 var pause_volume: HSlider
 var pause_fullscreen: CheckButton
 var gear_menu: CenterContainer
+var gear_portrait: TextureRect
+var gear_portrait_pose: Node2D
+var gear_portrait_base: AtlasTexture
 var gear_list: ItemList
 var gear_slot_images: Dictionary = {}
 var gear_name: Label
 var gear_slot: Label
+var gear_detail_scroll: ScrollContainer
 var gear_values: Label
 var gear_armor: Label
 var gear_detail: Label
@@ -162,6 +170,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	elapsed += delta
+	while not pickup_feedback.is_empty() and elapsed - float(pickup_feedback.front().spawn) >= PICKUP_DURATION:
+		pickup_feedback.pop_front()
 	background.position.x = backdrop_origin.x - clampf((hunter.position.x - 950.0) * 0.050, -95, 95)
 	notice_left = maxf(0.0, notice_left - delta)
 	notice_label.visible = notice_left > 0 and not completed
@@ -248,14 +258,16 @@ func _add_monster(species: String, x: float) -> void:
 
 func _attack(origin: Vector2, direction: float, ranged: bool, damage: int, weapon: String) -> void:
 	if ranged:
-		hit_effects.release_arrow()
+		hit_effects.release_weapon(weapon)
 		arrows.append({"at": origin, "direction": direction, "damage": damage, "left": 0.55,
 			"weapon": weapon, "pierce": int(weapon == "thorn_bow"), "hit_ids": []})
 		return
 	var reach: float = Armory.WEAPONS[weapon][4] if Armory.WEAPONS.has(weapon) else 51.0
 	var blade_step := maxi(1, hunter.blade_step) if weapon in Hunter.SHORT_BLADES else 0
 	if blade_step > 0:
-		hit_effects.swing(origin, direction, reach, blade_step)
+		hit_effects.swing(origin, direction, reach, blade_step, weapon)
+	else:
+		hit_effects.release_weapon(weapon)
 	var hitbox := Rect2(origin.x if direction > 0 else origin.x - reach, origin.y - 17, reach, 42)
 	var candidates := enemies.duplicate()
 	candidates.sort_custom(func(a, b): return absf(a.position.x - origin.x) < absf(b.position.x - origin.x))
@@ -282,6 +294,7 @@ func _attack(origin: Vector2, direction: float, ranged: bool, damage: int, weapo
 
 
 func _cast(origin: Vector2, direction: float, weapon: String) -> void:
+	hit_effects.release_weapon(weapon)
 	if weapon == "scribe_staff":
 		var x := clampf(origin.x + direction * 129.0, 54.0, 3230.0)
 		var vertical_ray := PhysicsRayQueryParameters2D.create(Vector2(x, origin.y), Vector2(x, origin.y + 280.0), 1)
@@ -473,7 +486,7 @@ func _on_monster_disarmed(monster: Monster) -> void:
 		return
 	unclaimed_blade_x = monster.position.x + monster.facing * 104
 	_drop("blade", unclaimed_blade_x)
-	_notice("樹靈的木刃掉在地上了。", 3.0)
+	_notice("%s掉在地上了。" % _ranked_gear_name("root_blade", 1), 3.0)
 
 
 func _has_drop(kind: String) -> bool:
@@ -500,29 +513,43 @@ func _collect_drops() -> void:
 		match drop.kind:
 			"soul_currency":
 				soul_balance += int(drop.amount)
+				_show_pickup("魂 +%d" % int(drop.amount), DROP_COLORS["soul_currency"])
 			"material":
 				materials += int(drop.amount)
+				_show_pickup("素材 +%d" % int(drop.amount), DROP_COLORS["material"])
 			"blade":
 				hunter.stolen_blade = true
 				unclaimed_blade_x = -1.0
-				_grant_equipment("root_blade")
-				_notice("取得樹靈木刃。按 I 換裝。", 3.0)
+				if _grant_equipment("root_blade"):
+					_show_pickup(_ranked_gear_name("root_blade", 1))
+				_notice("取得%s。按 I 換裝。" % _ranked_gear_name("root_blade", 1), 3.0)
 			"fang_material":
 				fangs += 1
+				_show_pickup("蛛牙 +1", DROP_COLORS["material"])
 				_notice("取得蛛牙。回營火可製作蛛牙短刃。", 3.0)
 			"lantern":
 				lantern_found = true
 				_sync_region_gate()
+				_show_pickup("潮火提燈")
 				_notice("取得潮火提燈，暗水道已照亮。", 4.0)
 			_:
 				if SOUL_NAMES.has(drop.kind):
+					var soul_name := "%s之魂" % SOUL_NAMES[drop.kind]
 					if not collected_souls.has(drop.kind):
 						collected_souls.append(drop.kind)
-					_notice("拾得%s之魂。按 F 裝備，按住 Shift 使用魂技。" % SOUL_NAMES[drop.kind], 4.0)
+						_show_pickup(soul_name, DROP_COLORS[drop.kind])
+					_notice("拾得%s。按 F 裝備，按住 Shift 使用魂技。" % soul_name, 4.0)
 				elif not Equipment.item(drop.kind).is_empty():
 					var rank := int(drop.rank)
 					if _grant_equipment(drop.kind, rank, drop.rolled):
-						_notice("取得%s　%s。按 I 看裝備。" % [_gear_item_name(drop.kind), Progression.rank_name(rank)], 3.0)
+						var item_name := _ranked_gear_name(drop.kind, rank)
+						_show_pickup(item_name)
+						_notice("取得%s。按 I 看裝備。" % item_name, 3.0)
+
+
+func _show_pickup(text: String, color: Color = Color("#ffe0a1")) -> void:
+	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, PICKUP_FONT_SIZE).x
+	pickup_feedback.append({"text": text, "width": width, "color": color, "spawn": elapsed})
 
 
 func _equip_next_soul() -> void:
@@ -539,7 +566,7 @@ func _interact() -> void:
 	var loot := _near_treasure()
 	if not loot.is_empty():
 		if _grant_equipment(loot):
-			_notice("石匣內有%s。按 I 看裝備。" % Equipment.item(loot)[0], 4.0)
+			_notice("石匣內有%s。按 I 看裝備。" % _ranked_gear_name(loot, 1), 4.0)
 		else:
 			_warn_full_bag()
 	elif _near(landscape.shrine.global_position):
@@ -574,11 +601,13 @@ func _interact() -> void:
 				return
 		landscape.cache_open = true
 		materials += 3
+		var rewards := PackedStringArray()
 		if region == Campaign.Region.TEMPLE:
 			for id in ["moss_vest", "ember_staff"]:
-				if not obtained_equipment.has(id):
-					_grant_equipment(id)
-			_notice("取得苔織獵衣、餘火魔法杖和 3 份素材。按 I 看裝備。", 4.0)
+				if not obtained_equipment.has(id) and _grant_equipment(id):
+					rewards.append(_ranked_gear_name(id, 1))
+		if not rewards.is_empty():
+			_notice("取得%s和 3 份素材。按 I 看裝備。" % "、".join(rewards), 4.0)
 		else:
 			_notice("從石匣取得 3 份工坊素材。", 4.0)
 
@@ -689,7 +718,14 @@ func _draw() -> void:
 			draw_texture_rect(CacheTexture, Rect2(at - Vector2(21, 24), Vector2(42, 24)), false)
 			draw_circle(at - Vector2(0, 26), 3.5, Color(1.0, 0.79, 0.46, 0.62))
 	for glyph in glyphs:
-		draw_arc(glyph.at - Vector2(0, 5), 30.0, 0, TAU, 32, Color("#9cc9ee"), 2.0, true)
+		var center: Vector2 = glyph.at - Vector2(0, 9)
+		var charge := 1.0 - float(glyph.left) / 0.46
+		draw_circle(center, 26.0, Color(0.31, 0.64, 0.92, 0.08 + charge * 0.15))
+		draw_arc(center, 22.0, -PI * 0.5, TAU * charge - PI * 0.5, 32, Color("#bbebff"), 2.2, true)
+		draw_arc(center, 33.0, 0, TAU, 32, Color("#9cc9ee"), 1.1, true)
+		for mark in range(6):
+			var ray := Vector2.from_angle(TAU * mark / 6.0 + charge)
+			draw_line(center + ray * 27.0, center + ray * 32.0, Color("#9cc9ee"), 2.0, true)
 	for projectile: Dictionary in arrows:
 		var at: Vector2 = projectile.at
 		if projectile.get("spell", false):
@@ -706,8 +742,10 @@ func _draw() -> void:
 		if projectile.has("hostile"):
 			EnemyEffects.bolt(self, at, projectile.direction, projectile.element, projectile.hostile, projectile.radius)
 			continue
-		draw_line(at - Vector2(projectile.direction * 26, 0), at, Color("#ffe7a6"), 2, true)
-		draw_circle(at, 2, Color("#fff7d7"))
+		var thorn: bool = projectile.weapon == "thorn_bow"
+		draw_line(at - Vector2(projectile.direction * 26, 0), at,
+			Color("#cbd98d") if thorn else Color("#ffe7a6"), 2, true)
+		draw_circle(at, 2, Color("#efffc4") if thorn else Color("#fff7d7"))
 	for drop: Dictionary in drops:
 		var at: Vector2 = drop.at + Vector2(0, sin(elapsed * 4.8 + float(drop.at.x)) * 5.0)
 		var color: Color = DROP_COLORS.get(drop.kind, Color("#dfb9ff"))
@@ -723,6 +761,16 @@ func _draw() -> void:
 		else:
 			draw_colored_polygon(PackedVector2Array([at + Vector2(0, -10), at + Vector2(7, 0),
 				at + Vector2(0, 10), at + Vector2(-7, 0)]), color)
+	for index in range(pickup_feedback.size() - 1, -1, -1):
+		var popup := pickup_feedback[index]
+		var age := elapsed - float(popup.spawn)
+		var row := pickup_feedback.size() - 1 - index
+		var at := hunter.position - Vector2(float(popup.width) * 0.5, 78.0 + row * 23.0 + age * 25.0)
+		var alpha := 1.0 - smoothstep(0.85, PICKUP_DURATION, age)
+		var color: Color = popup.color
+		color.a = alpha
+		draw_string_outline(font, at, popup.text, HORIZONTAL_ALIGNMENT_LEFT, -1, PICKUP_FONT_SIZE, 6, Color(0.05, 0.10, 0.11, alpha))
+		draw_string(font, at, popup.text, HORIZONTAL_ALIGNMENT_LEFT, -1, PICKUP_FONT_SIZE, color)
 
 
 func _build_hud() -> void:
@@ -1144,7 +1192,7 @@ func _show_camp_rank_cost() -> void:
 	var rank := int(entry.rank)
 	var cost := Progression.gear_cost(rank)
 	camp_rank_up.disabled = rank >= Progression.MAX_RANK or soul_balance < cost
-	camp_rank_up.text = "品質已達金 +5" if rank >= Progression.MAX_RANK else (
+	camp_rank_up.text = "已達 %s" % Progression.rank_name(Progression.MAX_RANK) if rank >= Progression.MAX_RANK else (
 		"%s → %s　花費 %d 魂" % [Progression.rank_name(rank), Progression.rank_name(rank + 1), cost])
 
 
@@ -1161,10 +1209,11 @@ func _update_camp_menu() -> void:
 		selected = _equipped_uid("武器")
 	camp_rank_items.clear()
 	for entry in inventory:
-		camp_rank_items.add_item("+%d %s" % [entry.rank, _gear_item_name(entry.item)], Equipment.ranked_icon(entry.item, int(entry.rank)))
+		var item_name := _entry_name(entry)
+		camp_rank_items.add_item(item_name, Equipment.ranked_icon(entry.item, int(entry.rank)))
 		var index := camp_rank_items.item_count - 1
 		camp_rank_items.set_item_metadata(index, entry.uid)
-		camp_rank_items.set_item_tooltip(index, _entry_name(entry))
+		camp_rank_items.set_item_tooltip(index, item_name)
 		if entry.uid == selected:
 			camp_rank_items.select(index)
 	if camp_rank_items.item_count > 0 and camp_rank_items.get_selected_items().is_empty():
@@ -1462,20 +1511,26 @@ func _build_gear_menu(root: Control) -> void:
 	inventory.add_child(gear_list)
 
 	var details := _panel(inventory)
+	gear_detail_scroll = ScrollContainer.new()
+	gear_detail_scroll.custom_minimum_size.y = 140
+	gear_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	details.add_child(gear_detail_scroll)
 	var detail_rows := VBoxContainer.new()
-	detail_rows.custom_minimum_size.y = 116
+	detail_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	detail_rows.add_theme_constant_override("separation", 6)
-	details.add_child(detail_rows)
+	gear_detail_scroll.add_child(detail_rows)
 	var item_header := HBoxContainer.new()
 	item_header.add_theme_constant_override("separation", 12)
 	detail_rows.add_child(item_header)
 	gear_name = _label(20, Color("#f4d698"))
 	gear_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	gear_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	item_header.add_child(gear_name)
 	gear_slot = _label(13, Color("#adbfba"))
 	item_header.add_child(gear_slot)
 	detail_rows.add_child(HSeparator.new())
 	gear_values = _label(15, Color("#f2e9d2"))
+	gear_values.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	detail_rows.add_child(gear_values)
 	gear_armor = _label(15, Color("#f2e9d2"))
 	detail_rows.add_child(gear_armor)
@@ -1522,18 +1577,22 @@ func _build_gear_portrait(parent: HBoxContainer) -> void:
 	_add_gear_slot(left, "頭部")
 	_add_gear_slot(left, "手部")
 
-	var portrait := TextureRect.new()
-	portrait.name = "HunterPortrait"
-	var frame := AtlasTexture.new()
-	frame.atlas = HunterAnimation.FRAMES["idle"]
-	frame.region = Rect2(151, 0, 133, 182)
-	frame.filter_clip = true
-	portrait.texture = frame
-	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	portrait.custom_minimum_size = Vector2(144, 248)
-	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	portrait_row.add_child(portrait)
+	gear_portrait = TextureRect.new()
+	gear_portrait.name = "HunterPortrait"
+	gear_portrait_base = AtlasTexture.new()
+	gear_portrait_base.atlas = HunterAnimation.FRAMES["idle"]
+	gear_portrait_base.region = Rect2(151, 0, 133, 182)
+	gear_portrait_base.filter_clip = true
+	gear_portrait.texture = gear_portrait_base
+	gear_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	gear_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	gear_portrait.custom_minimum_size = Vector2(144, 248)
+	gear_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gear_portrait_pose = Node2D.new()
+	gear_portrait.add_child(gear_portrait_pose)
+	gear_portrait_pose.draw.connect(_draw_gear_portrait)
+	gear_portrait.resized.connect(_layout_gear_portrait)
+	portrait_row.add_child(gear_portrait)
 
 	var right := _gear_slot_column(portrait_row)
 	_add_gear_slot(right, "身體")
@@ -1541,6 +1600,16 @@ func _build_gear_portrait(parent: HBoxContainer) -> void:
 	var weapon := _gear_slot_column(rows)
 	weapon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_add_gear_slot(weapon, "武器")
+
+
+func _layout_gear_portrait() -> void:
+	var size := gear_portrait.size
+	gear_portrait_pose.position = Vector2(size.x * 0.45, size.y * 0.88)
+	gear_portrait_pose.scale = Vector2.ONE * minf(size.x / 76.0, size.y / 110.0)
+
+
+func _draw_gear_portrait() -> void:
+	WeaponArt.draw_portrait(gear_portrait_pose, hunter.selected_weapon())
 
 
 func _gear_slot_column(parent: Container) -> VBoxContainer:
@@ -1586,6 +1655,10 @@ func _set_gear_open(open: bool) -> void:
 
 
 func _refresh_gear(selected: int) -> void:
+	var default_portrait := hunter.selected_weapon() == "hunter_knife"
+	gear_portrait.texture = gear_portrait_base if default_portrait else null
+	gear_portrait_pose.visible = not default_portrait
+	gear_portrait_pose.queue_redraw()
 	for slot in gear_slot_images:
 		var entry := _inventory_item(_equipped_uid(slot))
 		var icon: TextureRect = gear_slot_images[slot]
@@ -1599,11 +1672,12 @@ func _refresh_gear(selected: int) -> void:
 		gear_ids.append(entry.item)
 		gear_uids.append(int(entry.uid))
 		var rank := int(entry.rank)
-		var text := "%s +%d" % [_gear_item_name(entry.item), rank]
+		var item_name := _entry_name(entry)
+		var text := item_name
 		if _is_equipped(entry):
 			text += " ✓"
 		var index := gear_list.add_item(text, Equipment.ranked_icon(entry.item, rank))
-		gear_list.set_item_tooltip(index, _entry_name(entry))
+		gear_list.set_item_tooltip(index, item_name)
 	if gear_uids.is_empty():
 		gear_name.text = "背包沒有裝備"
 		gear_slot.text = ""
@@ -1625,7 +1699,7 @@ func _entry_name(entry: Dictionary) -> String:
 
 func _ranked_gear_name(id: String, rank: int) -> String:
 	var name_text := _gear_item_name(id)
-	return name_text if id == "unarmed" else "+%d%s質%s" % [rank, Progression.NAMES[rank], name_text]
+	return name_text if id == "unarmed" else "%s %s" % [Progression.rank_name(rank), name_text]
 
 
 func _is_equipped(entry: Dictionary) -> bool:
@@ -1634,6 +1708,7 @@ func _is_equipped(entry: Dictionary) -> bool:
 
 
 func _show_gear(index: int) -> void:
+	gear_detail_scroll.scroll_vertical = 0
 	var entry := _inventory_item(gear_uids[index])
 	var id: String = entry.item
 	var rank := int(entry.rank)

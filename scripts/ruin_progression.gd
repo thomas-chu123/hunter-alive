@@ -2,6 +2,7 @@ extends RefCounted
 
 const MAX_RANK := 5
 const MAX_LEVEL := 10
+# Material names are internal design references.
 const NAMES := ["", "木", "鐵", "銅", "銀", "金"]
 const COLORS := [
 	Color.TRANSPARENT, Color("#a9734d"), Color("#718d9a"), Color("#ce8555"),
@@ -11,7 +12,7 @@ const DROP_RATES := [0.20, 0.10, 0.05, 0.025, 0.0125]
 
 
 static func rank_name(rank: int) -> String:
-	return "%s +%d" % [NAMES[rank], rank]
+	return "+%d" % rank
 
 
 static func gear_cost(rank: int) -> int:

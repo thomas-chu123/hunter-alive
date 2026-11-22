@@ -1,5 +1,6 @@
 extends Node2D
 
+const WeaponAudio := preload("res://scripts/hunter_weapon_audio.gd")
 const DURATION := 0.23
 const SLASH_DURATION := 0.115
 const SPARK_DURATION := 0.17
@@ -21,6 +22,7 @@ var hit_voice: AudioStreamPlayer
 var disarm_voice: AudioStreamPlayer
 var swing_voice: AudioStreamPlayer
 var finisher_voice: AudioStreamPlayer
+var weapon_voices := {}
 
 
 func _ready() -> void:
@@ -57,6 +59,9 @@ func _stop_audio() -> void:
 	for voice: AudioStreamPlayer in [hit_voice, disarm_voice, swing_voice, finisher_voice, fire_voice, bow_voice]:
 		if is_instance_valid(voice):
 			voice.stop()
+	for voice: AudioStreamPlayer in weapon_voices.values():
+		if is_instance_valid(voice):
+			voice.stop()
 
 
 func impact(point: Vector2, direction: float, disarm: bool) -> void:
@@ -65,8 +70,13 @@ func impact(point: Vector2, direction: float, disarm: bool) -> void:
 	queue_redraw()
 
 
-func release_arrow() -> void:
-	_play(bow_voice)
+func release_weapon(weapon: String) -> void:
+	if weapon == "hunter_bow":
+		_play(bow_voice)
+	elif WeaponAudio.PROFILES.has(weapon):
+		if not weapon_voices.has(weapon):
+			weapon_voices[weapon] = _make_voice(WeaponAudio.make_stream(weapon))
+		_play(weapon_voices[weapon], 1.5)
 
 
 func fire_impact(point: Vector2) -> void:
@@ -75,9 +85,12 @@ func fire_impact(point: Vector2) -> void:
 	queue_redraw()
 
 
-func swing(point: Vector2, direction: float, reach: float, step: int) -> void:
+func swing(point: Vector2, direction: float, reach: float, step: int, weapon: String = "hunter_knife") -> void:
 	slashes.append({"point": point, "direction": direction, "reach": reach, "step": step, "age": 0.0})
-	_play(swing_voice, -4.0 if step == 3 else -7.0)
+	if weapon == "hunter_knife":
+		_play(swing_voice, -4.0 if step == 3 else -7.0)
+	else:
+		release_weapon(weapon)
 	slash_layer.queue_redraw()
 
 

@@ -29,7 +29,7 @@ func run() -> void:
 	await frames(32)
 	check(level.health_label.text == "體力 2/8" and level.health_hearts.health == 2
 		and level.health_hearts.capacity == 8, "damage leaves two filled and six empty hearts")
-	check(level.weapon_status.text == "+1木質獵弓" and level.spirit_status.text == "蛛步"
+	check(level.weapon_status.text == "+1 獵弓" and level.spirit_status.text == "蛛步"
 		and level.soul_status.text == "39" and hunter.bow_level == 1,
 		"weapon shows the ranked name while the material upgrade remains active")
 	await frames(52)

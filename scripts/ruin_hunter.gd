@@ -7,6 +7,7 @@ signal defeated
 const Progression := preload("res://scripts/ruin_progression.gd")
 const Armory := preload("res://scripts/ruin_armory.gd")
 const HunterAnimation := preload("res://scripts/hunter_animation.gd")
+const WeaponArt := preload("res://scripts/hunter_weapon_art.gd")
 const RUN_SPEED := 250.0
 const WALK_SPEED := 115.0
 const CROUCH_SPEED := 64.0
@@ -179,7 +180,7 @@ func _physics_process(delta: float) -> void:
 		attack_duration = weapon_period(attack_weapon)
 		attack_left = attack_duration
 		attack_queued = true
-	var hit_at := attack_duration * (1.0 - float(HunterAnimation.BOW_RELEASE_FRAME) / HunterAnimation.FRAME_COUNT) if attack_with_bow else attack_duration * 0.74
+	var hit_at := attack_duration * (1.0 - WeaponArt.release_point(attack_weapon, attack_with_bow))
 	if attack_queued and attack_left <= hit_at:
 		attack_queued = false
 		if attack_with_staff:
@@ -416,27 +417,34 @@ func _draw() -> void:
 	elif absf(velocity.x) > 18:
 		action = "walk" if walking else "run"
 		frame = int(animation_time * (9 if walking else 14)) % HunterAnimation.FRAME_COUNT
-	var staff := attack_weapon if attack_with_staff and attack_left > 0.0 else selected_weapon()
-	if staff == "ember_staff":
-		var bob := _held_weapon_bob()
-		HunterAnimation.draw_ember_pose(self, facing, bob)
-		if attack_with_staff and attack_queued:
-			var glow := 1.0 - attack_left / attack_duration
-			draw_circle(ember_focus(), 5.0 + glow * 25.0, Color(1.0, 0.40, 0.10, 0.20 + glow), true, -1, true)
+	var attacking := attack_left > 0.0 and hurt_left <= 0.0
+	var weapon := attack_weapon if attacking else selected_weapon()
+	var progress := 1.0 - attack_left / attack_duration
+	if WeaponArt.WEAPONS.has(weapon):
+		if attacking:
+			var step := blade_step
+			if attack_queued and weapon == "fang_dagger":
+				step = blade_step % 3 + 1 if blade_chain_left > 0.0 and blade_chain_weapon == weapon else 1
+			WeaponArt.draw_attack(self, weapon, progress, facing, crouching, step)
+		else:
+			WeaponArt.draw_held(self, weapon, action, frame, facing, _held_weapon_bob())
 		return
-	if with_bow and action not in ["bow_attack", "knife_attack"]:
+	if weapon == "ember_staff":
+		if action == "walk" or action == "run":
+			HunterAnimation.draw_ember_stride(self, action, frame, facing)
+			return
+		var bob := _held_weapon_bob()
+		HunterAnimation.draw_ember_pose(self, facing, bob, WeaponArt.ember_lean(progress) if attacking else 0.0)
+		if attacking:
+			var glow := clampf(1.0 - absf(progress - WeaponArt.DEFAULT_RELEASE) * 3.7, 0.0, 1.0)
+			draw_circle(ember_focus(), 5.0 + glow * 10.0, Color(1.0, 0.40, 0.10, glow * 0.38), true, -1, true)
+		return
+	if weapon == "hunter_bow" and action not in ["bow_attack", "knife_attack"]:
 		HunterAnimation.draw_frame(self, "bow_attack", 0, facing, _held_weapon_bob())
 	elif action == "knife_attack" and attack_weapon in SHORT_BLADES:
 		HunterAnimation.draw_short_blade(self, frame, facing)
 	else:
 		HunterAnimation.draw_frame(self, action, frame, facing)
-	if with_staff or (attack_with_staff and attack_left > 0):
-		var grip := Vector2(facing * 11, -24)
-		var tip := grip + Vector2(facing * 12, -22)
-		draw_line(grip + Vector2(-facing * 5, 17), tip, Color("#93583c"), 3, true)
-		draw_circle(tip, 4, Color("#ffc779"))
-		if attack_with_staff and attack_left > 0:
-			draw_circle(tip, 10, Color(1.0, 0.50, 0.16, 0.28))
 
 
 func _held_weapon_bob() -> float:
@@ -446,7 +454,8 @@ func _held_weapon_bob() -> float:
 
 
 func ember_focus() -> Vector2:
-	return HunterAnimation.EMBER_GEM * Vector2(facing, 1.0) + Vector2(0, _held_weapon_bob())
+	var lean := WeaponArt.ember_lean(1.0 - attack_left / attack_duration) if attack_left > 0.0 else 0.0
+	return HunterAnimation.EMBER_GEM.rotated(lean) * Vector2(facing, 1.0) + Vector2(0, _held_weapon_bob())
 
 
 func _timed_frame(remaining: float, duration: float) -> int:

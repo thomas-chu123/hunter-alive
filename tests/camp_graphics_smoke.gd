@@ -40,13 +40,26 @@ func run() -> void:
 		pointer = pointer.duplicate()
 		pointer.pressed = false
 		root.push_input(pointer, true)
-	check(level.camp_selected_item.text == "+1木質餘火魔法杖", "selecting the staff tile updates the workshop")
+	check(level.camp_selected_item.text == "+1 餘火魔法杖"
+		and inventory.get_item_text(item_index) == "+1 餘火魔法杖"
+		and inventory.get_item_tooltip(item_index) == "+1 餘火魔法杖"
+		and level.camp_rank_up.text == "+1 → +2　花費 10 魂", "workshop uses numeric ranks for the tile, tooltip and upgrade action")
 	await frames(44)
 	level.camp_rank_up.grab_focus()
 	await enter()
-	check(level.camp_selected_item.text == "+2鐵質餘火魔法杖" and level.soul_balance == 16,
+	check(level.camp_selected_item.text == "+2 餘火魔法杖" and level.soul_balance == 16,
 		"upgrading the selected tile refreshes its rank and soul cost")
 	await frames(45)
+	for rank in range(3, 6):
+		level._grant_equipment("ember_staff", rank, true)
+	level._update_camp_menu()
+	for rank in range(3, 6):
+		check(inventory.get_item_text(item_index + rank - 2) == "+%d 餘火魔法杖" % rank,
+			"workshop shows the numeric name for rank %d" % rank)
+	inventory.select(inventory.item_count - 1)
+	inventory.item_selected.emit(inventory.item_count - 1)
+	check(level.camp_rank_up.disabled and level.camp_rank_up.text == "已達 +5", "max rank uses numeric text")
+	await frames(40)
 	level.camp_rest.grab_focus()
 	await enter()
 	check(level.camp_rest.has_focus() and level.hunter.health == level.hunter.max_health(), "rest card restores health")
