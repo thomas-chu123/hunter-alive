@@ -93,8 +93,8 @@ static func ranked_icon(id: String, rank: int) -> Texture2D:
 	var framed := Image.create_empty(ICON_SIZE, ICON_SIZE, false, Image.FORMAT_RGBA8)
 	framed.fill(Progression.COLORS[rank])
 	framed.fill_rect(Rect2i(3, 3, 58, 58), Color("#102120"))
-	framed.blend_rect(artwork, Rect2i(Vector2i.ZERO, artwork.get_size()),
-		(Vector2i(ICON_SIZE, ICON_SIZE) - artwork.get_size()) / 2)
+	var icon_offset := Vector2i((Vector2.ONE * ICON_SIZE - Vector2(artwork.get_size())) * 0.5)
+	framed.blend_rect(artwork, Rect2i(Vector2i.ZERO, artwork.get_size()), icon_offset)
 	var result := ImageTexture.create_from_image(framed)
 	ranked_icons[key] = result
 	return result

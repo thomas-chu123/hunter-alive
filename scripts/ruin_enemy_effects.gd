@@ -4,6 +4,10 @@ const COLORS := {
 	"metal": Color("#ffe7ab"), "wood": Color("#c6eb83"), "water": Color("#81e6ff"),
 	"fire": Color("#ff8352"), "earth": Color("#e6aa73"),
 }
+const GROUND_FIRE := preload("res://assets/monster/ground_fire.png")
+const FIRE_CELL_SIZE := Vector2(768, 512)
+const FIRE_FRAME := Rect2(31, 140, 704, 283)
+const FIRE_FRAME_COUNT := 4
 
 
 static func charge(canvas: Node2D, at: Vector2, element: String, age: float) -> void:
@@ -59,27 +63,39 @@ static func bolt(canvas: Node2D, at: Vector2, direction: float, element: String,
 
 static func ground(canvas: Node2D, at: Vector2, radius: float, element: String,
 		active: bool, progress: float) -> void:
+	if active and element == "fire":
+		_draw_ground_fire(canvas, at, radius, progress)
+		return
 	var color: Color = COLORS[element]
 	var ink := Color(color, 0.68 if active else 0.28 + absf(sin(progress * 11.0)) * 0.44)
-	var floor := at - Vector2(0, 2)
-	canvas.draw_line(floor - Vector2(radius, 0), floor + Vector2(radius, 0), ink, 3, true)
+	var ground_line := at - Vector2(0, 2)
+	canvas.draw_line(ground_line - Vector2(radius, 0), ground_line + Vector2(radius, 0), ink, 3, true)
 	for x in [-radius, radius]:
-		canvas.draw_line(floor + Vector2(x, -10), floor + Vector2(x, 2), color, 2, true)
+		canvas.draw_line(ground_line + Vector2(x, -10), ground_line + Vector2(x, 2), color, 2, true)
 	if not active:
 		return
 	canvas.draw_rect(Rect2(at + Vector2(-radius, -24), Vector2(2 * radius, 24)), Color(color, 0.16))
 	for i in range(7):
-		var root := floor + Vector2(radius * (i - 3) * 0.30, 0)
+		var root := ground_line + Vector2(radius * (i - 3) * 0.30, 0)
 		var height := (7.0 + i % 3 * 6.0) * (0.7 + sin(progress * PI) * 0.45)
 		match element:
-			"fire":
-				canvas.draw_colored_polygon(PackedVector2Array([root + Vector2(-8, 0), root + Vector2(-3, -height),
-					root + Vector2(1, -height * 0.77), root + Vector2(8, -height * 1.35), root + Vector2(10, 0)]), ink)
 			"metal":
 				canvas.draw_arc(root, 8 + height * 0.55, PI, TAU, 16, ink, 2, true)
 			"earth":
 				canvas.draw_colored_polygon(PackedVector2Array([root + Vector2(-9, 0),
 					root + Vector2(3, -height), root + Vector2(9, 0)]), ink)
+
+
+static func _draw_ground_fire(canvas: Node2D, at: Vector2, radius: float, progress: float) -> void:
+	var frame := clampi(floori(progress * FIRE_FRAME_COUNT), 0, FIRE_FRAME_COUNT - 1)
+	var cell := Vector2(frame % 2, frame >> 1) * FIRE_CELL_SIZE
+	var source := Rect2(FIRE_FRAME.position + cell, FIRE_FRAME.size)
+	var width := radius * 2.0
+	var growth := lerpf(0.68, 1.0, smoothstep(0.0, 0.23, progress))
+	var height := width * FIRE_FRAME.size.y / FIRE_FRAME.size.x * growth
+	var tint := Color(1.0, 1.0, 1.0, 1.0 - smoothstep(0.73, 1.0, progress))
+	canvas.draw_texture_rect_region(GROUND_FIRE, Rect2(at.x - radius, at.y - height, width, height),
+		source, tint)
 
 
 static func pollen(canvas: Node2D, progress: float) -> void:

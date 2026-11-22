@@ -221,11 +221,12 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if completed and event.is_action_pressed("hunt_interact"):
+		# A scene change immediately detaches this node from its viewport.
+		get_viewport().set_input_as_handled()
 		if region == Campaign.Region.COURT:
 			get_tree().change_scene_to_file("res://scenes/title.tscn")
 		else:
 			_queue_region(region + 1)
-		get_viewport().set_input_as_handled()
 
 
 func _spawn_enemies() -> void:
@@ -1482,12 +1483,12 @@ func _build_gear_menu(root: Control) -> void:
 	rows.add_child(columns)
 	_build_gear_portrait(columns)
 
-	var inventory := VBoxContainer.new()
-	inventory.custom_minimum_size.x = 410
-	inventory.add_theme_constant_override("separation", 8)
-	columns.add_child(inventory)
+	var bag_column := VBoxContainer.new()
+	bag_column.custom_minimum_size.x = 410
+	bag_column.add_theme_constant_override("separation", 8)
+	columns.add_child(bag_column)
 	bag_count = _label(16, Color("#d8e4d4"))
-	inventory.add_child(bag_count)
+	bag_column.add_child(bag_count)
 	gear_list = ItemList.new()
 	gear_list.custom_minimum_size.y = 252
 	gear_list.icon_mode = ItemList.ICON_MODE_TOP
@@ -1508,9 +1509,9 @@ func _build_gear_menu(root: Control) -> void:
 	gear_list.add_theme_stylebox_override("selected_focus", selected)
 	gear_list.item_selected.connect(_show_gear)
 	gear_list.item_activated.connect(func(_index): _apply_gear())
-	inventory.add_child(gear_list)
+	bag_column.add_child(gear_list)
 
-	var details := _panel(inventory)
+	var details := _panel(bag_column)
 	gear_detail_scroll = ScrollContainer.new()
 	gear_detail_scroll.custom_minimum_size.y = 140
 	gear_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -1540,7 +1541,7 @@ func _build_gear_menu(root: Control) -> void:
 
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 10)
-	inventory.add_child(actions)
+	bag_column.add_child(actions)
 	gear_apply = _camp_button(actions, "裝備　E", _apply_gear)
 	gear_apply.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	destroy_item = _camp_button(actions, "銷毀　D", _ask_destroy_item)
@@ -1680,8 +1681,8 @@ func _refresh_gear(selected: int) -> void:
 		var text := item_name
 		if _is_equipped(entry):
 			text += " ✓"
-		var index := gear_list.add_item(text, Equipment.ranked_icon(entry.item, rank))
-		gear_list.set_item_tooltip(index, item_name)
+		var item_index := gear_list.add_item(text, Equipment.ranked_icon(entry.item, rank))
+		gear_list.set_item_tooltip(item_index, item_name)
 	if gear_uids.is_empty():
 		gear_name.text = "背包沒有裝備"
 		gear_slot.text = ""

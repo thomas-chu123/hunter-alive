@@ -17,19 +17,25 @@ func _initialize() -> void:
 
 
 func run() -> void:
-	change_scene_to_file("res://scenes/flooded_corridor.tscn")
+	var ground_fire_only := "--ground-fire" in OS.get_cmdline_user_args()
+	change_scene_to_file("res://scenes/buried_court.tscn" if ground_fire_only else "res://scenes/flooded_corridor.tscn")
 	await scene_changed
 	level = current_scene
 	for enemy in level.enemies:
 		enemy.queue_free()
 	level.enemies.clear()
-	level.lantern_found = true
-	level._sync_region_gate()
+	if not ground_fire_only:
+		level.lantern_found = true
+		level._sync_region_gate()
 	level.camera.zoom = Vector2.ONE * 2.25
 	level.camera.position.y = -101
 	level.camera.position_smoothing_enabled = false
 	make_label()
 	await physics_frame
+	if ground_fire_only:
+		await encounter("ash_scribe", false)
+		quit(1 if failures else 0)
+		return
 	var elements := {}
 	var sprite_rows := {}
 	var atlas := Art.ATTACK_ATLAS.get_image()

@@ -157,14 +157,14 @@ func _physics_process(delta: float) -> void:
 	jump_delay = maxf(jump_delay - delta, 0)
 	velocity.y = minf(velocity.y + GRAVITY * delta, 850.0)
 	var offset := target.position - position
-	var visible := absf(offset.x) <= float(profile.sight) and absf(offset.y) <= CHASE_HEIGHT and _clear_to_target()
-	lost_sight = 0.0 if visible else lost_sight + delta
+	var target_in_sight := absf(offset.x) <= float(profile.sight) and absf(offset.y) <= CHASE_HEIGHT and _clear_to_target()
+	lost_sight = 0.0 if target_in_sight else lost_sight + delta
 	requested_speed = 0.0
 	if state in [State.NOTICE, State.CHASE] and (not _inside_leash(target.position) or not _inside_leash(position)):
 		_begin_return()
 	match state:
 		State.PATROL:
-			if visible and _can_engage():
+			if target_in_sight and _can_engage():
 				state = State.NOTICE
 				notice_left = NOTICE_TIME
 				facing = signf(offset.x) if absf(offset.x) > 8.0 else facing
@@ -198,7 +198,7 @@ func _physics_process(delta: float) -> void:
 		State.RETURN:
 			_return_home()
 		State.STAGGER:
-			_update_stagger(delta, visible)
+			_update_stagger(delta, target_in_sight)
 
 	var before := position
 	velocity.x = move_toward(velocity.x, requested_speed, float(profile.acceleration) * delta)
@@ -524,13 +524,13 @@ func _start_stagger(direction: float) -> void:
 	velocity.x = 0.0
 
 
-func _update_stagger(delta: float, visible: bool) -> void:
+func _update_stagger(delta: float, target_in_sight: bool) -> void:
 	stagger_left = maxf(stagger_left - delta, 0.0)
 	if stagger_left <= 0.0:
 		velocity.x = 0.0
 		if recovery > 0.0:
 			state = State.RECOVER
-		elif visible and _inside_leash(target.position):
+		elif target_in_sight and _inside_leash(target.position):
 			state = State.CHASE
 		else:
 			_begin_return()

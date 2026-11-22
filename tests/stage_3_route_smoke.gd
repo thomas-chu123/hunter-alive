@@ -2,6 +2,7 @@ extends SceneTree
 
 const Campaign := preload("res://scripts/campaign.gd")
 const Save := preload("res://scripts/camp_save.gd")
+const Ruins := preload("res://scripts/ruins.gd")
 
 var failures := 0
 
@@ -11,6 +12,10 @@ func _initialize() -> void:
 
 
 func run() -> void:
+	if "--court-grounding" in OS.get_cmdline_user_args():
+		await check_court_grounding()
+		quit(1 if failures else 0)
+		return
 	change_scene_to_file("res://scenes/title.tscn")
 	await scene_changed
 	await press(current_scene.new_game)
@@ -105,7 +110,76 @@ func run() -> void:
 		level.hit_effects.clear()
 		OS.delay_msec(250)
 		await process_frame
+	var ending_input_handled := await key(KEY_E)
+	if current_scene == null:
+		await scene_changed
+	check(ending_input_handled and current_scene != null and current_scene.scene_file_path == "res://scenes/title.tscn",
+		"ending consumes the interaction before returning to the title")
+	await view()
 	quit(1 if failures else 0)
+
+
+func check_court_grounding() -> void:
+	change_scene_to_file("res://scenes/buried_court.tscn")
+	await scene_changed
+	var level := current_scene as Ruins
+	for monster in level.enemies:
+		monster.queue_free()
+	level.enemies.clear()
+	level.notice_left = 0.0
+	level.camera.zoom = Vector2.ONE * 1.8
+	level.camera.position.y = -102
+	level.camera.position_smoothing_enabled = false
+	level._grant_equipment("tide_hammer")
+	var hunter := level.hunter
+	hunter.select_weapon("tide_hammer")
+	var terrain := level.landscape.get_node("Terrain")
+	var platforms_checked := 0
+	var max_offset := 0.0
+	for platform in terrain.get_children():
+		if not platform.name.begins_with("Platform"):
+			continue
+		var collision: CollisionShape2D = platform.get_node("Shape")
+		var shape := collision.shape as RectangleShape2D
+		var surface := collision.position.y - shape.size.y * 0.5
+		for child in platform.get_children():
+			if child is Sprite2D:
+				var top: float = child.position.y + child.get_rect().position.y * child.scale.y
+				max_offset = maxf(max_offset, absf(top - surface))
+		platforms_checked += 1
+	check(platforms_checked == 8 and max_offset < 1.0,
+		"all eight stone surfaces align with their collision tops (max offset %.2f px)" % max_offset)
+	var shrine := level.landscape.shrine
+	var brazier: Sprite2D = shrine.get_node("Sprite")
+	var brazier_width := brazier.get_rect().size.x * brazier.scale.x
+	var brazier_base := brazier.get_rect().end.y * brazier.scale.y
+	check(brazier_width <= 86.0 and absf(brazier_base) < 4.0,
+		"court brazier is %.1f px wide and its base sits on the floor" % brazier_width)
+	await frames(24)
+	check(hunter.is_on_floor() and absf(hunter.position.y - shrine.position.y) < 0.25,
+		"hunter stands at the floor beside the brazier")
+	await tap("hunt_interact")
+	check(level.camp_menu.visible, "interact still opens the court camp")
+	await frames(19)
+	await key(KEY_ESCAPE)
+	await frames(6)
+
+	Input.action_press("hunt_right")
+	await frames(33)
+	Input.action_release("hunt_right")
+	await frames(16)
+	check(hunter.is_on_floor() and absf(hunter.position.y - shrine.position.y) < 0.25,
+		"hunter walks along the floor without sinking")
+	await stand(level, 640.0)
+	Input.action_press("hunt_right")
+	await tap("hunt_jump")
+	await frames(35)
+	Input.action_release("hunt_right")
+	await frames(20)
+	var platform: StaticBody2D = terrain.get_node("Platform1")
+	check(hunter.is_on_floor() and absf(hunter.position.y - platform.position.y) < 0.25,
+		"hunter lands on the raised stone platform")
+	await frames(17)
 
 
 func enemy(level: Node, species: String) -> Node2D:
@@ -152,16 +226,18 @@ func press(button: Button) -> void:
 	await key(KEY_ENTER)
 
 
-func key(code: Key) -> void:
+func key(code: Key) -> bool:
 	var event := InputEventKey.new()
 	event.keycode = code
 	event.physical_keycode = code
 	event.pressed = true
 	root.push_input(event, true)
+	var handled := root.is_input_handled()
 	await process_frame
 	var release := event.duplicate() as InputEventKey
 	release.pressed = false
 	root.push_input(release, true)
+	return handled
 
 
 func frames(count: int) -> void:

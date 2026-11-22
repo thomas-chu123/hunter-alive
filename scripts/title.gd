@@ -173,12 +173,12 @@ func _show_notice(message: String) -> void:
 	notice.show()
 
 
-func _label(value: String, size: int, ink: Color) -> Label:
+func _label(value: String, font_size: int, ink: Color) -> Label:
 	var label := Label.new()
 	label.text = value
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_override("font", font)
-	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", ink)
 	return label
 

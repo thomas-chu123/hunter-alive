@@ -3,6 +3,8 @@ extends Node2D
 const FLOOR_Y := 540.0
 const PORTAL_X := 122.0 # Default scene position for the smoke test.
 
+@export var shrine_flame_height := 29.0
+
 var time := 0.0
 var portal_open := false
 var cache_open := false
@@ -48,12 +50,12 @@ func _draw_portal() -> void:
 
 
 func _draw_shrine() -> void:
-	var p := to_local(shrine.global_position)
+	var flame := to_local(shrine.global_position) - Vector2(0, shrine_flame_height)
 	for i in range(4, 0, -1):
-		effects.draw_circle(p + Vector2(0, -29), i * 13.0, Color(0.92, 0.61, 0.25, 0.045))
+		effects.draw_circle(flame, i * 13.0, Color(0.92, 0.61, 0.25, 0.045))
 	for i in range(5):
 		var lifetime := fposmod(time * 0.88 + i * 0.2, 1.0)
-		var ember := p + Vector2(sin(time * 2.3 + i) * 8, -51.0 - lifetime * 27.0)
+		var ember := flame + Vector2(sin(time * 2.3 + i) * 8, -22.0 - lifetime * 27.0)
 		effects.draw_circle(ember, 1.5, Color(1.0, 0.73, 0.30, 1.0 - lifetime))
 
 
