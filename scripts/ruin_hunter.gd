@@ -28,6 +28,7 @@ const MAX_MANA := 4
 const STAFF_DURATION := 0.54
 const STAFF_DAMAGE := 3
 const STAFF_MANA_COST := 1
+const MANA_RECOVERY_INTERVAL := 0.9
 const WRAPS_KNIFE_DURATION := 0.23
 const POLLEN_DURATION := 2.4
 
@@ -36,6 +37,7 @@ var level := 0
 var item_ranks: Dictionary = {}
 var armor_credit := 0
 var mana := MAX_MANA
+var mana_recovery_left := MANA_RECOVERY_INTERVAL
 var facing := 1.0
 var with_bow := false
 var with_staff := false
@@ -98,6 +100,13 @@ func _physics_process(delta: float) -> void:
 	if health <= 0:
 		return
 
+	if mana < MAX_MANA:
+		mana_recovery_left -= delta
+		if mana_recovery_left <= 0.0:
+			mana += 1
+			mana_recovery_left += MANA_RECOVERY_INTERVAL
+	else:
+		mana_recovery_left = MANA_RECOVERY_INTERVAL
 	attack_left = maxf(attack_left - delta, 0)
 	attack_buffer_left = maxf(attack_buffer_left - delta, 0)
 	blade_chain_left = maxf(blade_chain_left - delta, 0)
@@ -185,7 +194,8 @@ func _physics_process(delta: float) -> void:
 		attack_queued = false
 		if attack_with_staff:
 			mana -= STAFF_MANA_COST
-			var focus := ember_focus() if attack_weapon == "ember_staff" else Vector2(facing * 22, -37)
+			var progress := 1.0 - attack_left / attack_duration
+			var focus := WeaponArt.ember_cast_tip(progress, facing, crouching) if attack_weapon == "ember_staff" else Vector2(facing * 22, -37)
 			cast.emit(position + focus, facing, attack_weapon)
 		else:
 			var damage := weapon_damage(attack_weapon)
@@ -285,6 +295,7 @@ func rest() -> void:
 	armor_credit = 0
 	health = max_health()
 	mana = MAX_MANA
+	mana_recovery_left = MANA_RECOVERY_INTERVAL
 	vest_ready = gear.get("身體") in ["moss_vest", "earthen_armor"]
 	pollen_left = 0.0
 	mud_left = 0.0
@@ -430,14 +441,12 @@ func _draw() -> void:
 			WeaponArt.draw_held(self, weapon, action, frame, facing, _held_weapon_bob())
 		return
 	if weapon == "ember_staff":
-		if action == "walk" or action == "run":
-			HunterAnimation.draw_ember_stride(self, action, frame, facing)
-			return
-		var bob := _held_weapon_bob()
-		HunterAnimation.draw_ember_pose(self, facing, bob, WeaponArt.ember_lean(progress) if attacking else 0.0)
 		if attacking:
-			var glow := clampf(1.0 - absf(progress - WeaponArt.DEFAULT_RELEASE) * 3.7, 0.0, 1.0)
-			draw_circle(ember_focus(), 5.0 + glow * 10.0, Color(1.0, 0.40, 0.10, glow * 0.38), true, -1, true)
+			WeaponArt.draw_ember_cast(self, progress, facing, crouching)
+		elif action == "walk" or action == "run":
+			HunterAnimation.draw_ember_stride(self, action, frame, facing)
+		else:
+			HunterAnimation.draw_ember_pose(self, facing, _held_weapon_bob())
 		return
 	if action == "knife_attack" and attack_weapon in SHORT_BLADES:
 		HunterAnimation.draw_short_blade(self, frame, facing)
@@ -449,11 +458,6 @@ func _held_weapon_bob() -> float:
 	if crouching:
 		return 10.0
 	return sin(animation_time * 18.0) * 1.5 if absf(velocity.x) > 18 else 0.0
-
-
-func ember_focus() -> Vector2:
-	var lean := WeaponArt.ember_lean(1.0 - attack_left / attack_duration) if attack_left > 0.0 else 0.0
-	return HunterAnimation.EMBER_GEM.rotated(lean) * Vector2(facing, 1.0) + Vector2(0, _held_weapon_bob())
 
 
 func _timed_frame(remaining: float, duration: float) -> int:

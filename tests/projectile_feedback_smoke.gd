@@ -23,6 +23,10 @@ func run() -> void:
 	level.camera.position_smoothing_enabled = false
 	level._grant_equipment("ember_staff")
 	level.hunter.select_weapon("ember_staff")
+	if "--ember-sustain" in OS.get_cmdline_user_args():
+		await check_sustained_casting()
+		quit(1 if failures else 0)
+		return
 	level._add_monster("lizard", 1250)
 	var target = level.enemies.back()
 	target.set_physics_process(false)
@@ -63,6 +67,13 @@ func run() -> void:
 		and level.hit_effects.fire_voice.playing, "terrain removes the fireball and triggers one audible explosion")
 	await frames(48)
 
+	wall.position.x = level.hunter.position.x - 33.0
+	await frames(3)
+	await attack()
+	await frames(2)
+	check(level.arrows.is_empty() and level.hit_effects.explosions.size() == 1,
+		"a wall between the caster and staff tip still blocks the fireball")
+	await frames(48)
 	level.hunter.facing = 1.0
 	level.hunter.select_weapon("hunter_bow")
 	await frames(36)
@@ -77,6 +88,32 @@ func run() -> void:
 		root.get_node("GameMusic").play_region(-1)
 		await frames(64)
 	quit(1 if failures else 0)
+
+
+func check_sustained_casting() -> void:
+	var hunter := level.hunter
+	hunter.position = Vector2(1260, 539)
+	level.notice_left = 0.0
+	var casts: Array[float] = []
+	hunter.cast.connect(func(_origin: Vector2, direction: float, weapon: String) -> void:
+		if weapon == "ember_staff":
+			casts.append(direction))
+	await frames(30)
+	Input.action_press("hunt_attack")
+	var casts_at_depletion := -1
+	for tick in range(440):
+		await physics_frame
+		if hunter.mana == 0 and casts_at_depletion < 0:
+			casts_at_depletion = casts.size()
+			print("Mana reached zero at frame %d after %d casts" % [Engine.get_process_frames(), casts_at_depletion])
+		if tick == 365:
+			hunter.facing = -1.0
+	Input.action_release("hunt_attack")
+	check(casts_at_depletion >= 0 and casts.size() > casts_at_depletion and casts.size() >= 10,
+		"held attack casts %d fireballs and resumes after mana reaches zero" % casts.size())
+	check(casts.has(1.0) and casts.has(-1.0), "fireballs release from the staff in both directions")
+	await frames(250)
+	check(hunter.mana == hunter.MAX_MANA, "mana returns to full without a campfire")
 
 
 func attack() -> void:

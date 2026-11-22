@@ -15,8 +15,8 @@ const FRAMES := {
 const EMBER_POSE := preload("res://assets/characters/hunter/ember_staff_pose.png")
 const EMBER_ANCHOR := Vector2(160, 405)
 const EMBER_SCALE := 0.17
-const EMBER_GEM := (Vector2(251, 51) - EMBER_ANCHOR) * EMBER_SCALE
 const EMBER_GRIP := Vector2(228, 173)
+const EMBER_GEM_FROM_GRIP := (Vector2(251, 51) - EMBER_GRIP) * EMBER_SCALE
 # Trace the painted staff, leaving the standing pose's hand and boot out of the sprite.
 const EMBER_STAFF_OUTLINE := [
 	Vector2(228, 152), Vector2(228, 119), Vector2(237, 81), Vector2(233, 66),
@@ -93,19 +93,19 @@ static func draw_ember_stride(canvas: Node2D, action: String, frame: int, facing
 	var grip: Vector2 = STRIDE_GRIPS[action][frame]
 	var anchor := Vector2(FRAME_WIDTH * 0.5, texture.get_height())
 	var staff_grip := (grip - anchor) * SCALE
-	staff_grip.x *= facing
-	var lean := (0.35 if action == "run" else 0.14) * facing
+	draw_ember_staff(canvas, staff_grip, 0.35 if action == "run" else 0.14, facing)
+	draw_stride_body(canvas, action, frame, facing)
+
+
+static func draw_ember_staff(canvas: Node2D, grip: Vector2, angle: float, facing: float) -> void:
 	var points := PackedVector2Array()
 	var uvs := PackedVector2Array()
 	for point: Vector2 in EMBER_STAFF_OUTLINE:
 		points.append((point - EMBER_GRIP) * EMBER_SCALE)
 		uvs.append(point / EMBER_POSE.get_size())
-	canvas.draw_set_transform(staff_grip, lean, Vector2(facing, 1))
+	canvas.draw_set_transform(grip * Vector2(facing, 1.0), angle * facing, Vector2(facing, 1.0))
 	canvas.draw_polygon(points, PackedColorArray([Color.WHITE]), uvs, EMBER_POSE)
 	canvas.draw_set_transform(Vector2.ZERO)
-
-	draw_stride_body(canvas, action, frame, facing)
-
 
 static func draw_stride_body(canvas: Node2D, action: String, frame: int, facing: float) -> void:
 	var texture: Texture2D = FRAMES[action]
@@ -135,8 +135,8 @@ static func _draw_body_outline(canvas: Node2D, texture: Texture2D, frame: int, f
 	canvas.draw_polygon(points, PackedColorArray([Color.WHITE]), uvs, texture)
 	canvas.draw_set_transform(Vector2.ZERO)
 
-static func draw_ember_pose(canvas: Node2D, facing: float, bob: float, lean: float = 0.0) -> void:
-	canvas.draw_set_transform(Vector2(0, bob), lean * facing, Vector2(facing, 1))
+static func draw_ember_pose(canvas: Node2D, facing: float, bob: float) -> void:
+	canvas.draw_set_transform(Vector2(0, bob), 0.0, Vector2(facing, 1))
 	canvas.draw_texture_rect(EMBER_POSE, Rect2(-EMBER_ANCHOR * EMBER_SCALE, EMBER_POSE.get_size() * EMBER_SCALE), false)
 	canvas.draw_set_transform(Vector2.ZERO)
 

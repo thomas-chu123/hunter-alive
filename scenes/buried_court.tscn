@@ -1,13 +1,13 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://diy37od1o1sxs"]
 
-[ext_resource type="Script" path="res://scripts/ruins.gd" id="ruins"]
-[ext_resource type="Script" path="res://scripts/ruin_landscape.gd" id="landscape"]
-[ext_resource type="Texture2D" path="res://assets/environment/buried_court.png" id="background"]
-[ext_resource type="Texture2D" path="res://assets/environment/ruins/brazier.png" id="camp"]
-[ext_resource type="Texture2D" path="res://assets/environment/ruins/stone_gate.png" id="gate"]
-[ext_resource type="Texture2D" path="res://assets/environment/ruins/reliquary.png" id="cache"]
-[ext_resource type="Texture2D" path="res://assets/environment/ruins/broken_column.png" id="pillar"]
-[ext_resource type="Texture2D" path="res://assets/environment/ruins/moss_stone.png" id="tile"]
+[ext_resource type="Texture2D" uid="uid://qlhck6jdyx0" path="res://assets/environment/buried_court.png" id="background"]
+[ext_resource type="Texture2D" uid="uid://cx0536cb3t4iq" path="res://assets/environment/ruins/reliquary.png" id="cache"]
+[ext_resource type="Texture2D" uid="uid://ds6srd382bdhf" path="res://assets/environment/ruins/brazier.png" id="camp"]
+[ext_resource type="Texture2D" uid="uid://boe8r5yegmem1" path="res://assets/environment/ruins/stone_gate.png" id="gate"]
+[ext_resource type="Script" uid="uid://d2gjkqovhn8ya" path="res://scripts/ruin_landscape.gd" id="landscape"]
+[ext_resource type="Texture2D" uid="uid://wivdl66iq62q" path="res://assets/environment/ruins/broken_column.png" id="pillar"]
+[ext_resource type="Script" uid="uid://cb2e02jbpr5sh" path="res://scripts/ruins.gd" id="ruins"]
+[ext_resource type="Texture2D" uid="uid://b082aaq1ojhly" path="res://assets/environment/ruins/moss_stone.png" id="tile"]
 
 [sub_resource type="RectangleShape2D" id="Floor_0"]
 size = Vector2(3220, 220)
@@ -36,466 +36,465 @@ size = Vector2(145, 18)
 [sub_resource type="RectangleShape2D" id="RamBarrier"]
 size = Vector2(30, 54)
 
-[node name="BuriedCourt" type="Node2D"]
+[node name="BuriedCourt" type="Node2D" unique_id=720679976]
 script = ExtResource("ruins")
 region = 2
 
-[node name="Backdrop" type="CanvasLayer" parent="."]
+[node name="Backdrop" type="CanvasLayer" parent="." unique_id=613956155]
 layer = -1
 
-[node name="Temple" type="Sprite2D" parent="Backdrop"]
+[node name="Temple" type="Sprite2D" parent="Backdrop" unique_id=212764105]
 position = Vector2(-110, 0)
 scale = Vector2(0.6316759, 0.6316759)
 texture = ExtResource("background")
 centered = false
 
-[node name="Landscape" type="Node2D" parent="."]
+[node name="Landscape" type="Node2D" parent="." unique_id=208516553]
 script = ExtResource("landscape")
 shrine_flame_height = 39.0
 
-[node name="Terrain" type="Node2D" parent="Landscape"]
+[node name="Terrain" type="Node2D" parent="Landscape" unique_id=1550837361]
 
-[node name="Platform0" type="StaticBody2D" parent="Landscape/Terrain"]
+[node name="Platform0" type="StaticBody2D" parent="Landscape/Terrain" unique_id=458198804]
 position = Vector2(40, 540)
 
-[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform0"]
-position = Vector2(1610.0, 110.0)
+[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform0" unique_id=793551938]
+position = Vector2(1610, 110)
 shape = SubResource("Floor_0")
 
-[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform0"]
+[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform0" unique_id=1497042979]
 color = Color(0.178, 0.145, 0.132, 1)
 polygon = PackedVector2Array(0, 0, 3220, 0, 3220, 220, 0, 220)
 
-[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform0"]
-color = Color(0.620, 0.493, 0.343, 1)
+[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform0" unique_id=1970716390]
+color = Color(0.62, 0.493, 0.343, 1)
 polygon = PackedVector2Array(0, 0, 3220, 0, 3220, 4, 0, 4)
 
-[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=723439761]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(51.94, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap1" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap1" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=313391450]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(155.81, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap2" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap2" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1160521890]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(259.68, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap3" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap3" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1748228926]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(363.55, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap4" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap4" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=790289443]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(467.42, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap5" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap5" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1853260596]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(571.29, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap6" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap6" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=498995786]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(675.16, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap7" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap7" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=422405287]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(779.03, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap8" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
-position = Vector2(882.90, 22.9)
+[node name="Cap8" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1895885660]
+modulate = Color(0.98, 0.81, 0.58, 1)
+position = Vector2(882.9, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap9" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap9" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=976798637]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(986.77, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap10" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap10" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1375880291]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(1090.65, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap11" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap11" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1335402592]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(1194.52, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap12" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap12" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1878151724]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(1298.39, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap13" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap13" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=402914480]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(1402.26, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap14" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap14" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=113328285]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(1506.13, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap15" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
-position = Vector2(1610.00, 22.9)
+[node name="Cap15" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1099047630]
+modulate = Color(0.98, 0.81, 0.58, 1)
+position = Vector2(1610, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap16" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap16" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=697588977]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(1713.87, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap17" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap17" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1871349288]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(1817.74, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap18" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap18" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=2076000552]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(1921.61, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap19" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap19" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1621587473]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(2025.48, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap20" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap20" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=408155639]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(2129.35, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap21" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap21" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1891667042]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(2233.23, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap22" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
-position = Vector2(2337.10, 22.9)
+[node name="Cap22" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1230462513]
+modulate = Color(0.98, 0.81, 0.58, 1)
+position = Vector2(2337.1, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap23" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap23" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1283813922]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(2440.97, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap24" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap24" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=300121556]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(2544.84, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap25" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap25" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=988674483]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(2648.71, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap26" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap26" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=764731087]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(2752.58, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap27" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap27" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=2090805783]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(2856.45, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap28" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap28" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=238456842]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(2960.32, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap29" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap29" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1636547523]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(3064.19, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap30" type="Sprite2D" parent="Landscape/Terrain/Platform0"]
+[node name="Cap30" type="Sprite2D" parent="Landscape/Terrain/Platform0" unique_id=1121199280]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(3168.06, 22.9)
 scale = Vector2(0.335, 0.21)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Platform1" type="StaticBody2D" parent="Landscape/Terrain"]
+[node name="Platform1" type="StaticBody2D" parent="Landscape/Terrain" unique_id=580638624]
 position = Vector2(720, 486)
 
-[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform1"]
-position = Vector2(92.5, 9.0)
+[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform1" unique_id=2123311466]
+position = Vector2(92.5, 9)
 shape = SubResource("Floor_1")
 
-[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform1"]
+[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform1" unique_id=2113741385]
 color = Color(0.178, 0.145, 0.132, 1)
 polygon = PackedVector2Array(0, 0, 185, 0, 185, 18, 0, 18)
 
-[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform1"]
-color = Color(0.620, 0.493, 0.343, 1)
+[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform1" unique_id=1898397770]
+color = Color(0.62, 0.493, 0.343, 1)
 polygon = PackedVector2Array(0, 0, 185, 0, 185, 4, 0, 4)
 
-[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform1"]
+[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform1" unique_id=1205272982]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(46.25, 9)
 scale = Vector2(0.298, 0.085)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap1" type="Sprite2D" parent="Landscape/Terrain/Platform1"]
+[node name="Cap1" type="Sprite2D" parent="Landscape/Terrain/Platform1" unique_id=1204799214]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(138.75, 9)
 scale = Vector2(0.298, 0.085)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Platform2" type="StaticBody2D" parent="Landscape/Terrain"]
+[node name="Platform2" type="StaticBody2D" parent="Landscape/Terrain" unique_id=1042640517]
 position = Vector2(992, 439)
 
-[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform2"]
-position = Vector2(77.5, 9.0)
+[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform2" unique_id=1033877334]
+position = Vector2(77.5, 9)
 shape = SubResource("Floor_2")
 
-[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform2"]
+[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform2" unique_id=2124897668]
 color = Color(0.178, 0.145, 0.132, 1)
 polygon = PackedVector2Array(0, 0, 155, 0, 155, 18, 0, 18)
 
-[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform2"]
-color = Color(0.620, 0.493, 0.343, 1)
+[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform2" unique_id=2104318788]
+color = Color(0.62, 0.493, 0.343, 1)
 polygon = PackedVector2Array(0, 0, 155, 0, 155, 4, 0, 4)
 
-[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform2"]
-position = Vector2(77.50, 9)
-scale = Vector2(0.340, 0.085)
-texture = ExtResource("tile")
+[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform2" unique_id=694403969]
 modulate = Color(0.98, 0.81, 0.58, 1)
+position = Vector2(77.5, 9)
+scale = Vector2(0.34, 0.085)
+texture = ExtResource("tile")
 
-[node name="Platform3" type="StaticBody2D" parent="Landscape/Terrain"]
+[node name="Platform3" type="StaticBody2D" parent="Landscape/Terrain" unique_id=132721121]
 position = Vector2(1220, 493)
 
-[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform3"]
-position = Vector2(92.5, 9.0)
+[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform3" unique_id=234095283]
+position = Vector2(92.5, 9)
 shape = SubResource("Floor_3")
 
-[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform3"]
+[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform3" unique_id=831113738]
 color = Color(0.178, 0.145, 0.132, 1)
 polygon = PackedVector2Array(0, 0, 185, 0, 185, 18, 0, 18)
 
-[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform3"]
-color = Color(0.620, 0.493, 0.343, 1)
+[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform3" unique_id=2049896006]
+color = Color(0.62, 0.493, 0.343, 1)
 polygon = PackedVector2Array(0, 0, 185, 0, 185, 4, 0, 4)
 
-[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform3"]
+[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform3" unique_id=558351754]
+modulate = Color(0.98, 0.81, 0.58, 1)
 position = Vector2(46.25, 9)
 scale = Vector2(0.298, 0.085)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap1" type="Sprite2D" parent="Landscape/Terrain/Platform3"]
-position = Vector2(138.75, 9)
+[node name="Cap1" type="Sprite2D" parent="Landscape/Terrain/Platform3" unique_id=168973646]
+modulate = Color(0.98, 0.81, 0.58, 1)
+position = Vector2(139, 9)
 scale = Vector2(0.298, 0.085)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Platform4" type="StaticBody2D" parent="Landscape/Terrain"]
+[node name="Platform4" type="StaticBody2D" parent="Landscape/Terrain" unique_id=1336806402]
 position = Vector2(1580, 459)
 
-[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform4"]
-position = Vector2(105.0, 9.0)
+[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform4" unique_id=1380395531]
+position = Vector2(104, 10)
 shape = SubResource("Floor_4")
 
-[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform4"]
+[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform4" unique_id=1208899171]
 color = Color(0.178, 0.145, 0.132, 1)
 polygon = PackedVector2Array(0, 0, 210, 0, 210, 18, 0, 18)
 
-[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform4"]
-color = Color(0.620, 0.493, 0.343, 1)
+[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform4" unique_id=621148801]
+color = Color(0.62, 0.493, 0.343, 1)
 polygon = PackedVector2Array(0, 0, 210, 0, 210, 4, 0, 4)
 
-[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform4"]
-position = Vector2(52.50, 9)
+[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform4" unique_id=1730210699]
+modulate = Color(0.98, 0.81, 0.58, 1)
+position = Vector2(52.5, 9)
 scale = Vector2(0.339, 0.085)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Cap1" type="Sprite2D" parent="Landscape/Terrain/Platform4"]
-position = Vector2(157.50, 9)
+[node name="Cap1" type="Sprite2D" parent="Landscape/Terrain/Platform4" unique_id=1327015831]
+modulate = Color(0.98, 0.81, 0.58, 1)
+position = Vector2(157.5, 9)
 scale = Vector2(0.339, 0.085)
 texture = ExtResource("tile")
-modulate = Color(0.98, 0.81, 0.58, 1)
 
-[node name="Platform5" type="StaticBody2D" parent="Landscape/Terrain"]
+[node name="Platform5" type="StaticBody2D" parent="Landscape/Terrain" unique_id=1035967560]
 position = Vector2(1970, 476)
 
-[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform5"]
-position = Vector2(77.5, 9.0)
+[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform5" unique_id=2021998875]
+position = Vector2(77.5, 9)
 shape = SubResource("Floor_5")
 
-[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform5"]
+[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform5" unique_id=153318329]
 color = Color(0.178, 0.145, 0.132, 1)
 polygon = PackedVector2Array(0, 0, 155, 0, 155, 18, 0, 18)
 
-[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform5"]
-color = Color(0.620, 0.493, 0.343, 1)
+[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform5" unique_id=1407999951]
+color = Color(0.62, 0.493, 0.343, 1)
 polygon = PackedVector2Array(0, 0, 155, 0, 155, 4, 0, 4)
 
-[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform5"]
-position = Vector2(77.50, 9)
-scale = Vector2(0.340, 0.085)
-texture = ExtResource("tile")
+[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform5" unique_id=1067033424]
 modulate = Color(0.98, 0.81, 0.58, 1)
+position = Vector2(77.5, 9)
+scale = Vector2(0.34, 0.085)
+texture = ExtResource("tile")
 
-[node name="Platform6" type="StaticBody2D" parent="Landscape/Terrain"]
+[node name="Platform6" type="StaticBody2D" parent="Landscape/Terrain" unique_id=1197891735]
 position = Vector2(2330, 470)
 
-[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform6"]
-position = Vector2(67.5, 9.0)
+[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform6" unique_id=348404348]
+position = Vector2(67.5, 9)
 shape = SubResource("Floor_6")
 
-[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform6"]
+[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform6" unique_id=1484020302]
 color = Color(0.178, 0.145, 0.132, 1)
 polygon = PackedVector2Array(0, 0, 135, 0, 135, 18, 0, 18)
 
-[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform6"]
-color = Color(0.620, 0.493, 0.343, 1)
+[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform6" unique_id=1712524104]
+color = Color(0.62, 0.493, 0.343, 1)
 polygon = PackedVector2Array(0, 0, 135, 0, 135, 4, 0, 4)
 
-[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform6"]
-position = Vector2(67.50, 9)
-scale = Vector2(0.340, 0.085)
-texture = ExtResource("tile")
+[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform6" unique_id=369138539]
 modulate = Color(0.98, 0.81, 0.58, 1)
+position = Vector2(67.5, 9)
+scale = Vector2(0.34, 0.085)
+texture = ExtResource("tile")
 
-[node name="Platform7" type="StaticBody2D" parent="Landscape/Terrain"]
+[node name="Platform7" type="StaticBody2D" parent="Landscape/Terrain" unique_id=1475176076]
 position = Vector2(2900, 473)
 
-[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform7"]
-position = Vector2(72.5, 9.0)
+[node name="Shape" type="CollisionShape2D" parent="Landscape/Terrain/Platform7" unique_id=1343628734]
+position = Vector2(72.5, 9)
 shape = SubResource("Floor_7")
 
-[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform7"]
+[node name="Stone" type="Polygon2D" parent="Landscape/Terrain/Platform7" unique_id=769703515]
 color = Color(0.178, 0.145, 0.132, 1)
 polygon = PackedVector2Array(0, 0, 145, 0, 145, 18, 0, 18)
 
-[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform7"]
-color = Color(0.620, 0.493, 0.343, 1)
+[node name="Edge" type="Polygon2D" parent="Landscape/Terrain/Platform7" unique_id=269311060]
+color = Color(0.62, 0.493, 0.343, 1)
 polygon = PackedVector2Array(0, 0, 145, 0, 145, 4, 0, 4)
 
-[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform7"]
-position = Vector2(72.50, 9)
-scale = Vector2(0.340, 0.085)
-texture = ExtResource("tile")
+[node name="Cap0" type="Sprite2D" parent="Landscape/Terrain/Platform7" unique_id=968169437]
 modulate = Color(0.98, 0.81, 0.58, 1)
+position = Vector2(72.5, 9)
+scale = Vector2(0.34, 0.085)
+texture = ExtResource("tile")
 
-[node name="Props" type="Node2D" parent="Landscape"]
-
-[node name="Pillar0" type="Sprite2D" parent="Landscape/Props"]
-position = Vector2(580, 540)
-texture = ExtResource("pillar")
-scale = Vector2(0.30, 0.30)
-offset = Vector2(0, -150)
-
-[node name="Pillar1" type="Sprite2D" parent="Landscape/Props"]
-position = Vector2(1060, 439)
-texture = ExtResource("pillar")
-scale = Vector2(0.30, 0.30)
-offset = Vector2(0, -150)
-
-[node name="Pillar2" type="Sprite2D" parent="Landscape/Props"]
-position = Vector2(1410, 540)
-texture = ExtResource("pillar")
-scale = Vector2(0.30, 0.30)
-offset = Vector2(0, -150)
-
-[node name="Pillar3" type="Sprite2D" parent="Landscape/Props"]
-position = Vector2(1770, 459)
-texture = ExtResource("pillar")
-scale = Vector2(0.30, 0.30)
-offset = Vector2(0, -150)
-
-[node name="Pillar4" type="Sprite2D" parent="Landscape/Props"]
-position = Vector2(2170, 540)
-texture = ExtResource("pillar")
-scale = Vector2(0.30, 0.30)
-offset = Vector2(0, -150)
-
-[node name="Pillar5" type="Sprite2D" parent="Landscape/Props"]
-position = Vector2(2600, 540)
-texture = ExtResource("pillar")
-scale = Vector2(0.30, 0.30)
-offset = Vector2(0, -150)
-
-[node name="Pillar6" type="Sprite2D" parent="Landscape/Props"]
-position = Vector2(3080, 540)
-texture = ExtResource("pillar")
-scale = Vector2(0.30, 0.30)
-offset = Vector2(0, -150)
-
-[node name="Campfire" type="Marker2D" parent="Landscape/Props"]
-position = Vector2(400, 540)
-
-[node name="Sprite" type="Sprite2D" parent="Landscape/Props/Campfire"]
-scale = Vector2(0.22, 0.22)
-offset = Vector2(0, -152)
-texture = ExtResource("camp")
-
-[node name="Portal" type="Marker2D" parent="Landscape/Props"]
-position = Vector2(3110, 540)
-
-[node name="Sprite" type="Sprite2D" parent="Landscape/Props/Portal"]
-scale = Vector2(0.58, 0.58)
-offset = Vector2(0, -139)
-texture = ExtResource("gate")
-
-[node name="Reliquary" type="Marker2D" parent="Landscape/Props"]
-position = Vector2(1910, 540)
-
-[node name="Sprite" type="Sprite2D" parent="Landscape/Props/Reliquary"]
-scale = Vector2(0.38, 0.38)
-offset = Vector2(0, -78)
-texture = ExtResource("cache")
-
-
-[node name="ImpactColumn" type="StaticBody2D" parent="Landscape/Terrain"]
+[node name="ImpactColumn" type="StaticBody2D" parent="Landscape/Terrain" unique_id=605416891]
 position = Vector2(2605, 513)
 
-[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/ImpactColumn"]
+[node name="Collision" type="CollisionShape2D" parent="Landscape/Terrain/ImpactColumn" unique_id=1983708316]
 shape = SubResource("RamBarrier")
 
-[node name="Stone" type="Sprite2D" parent="Landscape/Terrain/ImpactColumn"]
-texture = ExtResource("pillar")
+[node name="Stone" type="Sprite2D" parent="Landscape/Terrain/ImpactColumn" unique_id=36392345]
 scale = Vector2(0.19, 0.19)
+texture = ExtResource("pillar")
+
+[node name="Props" type="Node2D" parent="Landscape" unique_id=1127837080]
+
+[node name="Pillar0" type="Sprite2D" parent="Landscape/Props" unique_id=707913298]
+position = Vector2(580, 540)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("pillar")
+offset = Vector2(0, -150)
+
+[node name="Pillar1" type="Sprite2D" parent="Landscape/Props" unique_id=1177948861]
+position = Vector2(1060, 439)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("pillar")
+offset = Vector2(0, -150)
+
+[node name="Pillar2" type="Sprite2D" parent="Landscape/Props" unique_id=2069930004]
+position = Vector2(1410, 540)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("pillar")
+offset = Vector2(0, -150)
+
+[node name="Pillar3" type="Sprite2D" parent="Landscape/Props" unique_id=695628267]
+position = Vector2(1770, 459)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("pillar")
+offset = Vector2(0, -150)
+
+[node name="Pillar4" type="Sprite2D" parent="Landscape/Props" unique_id=1764358527]
+position = Vector2(2170, 540)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("pillar")
+offset = Vector2(0, -150)
+
+[node name="Pillar5" type="Sprite2D" parent="Landscape/Props" unique_id=1753919000]
+position = Vector2(2600, 540)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("pillar")
+offset = Vector2(0, -150)
+
+[node name="Pillar6" type="Sprite2D" parent="Landscape/Props" unique_id=1161792037]
+position = Vector2(3080, 540)
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("pillar")
+offset = Vector2(0, -150)
+
+[node name="Campfire" type="Marker2D" parent="Landscape/Props" unique_id=983939463]
+position = Vector2(400, 540)
+
+[node name="Sprite" type="Sprite2D" parent="Landscape/Props/Campfire" unique_id=136422498]
+scale = Vector2(0.22, 0.22)
+texture = ExtResource("camp")
+offset = Vector2(0, -152)
+
+[node name="Portal" type="Marker2D" parent="Landscape/Props" unique_id=294548102]
+position = Vector2(3110, 540)
+
+[node name="Sprite" type="Sprite2D" parent="Landscape/Props/Portal" unique_id=1377320041]
+scale = Vector2(0.58, 0.58)
+texture = ExtResource("gate")
+offset = Vector2(0, -139)
+
+[node name="Reliquary" type="Marker2D" parent="Landscape/Props" unique_id=1068100805]
+position = Vector2(1910, 540)
+
+[node name="Sprite" type="Sprite2D" parent="Landscape/Props/Reliquary" unique_id=1353807906]
+scale = Vector2(0.38, 0.38)
+texture = ExtResource("cache")
+offset = Vector2(0, -78)

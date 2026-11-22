@@ -1,7 +1,6 @@
-[gd_resource type="TileSet" load_steps=6 format=3]
+[gd_resource type="TileSet" format=3 uid="uid://con8hl5nkiqgu"]
 
-[ext_resource type="Texture2D" path="res://assets/environment/ruins/terrain_atlas.png" id="1_atlas"]
-
+[ext_resource type="Texture2D" uid="uid://2jp0e0vuhmpu" path="res://assets/environment/ruins/terrain_atlas.png" id="1_atlas"]
 [ext_resource type="PackedScene" path="res://scenes/ruins_props/broken_column.tscn" id="2_column"]
 [ext_resource type="PackedScene" path="res://scenes/ruins_props/fern.tscn" id="3_fern"]
 
@@ -18,11 +17,11 @@ texture_region_size = Vector2i(128, 64)
 3:0/0 = 0
 3:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-64, -32, 64, -32, 64, 32, -64, 32)
 0:1/0 = 0
-0:1/0/physics_layer_0/polygon_0/one_way = true
 0:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-64, -30, 64, -30, 64, -21, -64, -21)
+0:1/0/physics_layer_0/polygon_0/one_way = true
 1:1/0 = 0
-1:1/0/physics_layer_0/polygon_0/one_way = true
 1:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-64, -30, 64, -30, 64, -20, -64, -20)
+1:1/0/physics_layer_0/polygon_0/one_way = true
 
 [sub_resource type="TileSetScenesCollectionSource" id="Scenes_ruins_props"]
 resource_name = "Ruins decorations"

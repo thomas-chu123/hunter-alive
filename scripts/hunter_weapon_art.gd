@@ -24,7 +24,6 @@ const BOW_TOP := Vector2(346, 94)
 const BOW_BOTTOM := Vector2(166, 383)
 const HUNTER_BOW_STRING_AXIS := Vector2(287, -315)
 const DEFAULT_RELEASE := 0.26
-const EMBER_CAST_LEAN := 0.10
 const MELEE_GROUND := 175.0
 
 static var clean_bodies := {}
@@ -125,10 +124,40 @@ static func _draw_idle_weapon(canvas: Node2D, weapon: String, angle: float, faci
 	_draw_idle_fist(canvas, facing, bob)
 
 
-static func ember_lean(progress: float) -> float:
+static func draw_ember_cast(canvas: Node2D, progress: float, facing: float, crouching: bool) -> void:
+	var bob := 8.0 if crouching else 0.0
+	if progress >= 0.85:
+		HunterAnimation.draw_ember_pose(canvas, facing, bob)
+		return
+	var pose := _ember_cast_pose(progress)
+	var grip := _grip(pose) + Vector2(0, bob)
+	HunterAnimation.draw_ember_staff(canvas, grip, _ember_cast_angle(progress), facing)
+	_draw_body(canvas, pose, facing, bob)
+	var glow := smoothstep(0.03, DEFAULT_RELEASE, progress) * (1.0 - smoothstep(DEFAULT_RELEASE, 0.52, progress))
+	if glow > 0.0:
+		var tip := ember_cast_tip(progress, facing, crouching)
+		canvas.draw_circle(tip, 3.0 + glow * 11.0, Color(1.0, 0.37, 0.08, glow * 0.33), true, -1, true)
+		canvas.draw_circle(tip, 2.0 + glow * 2.5, Color(1.0, 0.76, 0.30, glow * 0.77), true, -1, true)
+
+
+static func ember_cast_tip(progress: float, facing: float, crouching: bool) -> Vector2:
+	var grip := _grip(_ember_cast_pose(progress)) + Vector2(0.0, 8.0 if crouching else 0.0)
+	return (grip + HunterAnimation.EMBER_GEM_FROM_GRIP.rotated(_ember_cast_angle(progress))) * Vector2(facing, 1.0)
+
+
+static func _ember_cast_pose(progress: float) -> String:
+	if progress < 0.07 or progress >= 0.61:
+		return "brace"
+	return "raise" if progress < 0.22 else "thrust"
+
+
+static func _ember_cast_angle(progress: float) -> float:
+	if progress < 0.14:
+		return lerpf(0.12, -0.87, smoothstep(0.0, 0.14, progress))
 	if progress < DEFAULT_RELEASE:
-		return -EMBER_CAST_LEAN * sin(PI * progress / DEFAULT_RELEASE)
-	return EMBER_CAST_LEAN * sin(PI * (progress - DEFAULT_RELEASE) / (1.0 - DEFAULT_RELEASE))
+		return lerpf(-0.87, 0.52, smoothstep(0.14, DEFAULT_RELEASE, progress))
+	var follow := lerpf(0.52, 1.04, smoothstep(DEFAULT_RELEASE, 0.47, progress))
+	return lerpf(follow, 0.12, smoothstep(0.52, 0.85, progress))
 
 
 static func _tip(pose: String, weapon: String, angle: float, facing: float, bob: float) -> Vector2:

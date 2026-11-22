@@ -303,8 +303,11 @@ func _cast(origin: Vector2, direction: float, weapon: String) -> void:
 		if not ground.is_empty():
 			glyphs.append({"at": ground.position, "left": 0.46, "damage": hunter.weapon_damage(weapon), "direction": direction})
 		return
+	# Sweep from just in front of the hunter on the first tick so the staff
+	# cannot launch a fireball through a wall or enemy between the body and tip.
+	var cast_start := Vector2(hunter.position.x + direction * 15.0, origin.y)
 	arrows.append({"at": origin, "direction": direction, "damage": hunter.weapon_damage(weapon), "left": 0.44,
-		"spell": true, "weapon": weapon, "hit_ids": []})
+		"spell": true, "weapon": weapon, "hit_ids": [], "cast_start": cast_start})
 
 
 func _launch_enemy_projectile(origin: Vector2, direction: float, attack: Dictionary) -> void:
@@ -330,12 +333,13 @@ func _update_glyphs(delta: float) -> void:
 func _update_arrows(delta: float) -> void:
 	for index in range(arrows.size() - 1, -1, -1):
 		var arrow := arrows[index]
-		var from: Vector2 = arrow.at
+		var from: Vector2 = arrow.get("cast_start", arrow.at)
+		arrow.erase("cast_start")
 		var spell: bool = arrow.get("spell", false)
 		var hostile: String = arrow.get("hostile", "")
 		var speed: float = arrow.get("speed", 850.0)
 		var velocity := Vector2(arrow.direction * (710.0 if spell else speed), 0)
-		var to := from + velocity * delta
+		var to: Vector2 = arrow.at + velocity * delta
 		var ray := PhysicsRayQueryParameters2D.create(from, to, 1)
 		var wall := get_world_2d().direct_space_state.intersect_ray(ray)
 		if not wall.is_empty():
