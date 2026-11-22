@@ -27,6 +27,11 @@ func run() -> void:
 		enemy.queue_free()
 	level.enemies.clear()
 	level.notice_left = 0.0
+	var args := OS.get_cmdline_user_args()
+	if "--opening-bow" in args or "--thorn-bow" in args:
+		await check_bow_movement("thorn_bow" if "--thorn-bow" in args else "hunter_bow")
+		quit(1 if failed else 0)
+		return
 	level.camera.zoom = Vector2.ONE * 2.35
 	level.camera.position.y = -81.0
 	level.camera.position_smoothing_enabled = false
@@ -79,6 +84,60 @@ func run() -> void:
 	check(target.health == 12 - hunter.weapon_damage("sluice_spear"), "spear damages an enemy beyond short-knife reach")
 	await frames(12)
 	quit(1 if failed else 0)
+
+
+func check_bow_movement(weapon: String) -> void:
+	var hunter := level.hunter
+	level.camera.zoom = Vector2.ONE * 2.45
+	level.camera.position.y = -76.0
+	level.camera.position_smoothing_enabled = false
+	await frames(20)
+	if weapon == "thorn_bow":
+		level._grant_equipment(weapon)
+		await key(KEY_I)
+		await frames(3)
+		var index := level.gear_ids.find(weapon)
+		level.gear_list.select(index)
+		level.gear_list.item_selected.emit(index)
+		await key(KEY_E)
+		await frames(24)
+		await key(KEY_I)
+	else:
+		check(hunter.selected_weapon() == "hunter_knife", "the temple opens with the short knife")
+		Input.action_press("hunt_switch")
+		await frames(2)
+		Input.action_release("hunt_switch")
+	check(hunter.selected_weapon() == weapon, "equipped the requested bow: " + weapon)
+	await frames(12)
+
+	Input.action_press("hunt_right")
+	await frames(21)
+	Input.action_release("hunt_right")
+	check(hunter.facing > 0.0 and is_equal_approx(hunter.velocity.x, hunter.RUN_SPEED), "runs right with " + weapon)
+	Input.action_press("hunt_left")
+	await frames(41)
+	Input.action_release("hunt_left")
+	check(hunter.facing < 0.0 and is_equal_approx(hunter.velocity.x, -hunter.RUN_SPEED), "runs left with " + weapon)
+	if weapon == "thorn_bow":
+		await check_bow_shot(weapon, -1.0)
+	Input.action_press("hunt_walk")
+	Input.action_press("hunt_right")
+	await frames(36)
+	Input.action_release("hunt_right")
+	Input.action_release("hunt_walk")
+	check(is_equal_approx(hunter.velocity.x, hunter.WALK_SPEED), "uses the slow walk with " + weapon)
+	await check_bow_shot(weapon, 1.0)
+
+
+func check_bow_shot(weapon: String, direction: float) -> void:
+	await frames(14)
+	print("Shot input frame %d, direction %d" % [Engine.get_process_frames(), int(direction)])
+	await key(KEY_J)
+	await frames(ceili(level.hunter.weapon_period(weapon) * 60.0 * 0.75) + 2)
+	var arrow: Dictionary = {} if level.arrows.is_empty() else level.arrows.back()
+	check(arrow.get("weapon") == weapon and arrow.get("direction") == direction
+		and arrow.get("pierce") == int(weapon == "thorn_bow"), "arrow shoots forward with " + weapon)
+	await frames(13)
 
 
 func _on_attack(_origin: Vector2, _facing: float, ranged: bool, _damage: int, weapon: String) -> void:

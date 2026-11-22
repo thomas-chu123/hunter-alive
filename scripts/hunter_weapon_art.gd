@@ -7,6 +7,7 @@ const CELL := 443.0
 # Grip and tip in the inventory illustration's 443-pixel reference space,
 # followed by the held length from grip to tip and the resting angle.
 const WEAPONS := {
+	"hunter_bow": [Vector2(195, 196), Vector2(380, 58), 25.0, -1.47],
 	"root_blade": [Vector2(108, 328), Vector2(402, 33), 40.0, -0.75],
 	"fang_dagger": [Vector2(300, 137), Vector2(120, 387), 20.0, 1.02],
 	"sluice_spear": [Vector2(137, 319), Vector2(405, 30), 78.0, -0.97],
@@ -19,8 +20,9 @@ const RELEASE := {
 	"sluice_spear": 0.36, "tide_hammer": 0.56, "root_blade": 0.42,
 	"gate_halberd": 0.50, "scribe_staff": 0.52,
 }
-const BOW_TOP := Vector2(343, 79)
-const BOW_BOTTOM := Vector2(151, 386)
+const BOW_TOP := Vector2(346, 94)
+const BOW_BOTTOM := Vector2(166, 383)
+const HUNTER_BOW_STRING_AXIS := Vector2(287, -315)
 const DEFAULT_RELEASE := 0.26
 const EMBER_CAST_LEAN := 0.10
 const MELEE_GROUND := 175.0
@@ -34,9 +36,6 @@ static func release_point(weapon: String, bow: bool) -> float:
 
 
 static func draw_held(canvas: Node2D, weapon: String, action: String, frame: int, facing: float, bob: float = 0.0) -> void:
-	if weapon == "thorn_bow" and action == "idle":
-		_draw_bow(canvas, 0, facing, bob)
-		return
 	var angle: float = WEAPONS[weapon][3]
 	if action == "walk" or action == "run":
 		var texture: Texture2D = HunterAnimation.FRAMES[action]
@@ -45,13 +44,21 @@ static func draw_held(canvas: Node2D, weapon: String, action: String, frame: int
 		_draw_weapon(canvas, weapon, at, angle + (0.32 if action == "run" else 0.14), facing)
 		HunterAnimation.draw_stride_body(canvas, action, frame, facing)
 		return
-	if action in ["crouch", "jump", "land", "glide", "hurt"]:
+	if weapon == "hunter_bow":
+		HunterAnimation.draw_frame(canvas, "bow_attack", 0, facing, bob)
+	elif weapon == "thorn_bow" and action == "idle":
+		_draw_bow(canvas, 0, facing, bob)
+	elif action in ["crouch", "jump", "land", "glide", "hurt"]:
 		_draw_pose(canvas, weapon, "brace", angle + 0.24, facing, bob if action == "crouch" else 0.0)
 	else:
 		_draw_idle_weapon(canvas, weapon, angle, facing, bob)
 
 
 static func draw_attack(canvas: Node2D, weapon: String, progress: float, facing: float, crouching: bool, step: int) -> void:
+	if weapon == "hunter_bow":
+		var frame := clampi(floori(progress * HunterAnimation.FRAME_COUNT), 0, HunterAnimation.FRAME_COUNT - 1)
+		HunterAnimation.draw_frame(canvas, "bow_attack", frame, facing)
+		return
 	if weapon == "thorn_bow":
 		_draw_bow(canvas, 0 if progress < 0.19 else (2 if progress < release_point(weapon, true) else 3), facing)
 		return
@@ -102,12 +109,8 @@ static func draw_portrait(canvas: Node2D, weapon: String) -> void:
 		_draw_idle_weapon(canvas, weapon, -1.12, 1.0, 0.0)
 	elif weapon == "tide_hammer":
 		_draw_pose(canvas, weapon, "idle", WEAPONS[weapon][3], 1.0, 0.0)
-	elif weapon == "thorn_bow":
-		_draw_bow(canvas, 0, 1.0, 0.0, true)
 	elif WEAPONS.has(weapon):
 		draw_held(canvas, weapon, "idle", 0, 1.0)
-	elif weapon == "hunter_bow":
-		HunterAnimation.draw_frame(canvas, "bow_attack", 0, 1.0)
 	elif weapon == "ember_staff":
 		HunterAnimation.draw_ember_pose(canvas, 1.0, 0.0)
 	elif weapon == "unarmed":
@@ -162,15 +165,15 @@ static func _draw_pose(canvas: Node2D, weapon: String, pose: String, angle: floa
 	_draw_body(canvas, pose, facing, bob)
 
 
-static func _draw_bow(canvas: Node2D, frame: int, facing: float, bob: float = 0.0, mirror_bow: bool = false) -> void:
+static func _draw_bow(canvas: Node2D, frame: int, facing: float, bob: float = 0.0) -> void:
 	var grip := Vector2(259, 107) if frame == 0 else (Vector2(294, 57) if frame == 2 else Vector2(290, 61))
 	var angle := -1.05 if frame == 0 else -1.57
-	_draw_weapon(canvas, "thorn_bow", _local(grip, 178) + Vector2(0, bob), angle, facing, frame == 2, mirror_bow)
+	_draw_weapon(canvas, "thorn_bow", _local(grip, 178) + Vector2(0, bob), angle, facing, frame == 2)
 	_draw_body(canvas, "bow_%d" % frame, facing, bob)
 
 
 static func _draw_weapon(canvas: Node2D, weapon: String, at: Vector2, angle: float, facing: float,
-		drawn: bool = false, mirror_bow: bool = false) -> void:
+		drawn: bool = false) -> void:
 	var art: Array = WEAPONS[weapon]
 	var grip: Vector2 = art[0]
 	var axis: Vector2 = art[1] - grip
@@ -179,22 +182,22 @@ static func _draw_weapon(canvas: Node2D, weapon: String, at: Vector2, angle: flo
 	var texture := _weapon_texture(weapon)
 	var direction := Vector2(facing, 1.0)
 	var transform := Transform2D(rotation * facing, direction, 0.0, at * direction)
-	if mirror_bow:
+	if weapon in ["thorn_bow", "hunter_bow"]:
 		# Reflect the bow and string about their long axis through the hand.
-		var string_axis := (BOW_TOP - BOW_BOTTOM).angle() + PI * 0.5
-		transform *= Transform2D(string_axis, Vector2(-1.0, 1.0), 0.0, Vector2.ZERO) * Transform2D(-string_axis, Vector2.ZERO)
+		var string_axis := HUNTER_BOW_STRING_AXIS if weapon == "hunter_bow" else BOW_TOP - BOW_BOTTOM
+		var string_rotation := string_axis.angle() + PI * 0.5
+		transform *= Transform2D(string_rotation, Vector2(-1.0, 1.0), 0.0, Vector2.ZERO) * Transform2D(-string_rotation, Vector2.ZERO)
 	canvas.draw_set_transform_matrix(transform)
 	canvas.draw_texture_rect(texture, Rect2(-grip * scale, Vector2.ONE * CELL * scale), false)
-	if weapon == "thorn_bow":
-		var top := (BOW_TOP - grip) * scale
-		var bottom := (BOW_BOTTOM - grip) * scale
-		var middle := (top + bottom) * 0.5
-		middle += Vector2(-15, 0).rotated(-rotation) if drawn else Vector2.ZERO
-		canvas.draw_polyline(PackedVector2Array([top, middle, bottom]), Color("#d7c089"), 0.8, true)
-		if drawn:
-			var shaft := Vector2(38, 0).rotated(-rotation)
-			canvas.draw_line(middle, middle + shaft, Color("#e2e7af"), 1.05, true)
 	canvas.draw_set_transform(Vector2.ZERO)
+	if weapon == "thorn_bow":
+		var top := transform * ((BOW_TOP - grip) * scale)
+		var bottom := transform * ((BOW_BOTTOM - grip) * scale)
+		var forward := Vector2(facing, 0.0)
+		var nock := (top + bottom) * 0.5 - forward * (15.0 if drawn else 0.0)
+		canvas.draw_polyline(PackedVector2Array([top, nock, bottom]), Color("#d7c089"), 0.8, true)
+		if drawn:
+			canvas.draw_line(nock, nock + forward * 38.0, Color("#e2e7af"), 1.05, true)
 
 
 static func _weapon_texture(weapon: String) -> Texture2D:
@@ -202,7 +205,7 @@ static func _weapon_texture(weapon: String) -> Texture2D:
 		var texture := Equipment.icon(weapon)
 		if weapon == "thorn_bow":
 			var image := texture.get_image()
-			_mask(image, [Vector2(343, 77), Vector2(353, 79), Vector2(157, 393), Vector2(147, 391)])
+			_mask(image, [Vector2(343, 93), Vector2(351, 93), Vector2(171, 384), Vector2(161, 382)])
 			texture = ImageTexture.create_from_image(image)
 		weapon_textures[weapon] = texture
 	return weapon_textures[weapon]

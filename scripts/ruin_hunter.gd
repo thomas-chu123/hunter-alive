@@ -439,9 +439,7 @@ func _draw() -> void:
 			var glow := clampf(1.0 - absf(progress - WeaponArt.DEFAULT_RELEASE) * 3.7, 0.0, 1.0)
 			draw_circle(ember_focus(), 5.0 + glow * 10.0, Color(1.0, 0.40, 0.10, glow * 0.38), true, -1, true)
 		return
-	if weapon == "hunter_bow" and action not in ["bow_attack", "knife_attack"]:
-		HunterAnimation.draw_frame(self, "bow_attack", 0, facing, _held_weapon_bob())
-	elif action == "knife_attack" and attack_weapon in SHORT_BLADES:
+	if action == "knife_attack" and attack_weapon in SHORT_BLADES:
 		HunterAnimation.draw_short_blade(self, frame, facing)
 	else:
 		HunterAnimation.draw_frame(self, action, frame, facing)
