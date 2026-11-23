@@ -77,6 +77,11 @@ var stagger_speed := 0.0
 var patrol_dir := -1.0
 var walking := false
 var second_phase := false
+var foot_dust: Array[Dictionary] = []
+var bob_y := 0.0
+var stretch_y := 1.0
+var stretch_x := 1.0
+var sprint_lean := 0.0
 
 
 func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
@@ -198,8 +203,17 @@ func _physics_process(delta: float) -> void:
 		State.STAGGER:
 			_update_stagger(delta, target_in_sight)
 
+	for idx in range(foot_dust.size() - 1, -1, -1):
+		foot_dust[idx].age += delta
+		foot_dust[idx].offset += foot_dust[idx].vel * delta
+		if foot_dust[idx].age >= foot_dust[idx].duration:
+			foot_dust.remove_at(idx)
+
 	var before := position
-	velocity.x = move_toward(velocity.x, requested_speed, float(profile.acceleration) * delta)
+	var stride_val := float(animation.get("stride", 68.0))
+	var rhythm_step := gait_distance * TAU / stride_val
+	var stride_pulse := 1.0 + cos(rhythm_step) * 0.10 * gait_weight
+	velocity.x = move_toward(velocity.x, requested_speed * stride_pulse, float(profile.acceleration) * delta)
 	var budget := float(profile.leash)
 	# Clip chase steering to the territory edge, including the last movement step.
 	velocity.x = clampf(velocity.x, minf(0.0, (home.x - budget - position.x) / delta),
@@ -373,7 +387,11 @@ func _update_motion_art(delta: float, travel: float) -> void:
 
 
 func _sprite_facing() -> float:
-	return signf(visual_turn) * maxf(absf(visual_turn), 0.55) if not is_zero_approx(visual_turn) else facing * 0.55
+	var s := signf(visual_turn)
+	if s == 0.0:
+		s = facing
+	var mag := clampf(pow(absf(visual_turn), 0.72), 0.08, 1.0)
+	return s * mag
 
 
 func _clear_to_target() -> bool:
@@ -440,9 +458,23 @@ func _step_sound(distance: float, interval: float) -> void:
 	if step_progress < interval:
 		return
 	step_progress = fposmod(step_progress, interval)
+	if is_on_floor() and gait_weight > 0.2:
+		_spawn_footstep_dust()
 	if position.distance_to(target.position) < EnemyAudio.AUDIBLE_DISTANCE:
 		step_pitch = 2.0 - step_pitch
 		EnemyAudio.play(step_voice, EnemyAudio.STEPS[sound.step], step_pitch)
+
+
+func _spawn_footstep_dust() -> void:
+	for i in range(3):
+		var d_dir := -facing + randf_range(-0.35, 0.35)
+		foot_dust.append({
+			"offset": Vector2(randf_range(-10.0, 10.0), randf_range(-1.0, 2.0)),
+			"vel": Vector2(d_dir * randf_range(22.0, 48.0), -randf_range(8.0, 22.0)),
+			"radius": randf_range(2.2, 4.0),
+			"age": 0.0,
+			"duration": randf_range(0.22, 0.35)
+		})
 
 
 func _attack_sound() -> void:
@@ -657,58 +689,87 @@ func _draw_actor() -> void:
 	var size := body_size
 	var stride := float(animation.get("stride", 68.0))
 	var rhythm := gait_distance * TAU / stride
-	var stretch := 1.0 + sin(age * 3.5) * 0.014 + sin(rhythm * 2.0) * 0.026 * gait_weight
-	var lean := cos(rhythm) * 0.043 * gait_weight
+
+	# Procedural Locomotion: Vertical Bobbing & Bounce
+	bob_y = -absf(sin(rhythm)) * 5.2 * gait_weight
+
+	# Procedural Locomotion: Squash & Stretch with volume conservation
+	var idle_breathe := sin(age * 2.8) * 0.022 * (1.0 - gait_weight * 0.8)
+	var walk_squash := cos(rhythm * 2.0) * 0.055 * gait_weight
+	var turn_stretch := (1.0 - absf(visual_turn)) * 0.12
+	stretch_y = 1.0 + idle_breathe + walk_squash + turn_stretch
+
+	# Procedural Locomotion: Velocity-based Forward Lean & Stride Sway
+	var max_speed := maxf(float(profile.get("speed", 100.0)), 1.0)
+	var speed_ratio := clampf(velocity.x / max_speed, -1.2, 1.2)
+	sprint_lean = speed_ratio * 0.11 * gait_weight
+	var stride_sway := cos(rhythm) * 0.045 * gait_weight
+	var lean := sprint_lean + stride_sway
+
 	var sheets: Dictionary = Art.poses[species]
 	var attack_sheet: Texture2D = sheets.attack_unarmed if unarmed else sheets.attack
 	var walk_sheet: Texture2D = sheets.get("walk_unarmed" if unarmed else "walk")
 	var transition_sheet: Texture2D = sheets.get("attack_transition_unarmed" if unarmed else "attack_transition")
 	var phase := _transition_frame() if transition_sheet != null else -1
+
 	if state == State.NOTICE:
-		stretch += 0.065 * sin(notice_left / float(motion_rules.notice_time) * PI)
+		stretch_y += 0.065 * sin(notice_left / float(motion_rules.notice_time) * PI)
 		lean -= 0.06
+
 	var hit := pow(clampf(hit_left / float(hit_reaction.duration), 0.0, 1.0), 1.4)
 	var squash := hit * float(hit_reaction.squash)
 	var hit_lean := hit_direction * signf(motion_facing) * squash * 0.9
+
+	stretch_y *= (1.0 - squash)
+	stretch_x = 1.0 / maxf(stretch_y, 0.55)
+
 	if state == State.STAGGER or (pose == AttackPose.IDLE and hit > 0.0):
 		Art.draw_motion_frame(actor_art, attack_sheet, AttackPose.RECOVERY, motion_facing, tint,
-			1.0 - squash, hit_lean, recoil)
+			stretch_y, hit_lean, recoil, bob_y, stretch_x)
 	elif pose >= 0:
 		if strike > 0.0:
 			motion_facing = facing
 			var swing := sin(_strike_progress() * PI)
-			stretch = 1.0 + swing * 0.035
+			stretch_y = (1.0 + swing * 0.035) * (1.0 - squash)
+			stretch_x = 1.0 / maxf(stretch_y, 0.55)
 			lean = swing * 0.035
 		elif recovery > 0.0:
 			lean = 0.05 * clampf(recovery / maxf(recovery_duration, 0.02), 0.0, 1.0)
-		stretch *= 1.0 - squash
 		lean += hit_direction * signf(motion_facing) * squash * 0.9
 		if phase >= 0:
-			Art.draw_motion_frame(actor_art, transition_sheet, phase, motion_facing, tint, stretch, lean, recoil)
+			Art.draw_motion_frame(actor_art, transition_sheet, phase, motion_facing, tint, stretch_y, lean, recoil, bob_y, stretch_x)
 		else:
-			Art.draw_motion_frame(actor_art, attack_sheet, pose, motion_facing, tint, stretch, lean, recoil)
+			Art.draw_motion_frame(actor_art, attack_sheet, pose, motion_facing, tint, stretch_y, lean, recoil, bob_y, stretch_x)
 	elif walk_sheet != null and gait_weight > 0.24:
 		Art.draw_motion_frame(actor_art, walk_sheet, floori(fposmod(gait_distance, stride) / stride * 4.0),
-			motion_facing, tint, stretch, lean, recoil)
+			motion_facing, tint, stretch_y, lean, recoil, bob_y, stretch_x)
 	else:
 		match appearance.get("kind", "bestiary"):
 			"hover":
 				var flap := 1.0 + sin(age * float(appearance.flap_rate)) * float(appearance.flap_amplitude)
-				Art.draw_hover_idle(actor_art, species, 0, motion_facing, flap, tint)
+				Art.draw_hover_idle(actor_art, species, 0, motion_facing, flap, tint, bob_y)
 			"guard":
-				Art.draw_guard_idle(actor_art, species, motion_facing, armed, lean, tint)
+				Art.draw_guard_idle(actor_art, species, motion_facing, armed, lean, tint, bob_y, stretch_y, stretch_x)
 			"ground":
-				Art.draw_ground_idle(actor_art, species, unarmed, motion_facing, (1.0 - stretch) * size.y, tint)
+				Art.draw_ground_idle(actor_art, species, unarmed, motion_facing, (1.0 - stretch_y) * size.y, tint, bob_y, stretch_x)
 				actor_art.draw_set_transform(Vector2.ZERO)
 			_:
 				if unarmed and appearance.get("unarmed_idle_from_recovery", false):
 					Art.draw_motion_frame(actor_art, attack_sheet, AttackPose.RECOVERY, motion_facing,
-						tint, stretch, lean, recoil)
+						tint, stretch_y, lean, recoil, bob_y, stretch_x)
 				else:
-					Art.draw_bestiary_idle(actor_art, species, motion_facing, lean, tint, stretch, recoil)
+					Art.draw_bestiary_idle(actor_art, species, motion_facing, lean, tint, stretch_y, recoil, bob_y, stretch_x)
 
 
 func _draw() -> void:
+	# Draw footstep dust puffs on ground
+	for dust: Dictionary in foot_dust:
+		var d_prog: float = dust.age / dust.duration
+		var d_fade := pow(1.0 - d_prog, 1.6)
+		var d_pos: Vector2 = dust.offset
+		var d_r: float = dust.radius * (1.0 + d_prog * 0.6)
+		draw_circle(d_pos, d_r, Color(0.82, 0.76, 0.68, d_fade * 0.40))
+
 	var size := body_size
 	if armed and appearance.has("shield_aura"):
 		var aura: Dictionary = appearance.shield_aura
