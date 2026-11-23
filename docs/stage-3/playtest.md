@@ -13,10 +13,10 @@ Linux x86-64 解壓測試包後執行 `./HunterAlive.x86_64`。以新存檔開�
 ## 重現自動檢查
 
 ```bash
-for suite in stage_3_route_smoke stage_3_catalog_smoke; do
+for suite in tests/scene/stage_3_route_smoke.gd tests/game/stage_3_catalog_smoke.gd; do
   qa_profile=$(mktemp -d /tmp/ultima-stage3.XXXXXX)
   XDG_DATA_HOME="$qa_profile" godot --headless --path . --fixed-fps 60 \
-    --script "tests/$suite.gd"
+    --script "$suite"
 done
 ```
 

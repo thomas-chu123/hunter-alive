@@ -1,10 +1,10 @@
 extends SceneTree
 
-const Armory := preload("res://scripts/ruin_armory.gd")
-const Art := preload("res://scripts/hunter_weapon_art.gd")
-const Body := preload("res://scripts/hunter_animation.gd")
-const Equipment := preload("res://scripts/ruin_equipment.gd")
-const Sprites := preload("res://scripts/hunter_sprites.gd")
+const Armory := preload("res://scripts/game/ruin_armory.gd")
+const Art := preload("res://scripts/character/hunter_weapon_art.gd")
+const Body := preload("res://scripts/character/hunter_animation.gd")
+const Equipment := preload("res://scripts/game/ruin_equipment.gd")
+const Sprites := preload("res://scripts/character/hunter_sprites.gd")
 
 const MOTIONS := ["idle", "walk", "run", "jump", "glide", "land", "crouch", "hurt", "retreat", "climb"]
 

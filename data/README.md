@@ -13,5 +13,5 @@
 
 ```sh
 godot --headless --path . --import
-godot --headless --path . --fixed-fps 60 --script tests/monster_data_smoke.gd
+godot --headless --path . --fixed-fps 60 --script tests/character/monster_data_smoke.gd
 ```

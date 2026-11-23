@@ -20,6 +20,6 @@
 | 新場景、怪物與物品圖 | 內建 ImageGen 生成。新增素材在 `assets/environment/`、`assets/monster/` 與 `assets/items/`。 |
 | 實機畫面與玩法片段 | 取自本專案 Linux 版的 Godot 圖形環境執行，可重跑路線驗收腳本。 |
 | Godot 與第三方元件 | 測試包附 `GODOT-LICENSES.txt`。 |
-| 既有圖像與音效 | 角色、神殿與部分怪物圖像沿用專案現有素材，沿用圖像的完整來源紀錄待補。命中音效由 `scripts/ruin_hit_effects.gd` 在遊戲中生成。 |
+| 既有圖像與音效 | 角色、神殿與部分怪物圖像沿用專案現有素材，沿用圖像的完整來源紀錄待補。命中音效由 `scripts/effects/ruin_hit_effects.gd` 在遊戲中生成。 |
 
 Steamworks 維持暫緩，恢復後再確認商店欄位、素材格式與公開流程。

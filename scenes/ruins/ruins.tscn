@@ -1,7 +1,7 @@
 [gd_scene format=4 uid="uid://c6fs0k5em18i0"]
 
-[ext_resource type="Script" uid="uid://cb2e02jbpr5sh" path="res://scripts/ruins.gd" id="1_ruins"]
-[ext_resource type="Script" uid="uid://d2gjkqovhn8ya" path="res://scripts/ruin_landscape.gd" id="2_landscape"]
+[ext_resource type="Script" uid="uid://cb2e02jbpr5sh" path="res://scripts/scene/ruins.gd" id="1_ruins"]
+[ext_resource type="Script" uid="uid://d2gjkqovhn8ya" path="res://scripts/scene/ruin_landscape.gd" id="2_landscape"]
 [ext_resource type="Texture2D" uid="uid://doypcuyf44pwf" path="res://assets/environment/common/backdrops/ancient_temple.png" id="backdrop"]
 [ext_resource type="Texture2D" uid="uid://ds6srd382bdhf" path="res://assets/environment/common/props/brazier.png" id="brazier"]
 [ext_resource type="Texture2D" uid="uid://wivdl66iq62q" path="res://assets/environment/common/props/broken_column.png" id="broken_column"]
