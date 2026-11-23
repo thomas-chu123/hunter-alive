@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b634xrjxolgur"
-path="res://.godot/imported/root_ledge.png-ca81b710a06402d5fb2259990be76ad4.ctex"
+uid="uid://cx0536cb3t4iq"
+path="res://.godot/imported/reliquary.png-e681c2294c0065f1d25a20505269b55c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/ruins/root_ledge.png"
-dest_files=["res://.godot/imported/root_ledge.png-ca81b710a06402d5fb2259990be76ad4.ctex"]
+source_file="res://assets/environment/common/props/reliquary.png"
+dest_files=["res://.godot/imported/reliquary.png-e681c2294c0065f1d25a20505269b55c.ctex"]
 
 [params]
 

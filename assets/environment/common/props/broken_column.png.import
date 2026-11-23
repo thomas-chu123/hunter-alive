@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cx0536cb3t4iq"
-path="res://.godot/imported/reliquary.png-1e18cdce64e34b17621dcbbbd1f0b51b.ctex"
+uid="uid://wivdl66iq62q"
+path="res://.godot/imported/broken_column.png-085321cf6dcfe7fcabf9fd262cccfdcc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/ruins/reliquary.png"
-dest_files=["res://.godot/imported/reliquary.png-1e18cdce64e34b17621dcbbbd1f0b51b.ctex"]
+source_file="res://assets/environment/common/props/broken_column.png"
+dest_files=["res://.godot/imported/broken_column.png-085321cf6dcfe7fcabf9fd262cccfdcc.ctex"]
 
 [params]
 

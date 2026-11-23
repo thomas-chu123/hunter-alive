@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cy1ork26yelux"
-path="res://.godot/imported/fern.png-6d084312dcc300b9ffcb06d08599a1f2.ctex"
+uid="uid://b634xrjxolgur"
+path="res://.godot/imported/root_ledge.png-88ba9da3ffccf5cc9798d70e804011b9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/ruins/fern.png"
-dest_files=["res://.godot/imported/fern.png-6d084312dcc300b9ffcb06d08599a1f2.ctex"]
+source_file="res://assets/environment/common/terrain/source/root_ledge.png"
+dest_files=["res://.godot/imported/root_ledge.png-88ba9da3ffccf5cc9798d70e804011b9.ctex"]
 
 [params]
 

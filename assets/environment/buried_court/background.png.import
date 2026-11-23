@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ds6srd382bdhf"
-path="res://.godot/imported/brazier.png-6cb3bfe4dff5c3fce50aefcb3d3220ba.ctex"
+uid="uid://qlhck6jdyx0"
+path="res://.godot/imported/background.png-dbe36054f1b25377db7a1aa0ea00ae7f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/ruins/brazier.png"
-dest_files=["res://.godot/imported/brazier.png-6cb3bfe4dff5c3fce50aefcb3d3220ba.ctex"]
+source_file="res://assets/environment/buried_court/background.png"
+dest_files=["res://.godot/imported/background.png-dbe36054f1b25377db7a1aa0ea00ae7f.ctex"]
 
 [params]
 

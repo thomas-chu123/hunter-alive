@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b3if8xtdh41l8"
-path="res://.godot/imported/flooded_corridor.png-9a9098eecb0eed61750aceda65cb33e3.ctex"
+uid="uid://boe8r5yegmem1"
+path="res://.godot/imported/stone_gate.png-0c2dd13f6f471f14a9b6f001b5129daa.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/flooded_corridor.png"
-dest_files=["res://.godot/imported/flooded_corridor.png-9a9098eecb0eed61750aceda65cb33e3.ctex"]
+source_file="res://assets/environment/common/props/stone_gate.png"
+dest_files=["res://.godot/imported/stone_gate.png-0c2dd13f6f471f14a9b6f001b5129daa.ctex"]
 
 [params]
 

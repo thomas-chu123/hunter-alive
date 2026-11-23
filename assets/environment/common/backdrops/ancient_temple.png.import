@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ddwn3iww65hye"
-path="res://.godot/imported/moss_ledge.png-99886dbf1c76c9af20655d024720deb7.ctex"
+uid="uid://doypcuyf44pwf"
+path="res://.godot/imported/ancient_temple.png-82652f0f445f1aecff02df6986c49916.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/ruins/moss_ledge.png"
-dest_files=["res://.godot/imported/moss_ledge.png-99886dbf1c76c9af20655d024720deb7.ctex"]
+source_file="res://assets/environment/common/backdrops/ancient_temple.png"
+dest_files=["res://.godot/imported/ancient_temple.png-82652f0f445f1aecff02df6986c49916.ctex"]
 
 [params]
 

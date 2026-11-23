@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b082aaq1ojhly"
-path="res://.godot/imported/moss_stone.png-b3326f40ff742102dd024c151ca3f842.ctex"
+uid="uid://b6c6rrg5imjea"
+path="res://.godot/imported/terrain_grid.png-9e9c3c5d05aa873d3f281fa1535e1702.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/ruins/moss_stone.png"
-dest_files=["res://.godot/imported/moss_stone.png-b3326f40ff742102dd024c151ca3f842.ctex"]
+source_file="res://assets/environment/common/terrain/terrain_grid.png"
+dest_files=["res://.godot/imported/terrain_grid.png-9e9c3c5d05aa873d3f281fa1535e1702.ctex"]
 
 [params]
 

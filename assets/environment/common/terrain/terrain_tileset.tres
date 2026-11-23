@@ -1,6 +1,6 @@
 [gd_resource type="TileSet" format=3 uid="uid://con8hl5nkiqgu"]
 
-[ext_resource type="Texture2D" uid="uid://b6c6rrg5imjea" path="res://assets/environment/ruins/terrain_grid.png" id="1_grid"]
+[ext_resource type="Texture2D" uid="uid://b6c6rrg5imjea" path="res://assets/environment/common/terrain/terrain_grid.png" id="1_grid"]
 [ext_resource type="PackedScene" path="res://scenes/ruins_props/broken_column.tscn" id="2_column"]
 [ext_resource type="PackedScene" path="res://scenes/ruins_props/fern.tscn" id="3_fern"]
 

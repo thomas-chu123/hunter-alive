@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://2jp0e0vuhmpu"
-path="res://.godot/imported/terrain_atlas.png-6af8611f6be5ac9929212161add2eeed.ctex"
+uid="uid://c644ik782ysax"
+path="res://.godot/imported/carved_stone.png-333e02ade3871987e85eb93ef1d18f10.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/ruins/terrain_atlas.png"
-dest_files=["res://.godot/imported/terrain_atlas.png-6af8611f6be5ac9929212161add2eeed.ctex"]
+source_file="res://assets/environment/common/terrain/source/carved_stone.png"
+dest_files=["res://.godot/imported/carved_stone.png-333e02ade3871987e85eb93ef1d18f10.ctex"]
 
 [params]
 

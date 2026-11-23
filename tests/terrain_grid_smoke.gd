@@ -1,6 +1,6 @@
 extends SceneTree
 
-const TERRAIN_TILESET := preload("res://assets/environment/ruins/terrain_tileset.tres")
+const TERRAIN_TILESET := preload("res://assets/environment/common/terrain/terrain_tileset.tres")
 const Armory := preload("res://scripts/ruin_armory.gd")
 const TILE_SIZE := Vector2i(20, 20)
 const TILE_CORNERS := [

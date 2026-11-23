@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bek2fpjsjwabt"
-path="res://.godot/imported/cracked_sandstone.png-302cc2ca481ef370b17b48c454b05301.ctex"
+uid="uid://ds6srd382bdhf"
+path="res://.godot/imported/brazier.png-0c652b1ac30315699315e440260a4a0a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/ruins/cracked_sandstone.png"
-dest_files=["res://.godot/imported/cracked_sandstone.png-302cc2ca481ef370b17b48c454b05301.ctex"]
+source_file="res://assets/environment/common/props/brazier.png"
+dest_files=["res://.godot/imported/brazier.png-0c652b1ac30315699315e440260a4a0a.ctex"]
 
 [params]
 

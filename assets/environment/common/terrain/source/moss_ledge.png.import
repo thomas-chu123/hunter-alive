@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b6c6rrg5imjea"
-path="res://.godot/imported/terrain_grid.png-671a2733aaee8b5cf61243453317df66.ctex"
+uid="uid://ddwn3iww65hye"
+path="res://.godot/imported/moss_ledge.png-0478cd22f47941ce3fa6199292c10f29.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/ruins/terrain_grid.png"
-dest_files=["res://.godot/imported/terrain_grid.png-671a2733aaee8b5cf61243453317df66.ctex"]
+source_file="res://assets/environment/common/terrain/source/moss_ledge.png"
+dest_files=["res://.godot/imported/moss_ledge.png-0478cd22f47941ce3fa6199292c10f29.ctex"]
 
 [params]
 

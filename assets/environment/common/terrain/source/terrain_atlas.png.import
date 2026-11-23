@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://boe8r5yegmem1"
-path="res://.godot/imported/stone_gate.png-53f7ddbc41a7cf4b8c60f4d489482477.ctex"
+uid="uid://2jp0e0vuhmpu"
+path="res://.godot/imported/terrain_atlas.png-435280825262107c56fc0706ae9535ad.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/ruins/stone_gate.png"
-dest_files=["res://.godot/imported/stone_gate.png-53f7ddbc41a7cf4b8c60f4d489482477.ctex"]
+source_file="res://assets/environment/common/terrain/source/terrain_atlas.png"
+dest_files=["res://.godot/imported/terrain_atlas.png-435280825262107c56fc0706ae9535ad.ctex"]
 
 [params]
 

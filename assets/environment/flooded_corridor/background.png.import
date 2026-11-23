@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://qlhck6jdyx0"
-path="res://.godot/imported/buried_court.png-069ec50b5c0eb9d41f36cac8c9d18151.ctex"
+uid="uid://b3if8xtdh41l8"
+path="res://.godot/imported/background.png-d1cd43571ff6e0d753847b30a024309a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/buried_court.png"
-dest_files=["res://.godot/imported/buried_court.png-069ec50b5c0eb9d41f36cac8c9d18151.ctex"]
+source_file="res://assets/environment/flooded_corridor/background.png"
+dest_files=["res://.godot/imported/background.png-d1cd43571ff6e0d753847b30a024309a.ctex"]
 
 [params]
 

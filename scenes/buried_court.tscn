@@ -1,13 +1,13 @@
 [gd_scene format=3 uid="uid://diy37od1o1sxs"]
 
-[ext_resource type="Texture2D" uid="uid://qlhck6jdyx0" path="res://assets/environment/buried_court.png" id="background"]
-[ext_resource type="Texture2D" uid="uid://cx0536cb3t4iq" path="res://assets/environment/ruins/reliquary.png" id="cache"]
-[ext_resource type="Texture2D" uid="uid://ds6srd382bdhf" path="res://assets/environment/ruins/brazier.png" id="camp"]
-[ext_resource type="Texture2D" uid="uid://boe8r5yegmem1" path="res://assets/environment/ruins/stone_gate.png" id="gate"]
+[ext_resource type="Texture2D" uid="uid://qlhck6jdyx0" path="res://assets/environment/buried_court/background.png" id="background"]
+[ext_resource type="Texture2D" uid="uid://cx0536cb3t4iq" path="res://assets/environment/common/props/reliquary.png" id="cache"]
+[ext_resource type="Texture2D" uid="uid://ds6srd382bdhf" path="res://assets/environment/common/props/brazier.png" id="camp"]
+[ext_resource type="Texture2D" uid="uid://boe8r5yegmem1" path="res://assets/environment/common/props/stone_gate.png" id="gate"]
 [ext_resource type="Script" uid="uid://d2gjkqovhn8ya" path="res://scripts/ruin_landscape.gd" id="landscape"]
-[ext_resource type="Texture2D" uid="uid://wivdl66iq62q" path="res://assets/environment/ruins/broken_column.png" id="pillar"]
+[ext_resource type="Texture2D" uid="uid://wivdl66iq62q" path="res://assets/environment/common/props/broken_column.png" id="pillar"]
 [ext_resource type="Script" uid="uid://cb2e02jbpr5sh" path="res://scripts/ruins.gd" id="ruins"]
-[ext_resource type="TileSet" path="res://assets/environment/ruins/terrain_tileset.tres" id="terrain_tileset"]
+[ext_resource type="TileSet" path="res://assets/environment/common/terrain/terrain_tileset.tres" id="terrain_tileset"]
 
 [sub_resource type="RectangleShape2D" id="RamBarrier"]
 size = Vector2(30, 54)

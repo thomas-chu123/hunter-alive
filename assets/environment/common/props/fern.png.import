@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bbe671uifcfau"
-path="res://.godot/imported/root_stone.png-514639bfaf9f11d1fdd91a640dc6601e.ctex"
+uid="uid://cy1ork26yelux"
+path="res://.godot/imported/fern.png-2d4257f21fd4c0c067bacbcd69fae803.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/ruins/root_stone.png"
-dest_files=["res://.godot/imported/root_stone.png-514639bfaf9f11d1fdd91a640dc6601e.ctex"]
+source_file="res://assets/environment/common/props/fern.png"
+dest_files=["res://.godot/imported/fern.png-2d4257f21fd4c0c067bacbcd69fae803.ctex"]
 
 [params]
 

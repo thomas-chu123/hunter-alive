@@ -2,12 +2,12 @@
 
 [ext_resource type="Script" path="res://scripts/ruins.gd" id="ruins"]
 [ext_resource type="Script" path="res://scripts/ruin_landscape.gd" id="landscape"]
-[ext_resource type="Texture2D" path="res://assets/environment/flooded_corridor.png" id="background"]
-[ext_resource type="Texture2D" path="res://assets/environment/ruins/brazier.png" id="camp"]
-[ext_resource type="Texture2D" path="res://assets/environment/ruins/stone_gate.png" id="gate"]
-[ext_resource type="Texture2D" path="res://assets/environment/ruins/reliquary.png" id="cache"]
-[ext_resource type="Texture2D" path="res://assets/environment/ruins/broken_column.png" id="pillar"]
-[ext_resource type="TileSet" path="res://assets/environment/ruins/terrain_tileset.tres" id="terrain_tileset"]
+[ext_resource type="Texture2D" path="res://assets/environment/flooded_corridor/background.png" id="background"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/brazier.png" id="camp"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/stone_gate.png" id="gate"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/reliquary.png" id="cache"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/broken_column.png" id="pillar"]
+[ext_resource type="TileSet" path="res://assets/environment/common/terrain/terrain_tileset.tres" id="terrain_tileset"]
 
 [sub_resource type="RectangleShape2D" id="LightGate"]
 size = Vector2(20, 720)
