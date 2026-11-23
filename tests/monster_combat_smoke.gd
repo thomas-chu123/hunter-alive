@@ -37,23 +37,22 @@ func run() -> void:
 		quit(1 if failures else 0)
 		return
 	var elements := {}
-	var sprite_rows := {}
-	var atlas := Art.ATTACK_ATLAS.get_image()
-	var unarmed_atlas := Art.UNARMED_ATLAS.get_image()
+	var attack_paths := {}
 	for id in Bestiary.creatures:
 		var entry: Dictionary = Bestiary.creatures[id]
 		var attack: Dictionary = entry.attack
 		elements[attack.element] = true
-		var row := int(entry.sprite_row)
-		sprite_rows[row] = true
-		check(valid_poses(atlas, row % 7, floori(row / 7.0) * 3),
+		var sheet: Texture2D = Art.POSES[id].attack
+		attack_paths[sheet.resource_path] = true
+		check(valid_poses(sheet.get_image()),
 			"%s has three distinct transparent sprite frames" % id)
 		await encounter(id, false)
 		if attack.has("unarmed"):
-			check(valid_poses(unarmed_atlas, Art.UNARMED_ROWS[row], 0),
+			var unarmed: Texture2D = Art.POSES[id].attack_unarmed
+			check(valid_poses(unarmed.get_image()),
 				"%s has three distinct disarmed frames" % id)
 			await encounter(id, true)
-	check(sprite_rows.size() == 21 and elements.size() == 5, "21 unique sprite rows and all five elements are used")
+	check(attack_paths.size() == 21 and elements.size() == 5, "21 monster attack sheets and all five elements are used")
 	await check_dodges()
 	quit(1 if failures else 0)
 
@@ -63,7 +62,7 @@ func encounter(id: String, unarmed: bool) -> void:
 	var attack: Dictionary = entry.attack
 	var mode: String = attack.mode if not unarmed else attack.unarmed.mode
 	var gap := 165.0 if mode == "bolt" else 60.0
-	var direction := -1 if int(entry.sprite_row) % 2 == 0 else 1
+	var direction := -1 if Bestiary.creatures.keys().find(id) % 2 == 0 else 1
 	reset_hunter(900 + gap * direction)
 	var monster := add_enemy(id)
 	if unarmed:
@@ -166,10 +165,10 @@ func affected(initial_health: int) -> bool:
 	return hunter.health < initial_health or hunter.pollen_left > 0.0 or hunter.leech_left > 0.0
 
 
-func valid_poses(atlas: Image, row: int, column: int) -> bool:
+func valid_poses(sheet: Image) -> bool:
 	var frames_seen := {}
 	for pose in range(3):
-		var cell := atlas.get_region(Rect2i(Vector2i(column + pose, row) * 224, Vector2i(224, 224)))
+		var cell := sheet.get_region(Rect2i(Vector2i(pose * 224, 0), Vector2i(224, 224)))
 		if cell.is_invisible() or cell.get_pixel(0, 0).a > 0:
 			return false
 		frames_seen[hash(cell.get_data())] = true

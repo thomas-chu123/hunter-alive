@@ -1,34 +1,131 @@
 extends RefCounted
 
-const ATLAS := [
-	preload("res://assets/monster/spider.png"),
-	preload("res://assets/monster/lizard.png"),
-	preload("res://assets/monster/treant.png"),
-]
-const COLUMNS := [0, 309, 618, 927, 1254]
-const BODY_ANCHOR := [
-	[146, 145, 125, 110],
-	[158, 159, 148, 151],
-	[121, 129, 127, 145],
-]
-const MOTH_ATLAS := preload("res://assets/monster/bell_moth.png")
+const CRAB := preload("res://assets/monster/lantern_crab/idle.png")
+const LANTERN_REGION := Rect2(1366, 423, 240, 325)
+
+const POSES := {
+	"spider": {
+		"idle": preload("res://assets/monster/spider/idle.png"),
+		"attack": preload("res://assets/monster/spider/attack.png"),
+		"walk": preload("res://assets/monster/spider/walk.png"),
+	},
+	"lizard": {
+		"idle": preload("res://assets/monster/lizard/idle.png"),
+		"attack": preload("res://assets/monster/lizard/attack.png"),
+		"walk": preload("res://assets/monster/lizard/walk.png"),
+	},
+	"treant": {
+		"idle": preload("res://assets/monster/treant/idle.png"),
+		"idle_unarmed": preload("res://assets/monster/treant/idle_unarmed.png"),
+		"attack": preload("res://assets/monster/treant/attack.png"),
+		"attack_transition": preload("res://assets/monster/treant/attack_transition.png"),
+		"attack_transition_unarmed": preload("res://assets/monster/treant/attack_transition_unarmed.png"),
+		"attack_unarmed": preload("res://assets/monster/treant/attack_unarmed.png"),
+		"walk": preload("res://assets/monster/treant/walk.png"),
+		"walk_unarmed": preload("res://assets/monster/treant/walk_unarmed.png"),
+	},
+	"bell_moth": {
+		"idle": preload("res://assets/monster/bell_moth/idle.png"),
+		"attack": preload("res://assets/monster/bell_moth/attack.png"),
+	},
+	"lantern_crab": {
+		"idle": CRAB,
+		"attack": preload("res://assets/monster/lantern_crab/attack.png"),
+		"attack_transition": preload("res://assets/monster/lantern_crab/attack_transition.png"),
+		"attack_unarmed": preload("res://assets/monster/lantern_crab/attack_unarmed.png"),
+		"walk": preload("res://assets/monster/lantern_crab/walk.png"),
+		"walk_unarmed": preload("res://assets/monster/lantern_crab/walk_unarmed.png"),
+	},
+	"seal_keeper": {
+		"idle": preload("res://assets/monster/seal_keeper/idle.png"),
+		"attack": preload("res://assets/monster/seal_keeper/attack.png"),
+		"attack_transition": preload("res://assets/monster/seal_keeper/attack_transition.png"),
+		"walk": preload("res://assets/monster/seal_keeper/walk.png"),
+	},
+	"shale_beetle": {
+		"idle": preload("res://assets/monster/shale_beetle/idle.tres"),
+		"attack": preload("res://assets/monster/shale_beetle/attack.png"),
+	},
+	"dust_hare": {
+		"idle": preload("res://assets/monster/dust_hare/idle.tres"),
+		"attack": preload("res://assets/monster/dust_hare/attack.png"),
+	},
+	"mirror_eel": {
+		"idle": preload("res://assets/monster/mirror_eel/idle.tres"),
+		"attack": preload("res://assets/monster/mirror_eel/attack.png"),
+	},
+	"root_mole": {
+		"idle": preload("res://assets/monster/root_mole/idle.tres"),
+		"attack": preload("res://assets/monster/root_mole/attack.png"),
+	},
+	"reed_leech": {
+		"idle": preload("res://assets/monster/reed_leech/idle.tres"),
+		"attack": preload("res://assets/monster/reed_leech/attack.png"),
+	},
+	"silt_ray": {
+		"idle": preload("res://assets/monster/silt_ray/idle.tres"),
+		"attack": preload("res://assets/monster/silt_ray/attack.png"),
+	},
+	"sluice_snail": {
+		"idle": preload("res://assets/monster/sluice_snail/idle.tres"),
+		"attack": preload("res://assets/monster/sluice_snail/attack.png"),
+	},
+	"tide_salamander": {
+		"idle": preload("res://assets/monster/tide_salamander/idle.tres"),
+		"attack": preload("res://assets/monster/tide_salamander/attack.png"),
+	},
+	"thorn_archer": {
+		"idle": preload("res://assets/monster/thorn_archer/idle.tres"),
+		"attack": preload("res://assets/monster/thorn_archer/attack.png"),
+		"attack_unarmed": preload("res://assets/monster/thorn_archer/attack_unarmed.png"),
+	},
+	"shield_heron": {
+		"idle": preload("res://assets/monster/shield_heron/idle.tres"),
+		"attack": preload("res://assets/monster/shield_heron/attack.png"),
+		"attack_unarmed": preload("res://assets/monster/shield_heron/attack_unarmed.png"),
+	},
+	"key_jackal": {
+		"idle": preload("res://assets/monster/key_jackal/idle.tres"),
+		"attack": preload("res://assets/monster/key_jackal/attack.png"),
+	},
+	"ash_scribe": {
+		"idle": preload("res://assets/monster/ash_scribe/idle.tres"),
+		"attack": preload("res://assets/monster/ash_scribe/attack.png"),
+	},
+	"shard_warden": {
+		"idle": preload("res://assets/monster/shard_warden/idle.tres"),
+		"attack": preload("res://assets/monster/shard_warden/attack.png"),
+		"walk": preload("res://assets/monster/shard_warden/walk.png"),
+	},
+	"copper_cicada": {
+		"idle": preload("res://assets/monster/copper_cicada/idle.tres"),
+		"attack": preload("res://assets/monster/copper_cicada/attack.png"),
+	},
+	"burial_ram": {
+		"idle": preload("res://assets/monster/burial_ram/idle.tres"),
+		"attack": preload("res://assets/monster/burial_ram/attack.png"),
+	},
+}
+
+const IDLE_ANCHORS := {"spider": 146.0, "lizard": 158.0, "treant": 121.0}
+const UNARMED_TREANT_ANCHOR := 145.0
 const MOTH_CELL := 627.0
 # Abdomen position within each cell, kept aligned with the in-game warning glow.
 const MOTH_ABDOMEN := [Vector2(305, 365), Vector2(307, 372),
 	Vector2(334, 383), Vector2(298, 373)]
-const CRAB := preload("res://assets/monster/lantern_crab.png")
-const KEEPER := preload("res://assets/monster/seal_keeper.png")
-const LANTERN_REGION := Rect2(1366, 423, 240, 325)
+const MOTION_CELL := Vector2(224, 224)
+const MOTION_ANCHOR := Vector2(112, 197)
 
 
-static func draw_actor(canvas: Node2D, row: int, pose: int, scale: float,
+static func draw_ground_idle(canvas: Node2D, species: String, unarmed: bool, scale: float,
 		facing: float, torso_motion: float, tint: Color = Color.WHITE) -> void:
-	var width: float = COLUMNS[pose + 1] - COLUMNS[pose]
-	var texture: Texture2D = ATLAS[row]
+	var key := "idle_unarmed" if unarmed else "idle"
+	var texture: Texture2D = POSES[species][key]
+	var anchor: float = UNARMED_TREANT_ANCHOR if unarmed else IDLE_ANCHORS[species]
+	var width := float(texture.get_width())
 	var height := float(texture.get_height())
-	var source := Rect2(COLUMNS[pose], 0, width, height)
-	var dest := Rect2(-BODY_ANCHOR[row][pose] * scale, -height * scale,
-		width * scale, height * scale)
+	var source := Rect2(Vector2.ZERO, texture.get_size())
+	var dest := Rect2(-anchor * scale, -height * scale, width * scale, height * scale)
 	canvas.draw_set_transform(Vector2.ZERO, 0, Vector2(facing, 1))
 	if is_zero_approx(torso_motion):
 		canvas.draw_texture_rect_region(texture, dest, source, tint)
@@ -54,7 +151,7 @@ static func draw_bell_moth(canvas: Node2D, pose: int, facing: float, flap: float
 	var source := Rect2(quadrant * cell, cell)
 	var dest := Rect2(-MOTH_ABDOMEN[pose] * scale, cell * scale)
 	canvas.draw_set_transform(Vector2(0, -22), 0, Vector2(facing * flap, 1))
-	canvas.draw_texture_rect_region(MOTH_ATLAS, dest, source, tint)
+	canvas.draw_texture_rect_region(POSES["bell_moth"].idle, dest, source, tint)
 	canvas.draw_set_transform(Vector2.ZERO)
 
 
@@ -72,66 +169,27 @@ static func draw_stage_guard(canvas: Node2D, crab: bool, facing: float,
 			for source in [Rect2(130, 28, 1230, 790), Rect2(1360, 28, 260, 386)]:
 				canvas.draw_texture_rect_region(CRAB, Rect2((source.position - offset) * scale, source.size * scale), source, tint)
 	else:
-		var source := Rect2(0, 0, KEEPER.get_width(), KEEPER.get_height())
+		var texture: Texture2D = POSES["seal_keeper"].idle
+		var source := Rect2(Vector2.ZERO, texture.get_size())
 		var scale := 0.128
 		var feet := Vector2(594, 1307)
-		canvas.draw_texture_rect_region(KEEPER, Rect2(-feet * scale, source.size * scale), source, tint)
+		canvas.draw_texture_rect_region(texture, Rect2(-feet * scale, source.size * scale), source, tint)
 	canvas.draw_set_transform(Vector2.ZERO)
 
 
-const BESTIARY_ATLASES := [
-	preload("res://assets/monster/stage3_beasts_a.png"),
-	preload("res://assets/monster/stage3_beasts_b.png"),
-]
-
-
-static func draw_bestiary(canvas: Node2D, index: int, facing: float, lean: float, tint: Color,
+static func draw_bestiary_idle(canvas: Node2D, species: String, facing: float, lean: float, tint: Color,
 		stretch: float = 1.0, recoil: float = 0.0) -> void:
-	var atlas: Texture2D = BESTIARY_ATLASES[0 if index < 8 else 1]
-	var frame := index % 8
-	var cell := atlas.get_size() / Vector2(4, 2)
-	var source := Rect2(Vector2(frame % 4, 0 if frame < 4 else 1) * cell, cell)
+	var sprite: AtlasTexture = POSES[species].idle
 	var size := Vector2(103, 103)
 	canvas.draw_set_transform(Vector2(recoil, 0), lean * signf(facing), Vector2(facing, stretch))
-	canvas.draw_texture_rect_region(atlas, Rect2(Vector2(-size.x * 0.5, -size.y * 0.88), size), source, tint)
+	canvas.draw_texture_rect_region(sprite.atlas, Rect2(Vector2(-size.x * 0.5, -size.y * 0.88), size), sprite.region, tint)
 	canvas.draw_set_transform(Vector2.ZERO)
 
 
-const MOVEMENT_ATLAS := preload("res://assets/monster/movement_poses.png")
-const TRANSITION_ATLAS := preload("res://assets/monster/attack_transitions.png")
-const ATTACK_ATLAS := preload("res://assets/monster/attack_poses.png")
-const UNARMED_ATLAS := preload("res://assets/monster/unarmed_attack_poses.png")
-const UNARMED_ROWS := {2: 0, 4: 1, 14: 2, 15: 3}
-const ATTACK_CELL := Vector2(224, 224)
-const ATTACK_ANCHOR := Vector2(112, 197)
-
-
-static func draw_attack(canvas: Node2D, index: int, pose: int, facing: float,
-		tint: Color, unarmed: bool, stretch: float, lean: float, recoil: float) -> void:
-	var atlas := ATTACK_ATLAS
-	var row := index % 7
-	var column := floori(index / 7.0) * 3 + pose
-	if unarmed:
-		atlas = UNARMED_ATLAS
-		row = UNARMED_ROWS[index]
-		column = pose
-	_draw_motion_cell(canvas, atlas, row, column, facing, tint, stretch, lean, recoil)
-
-
-static func draw_walk(canvas: Node2D, row: int, frame: int, facing: float, tint: Color,
-		stretch: float, lean: float, recoil: float) -> void:
-	_draw_motion_cell(canvas, MOVEMENT_ATLAS, row, frame, facing, tint, stretch, lean, recoil)
-
-
-static func draw_transition(canvas: Node2D, row: int, frame: int, facing: float, tint: Color,
-		stretch: float, lean: float, recoil: float) -> void:
-	_draw_motion_cell(canvas, TRANSITION_ATLAS, row, frame, facing, tint, stretch, lean, recoil)
-
-
-static func _draw_motion_cell(canvas: Node2D, atlas: Texture2D, row: int, column: int,
-		facing: float, tint: Color, stretch: float, lean: float, recoil: float) -> void:
-	var source := Rect2(Vector2(column, row) * ATTACK_CELL, ATTACK_CELL)
-	var dest := Rect2(-ATTACK_ANCHOR * 0.8, ATTACK_CELL * 0.8)
+static func draw_motion_frame(canvas: Node2D, sheet: Texture2D, frame: int, facing: float,
+		tint: Color, stretch: float, lean: float, recoil: float) -> void:
+	var source := Rect2(Vector2(frame, 0) * MOTION_CELL, MOTION_CELL)
+	var dest := Rect2(-MOTION_ANCHOR * 0.8, MOTION_CELL * 0.8)
 	canvas.draw_set_transform(Vector2(recoil, 0), lean * signf(facing), Vector2(facing, stretch))
-	canvas.draw_texture_rect_region(atlas, dest, source, tint)
+	canvas.draw_texture_rect_region(sheet, dest, source, tint)
 	canvas.draw_set_transform(Vector2.ZERO)

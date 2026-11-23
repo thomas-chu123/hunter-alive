@@ -34,8 +34,8 @@ func run() -> void:
 	caption.add_theme_font_size_override("font_size", 24)
 	caption.add_theme_constant_override("outline_size", 7)
 	overlay.add_child(caption)
-	check_atlas(Art.MOVEMENT_ATLAS.get_image(), 8, 4, "walk")
-	check_atlas(Art.TRANSITION_ATLAS.get_image(), 4, 2, "attack transition")
+	check_motion_sheets("walk", "walk_unarmed", 8, 4)
+	check_motion_sheets("attack_transition", "attack_transition_unarmed", 4, 2)
 	await low_ceiling("treant")
 	await low_ceiling("seal_keeper")
 	await scout_jumps()
@@ -143,14 +143,22 @@ func attack_transition() -> void:
 	remove(monster)
 
 
-func check_atlas(atlas: Image, rows: int, columns: int, action: String) -> void:
-	for row in range(rows):
-		var seen := {}
-		for frame in range(columns):
-			var region := atlas.get_region(Rect2i(Vector2i(frame, row) * 224, Vector2i(224, 224)))
-			if not region.is_invisible() and is_zero_approx(region.get_pixel(0, 0).a):
-				seen[hash(region.get_data())] = true
-		check(seen.size() == columns, "%s row %d has %d distinct transparent drawings" % [action, row, columns])
+func check_motion_sheets(action: String, disarmed_action: String, expected: int, frame_count: int) -> void:
+	var count := 0
+	for species: String in Art.POSES:
+		for key in [action, disarmed_action]:
+			var texture: Texture2D = Art.POSES[species].get(key)
+			if texture == null:
+				continue
+			count += 1
+			var sheet := texture.get_image()
+			var seen := {}
+			for frame in range(frame_count):
+				var region := sheet.get_region(Rect2i(Vector2i(frame * 224, 0), Vector2i(224, 224)))
+				if not region.is_invisible() and is_zero_approx(region.get_pixel(0, 0).a):
+					seen[hash(region.get_data())] = true
+			check(seen.size() == frame_count, "%s/%s has %d distinct transparent drawings" % [species, key, frame_count])
+	check(count == expected, "%s has %d sheets" % [action, expected])
 
 
 func spawn(id: String, x: float) -> Monster:

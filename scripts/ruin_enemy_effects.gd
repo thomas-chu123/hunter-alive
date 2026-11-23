@@ -4,7 +4,7 @@ const COLORS := {
 	"metal": Color("#ffe7ab"), "wood": Color("#c6eb83"), "water": Color("#81e6ff"),
 	"fire": Color("#ff8352"), "earth": Color("#e6aa73"),
 }
-const GROUND_FIRE := preload("res://assets/monster/ground_fire.png")
+const GROUND_FIRE := preload("res://assets/monster/ash_scribe/ground_fire.png")
 const FIRE_CELL_SIZE := Vector2(768, 512)
 const FIRE_FRAME := Rect2(31, 140, 704, 283)
 const FIRE_FRAME_COUNT := 4

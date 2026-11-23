@@ -12,7 +12,6 @@ const Hunter := preload("res://scripts/ruin_hunter.gd")
 const HIT_FLASH := preload("res://scripts/ruin_hit_flash.gdshader")
 const SIZE := {"spider": Vector2(76, 55), "lizard": Vector2(92, 70), "treant": Vector2(110, 120),
 	"bell_moth": Vector2(64, 49), "lantern_crab": Vector2(97, 60), "seal_keeper": Vector2(102, 136)}
-const ART_ROWS := {"spider": 0, "lizard": 1, "treant": 2}
 const ART_SCALES := {"spider": 0.30, "lizard": 0.33, "treant": 0.46}
 enum State { PATROL, NOTICE, CHASE, WINDUP, STRIKE, RECOVER, RETURN, STAGGER }
 enum AttackPose { IDLE = -1, ANTICIPATION, RELEASE, RECOVERY }
@@ -656,9 +655,11 @@ func _draw_actor() -> void:
 	var rhythm := gait_distance * TAU / stride
 	var stretch := 1.0 + sin(age * 3.5) * 0.014 + sin(rhythm * 2.0) * 0.026 * gait_weight
 	var lean := cos(rhythm) * 0.043 * gait_weight
-	var walk_row: int = animation.get("unarmed_walk" if unarmed else "walk", -1)
-	var transition_row: int = animation.get("unarmed_transition" if unarmed else "transition", -1)
-	var phase := _transition_frame() if transition_row >= 0 else -1
+	var sheets: Dictionary = Art.POSES[species]
+	var attack_sheet: Texture2D = sheets.attack_unarmed if unarmed else sheets.attack
+	var walk_sheet: Texture2D = sheets.get("walk_unarmed" if unarmed else "walk")
+	var transition_sheet: Texture2D = sheets.get("attack_transition_unarmed" if unarmed else "attack_transition")
+	var phase := _transition_frame() if transition_sheet != null else -1
 	if state == State.NOTICE:
 		stretch += 0.065 * sin(notice_left / NOTICE_TIME * PI)
 		lean -= 0.06
@@ -666,7 +667,7 @@ func _draw_actor() -> void:
 	var squash := hit * float(hit_reaction.squash)
 	var hit_lean := hit_direction * signf(motion_facing) * squash * 0.9
 	if state == State.STAGGER or (pose == AttackPose.IDLE and hit > 0.0):
-		Art.draw_attack(actor_art, int(design.sprite_row), AttackPose.RECOVERY, motion_facing, tint, unarmed,
+		Art.draw_motion_frame(actor_art, attack_sheet, AttackPose.RECOVERY, motion_facing, tint,
 			1.0 - squash, hit_lean, recoil)
 	elif pose >= 0:
 		if strike > 0.0:
@@ -679,27 +680,26 @@ func _draw_actor() -> void:
 		stretch *= 1.0 - squash
 		lean += hit_direction * signf(motion_facing) * squash * 0.9
 		if phase >= 0:
-			Art.draw_transition(actor_art, transition_row, phase, motion_facing, tint, stretch, lean, recoil)
+			Art.draw_motion_frame(actor_art, transition_sheet, phase, motion_facing, tint, stretch, lean, recoil)
 		else:
-			Art.draw_attack(actor_art, int(design.sprite_row), pose, motion_facing, tint, unarmed, stretch, lean, recoil)
-	elif walk_row >= 0 and gait_weight > 0.24:
-		Art.draw_walk(actor_art, walk_row, floori(fposmod(gait_distance, stride) / stride * 4.0),
+			Art.draw_motion_frame(actor_art, attack_sheet, pose, motion_facing, tint, stretch, lean, recoil)
+	elif walk_sheet != null and gait_weight > 0.24:
+		Art.draw_motion_frame(actor_art, walk_sheet, floori(fposmod(gait_distance, stride) / stride * 4.0),
 			motion_facing, tint, stretch, lean, recoil)
 	elif species == "bell_moth":
 		var flap := 1.0 + sin(age * 19.0) * 0.08
 		Art.draw_bell_moth(actor_art, 0, motion_facing, flap, tint)
 	elif species in ["lantern_crab", "seal_keeper"]:
 		Art.draw_stage_guard(actor_art, species == "lantern_crab", motion_facing, armed, lean, tint)
-	elif ART_ROWS.has(species):
-		var idle := 3 if species == "treant" and not armed else 0
-		Art.draw_actor(actor_art, ART_ROWS[species], idle, ART_SCALES[species], motion_facing,
+	elif ART_SCALES.has(species):
+		Art.draw_ground_idle(actor_art, species, unarmed, ART_SCALES[species], motion_facing,
 			(1.0 - stretch) * size.y, tint)
 		actor_art.draw_set_transform(Vector2.ZERO)
 	elif unarmed and species in ["thorn_archer", "shield_heron"]:
-		Art.draw_attack(actor_art, int(design.sprite_row), AttackPose.RECOVERY, motion_facing,
-			tint, unarmed, stretch, lean, recoil)
+		Art.draw_motion_frame(actor_art, attack_sheet, AttackPose.RECOVERY, motion_facing,
+			tint, stretch, lean, recoil)
 	else:
-		Art.draw_bestiary(actor_art, int(design.idle_atlas_index), motion_facing, lean, tint, stretch, recoil)
+		Art.draw_bestiary_idle(actor_art, species, motion_facing, lean, tint, stretch, recoil)
 
 
 func _draw() -> void:

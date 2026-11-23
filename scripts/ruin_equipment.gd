@@ -12,14 +12,37 @@ const ITEMS := {
 
 const STARTING_WEAPONS := ["hunter_knife", "hunter_bow"]
 const ICONS := {
-	"hunter_knife": preload("res://assets/items/hunter_knife.png"),
-	"hunter_bow": preload("res://assets/items/hunter_bow.png"),
-	"linen_hood": preload("res://assets/items/linen_hood.png"),
-	"scaleveil_hood": preload("res://assets/items/scaleveil_hood.png"),
-	"moss_vest": preload("res://assets/items/moss_vest.png"),
-	"hunter_wraps": preload("res://assets/items/hunter_wraps.png"),
-	"ember_staff": preload("res://assets/items/ember_staff.svg"),
-	"root_blade": preload("res://assets/items/root_blade.png"),
+	"ember_staff": preload("res://assets/items/weapon/ember_staff.svg"),
+	"fang_dagger": preload("res://assets/items/weapon/fang_dagger.tres"),
+	"gate_halberd": preload("res://assets/items/weapon/gate_halberd.tres"),
+	"hunter_bow": preload("res://assets/items/weapon/hunter_bow.png"),
+	"hunter_knife": preload("res://assets/items/weapon/hunter_knife.png"),
+	"root_blade": preload("res://assets/items/weapon/root_blade.png"),
+	"scribe_staff": preload("res://assets/items/weapon/scribe_staff.tres"),
+	"sluice_spear": preload("res://assets/items/weapon/sluice_spear.tres"),
+	"thorn_bow": preload("res://assets/items/weapon/thorn_bow.tres"),
+	"tide_hammer": preload("res://assets/items/weapon/tide_hammer.tres"),
+
+	"ash_cowl": preload("res://assets/items/armor/ash_cowl.png"),
+	"bowstring_gloves": preload("res://assets/items/armor/bowstring_gloves.png"),
+	"cinder_greaves": preload("res://assets/items/armor/cinder_greaves.png"),
+	"cliff_boots": preload("res://assets/items/armor/cliff_boots.png"),
+	"copper_helm": preload("res://assets/items/armor/copper_helm.png"),
+	"earthen_armor": preload("res://assets/items/armor/earthen_armor.png"),
+	"eel_greaves": preload("res://assets/items/armor/eel_greaves.png"),
+	"hardroot_bracers": preload("res://assets/items/armor/hardroot_bracers.png"),
+	"hunter_wraps": preload("res://assets/items/armor/hunter_wraps.png"),
+	"linen_hood": preload("res://assets/items/armor/linen_hood.png"),
+	"moss_vest": preload("res://assets/items/armor/moss_vest.png"),
+	"ram_boots": preload("res://assets/items/armor/ram_boots.png"),
+	"reed_coat": preload("res://assets/items/armor/reed_coat.png"),
+	"rune_gloves": preload("res://assets/items/armor/rune_gloves.png"),
+	"scaleveil_hood": preload("res://assets/items/armor/scaleveil_hood.png"),
+	"sealed_cap": preload("res://assets/items/armor/sealed_cap.png"),
+	"silt_shell": preload("res://assets/items/armor/silt_shell.png"),
+	"sluice_boots": preload("res://assets/items/armor/sluice_boots.png"),
+	"stonegrip_gloves": preload("res://assets/items/armor/stonegrip_gloves.png"),
+	"wing_cape": preload("res://assets/items/armor/wing_cape.png"),
 }
 
 
@@ -37,32 +60,9 @@ static func item(id: String) -> Array:
 	return []
 
 
-const CAMPAIGN_ICONS := [
-	preload("res://assets/items/stage3_wear_a.png"),
-	preload("res://assets/items/stage3_wear_b.png"),
-	preload("res://assets/items/stage3_weapons.png"),
-]
-
-
 static func icon(id: String) -> Texture2D:
-	if ICONS.has(id):
-		return ICONS[id]
-	var index := Armory.WEAR.keys().find(id)
-	var atlas: Texture2D
-	if index >= 0:
-		atlas = CAMPAIGN_ICONS[0 if index < 8 else 1]
-		index %= 8
-	else:
-		index = Armory.WEAPONS.keys().find(id) - 1
-		if index < 0:
-			return null
-		atlas = CAMPAIGN_ICONS[2]
-	var cell := atlas.get_size() / Vector2(4, 2)
-	var texture := AtlasTexture.new()
-	texture.atlas = atlas
-	texture.region = Rect2(Vector2(index % 4, 0 if index < 4 else 1) * cell, cell)
-	texture.filter_clip = true
-	return texture
+	return ICONS.get(id) as Texture2D
+
 
 
 const Progression := preload("res://scripts/ruin_progression.gd")
