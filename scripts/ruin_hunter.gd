@@ -7,6 +7,7 @@ signal defeated
 const Progression := preload("res://scripts/ruin_progression.gd")
 const Armory := preload("res://scripts/ruin_armory.gd")
 const HunterAnimation := preload("res://scripts/hunter_animation.gd")
+const HunterSprites := preload("res://scripts/hunter_sprites.gd")
 const WeaponArt := preload("res://scripts/hunter_weapon_art.gd")
 const RUN_SPEED := 250.0
 const WALK_SPEED := 115.0
@@ -389,9 +390,23 @@ func _draw() -> void:
 	if invincible_left > 0 and hurt_left <= 0 and int(invincible_left * 16) % 2 == 0:
 		return
 
+	var weapon := selected_weapon()
 	if wall_holding and hurt_left <= 0.0:
 		var climb_frame := int(animation_time * 12.0) % HunterAnimation.FRAME_COUNT
-		HunterAnimation.draw_climb(self, climb_frame, facing)
+		if weapon == "unarmed":
+			HunterAnimation.draw_climb(self, climb_frame, facing)
+		else:
+			HunterSprites.draw_motion(self, weapon, "climb", climb_frame, facing)
+		return
+
+	if attack_left > 0.0 and hurt_left <= 0.0:
+		if attack_weapon == "unarmed":
+			HunterAnimation.draw_frame(self, "knife_attack", _timed_frame(attack_left, attack_duration), facing)
+		else:
+			var step := blade_step
+			if attack_queued and attack_weapon == "fang_dagger":
+				step = blade_step % 3 + 1 if blade_chain_left > 0.0 and blade_chain_weapon == attack_weapon else 1
+			HunterSprites.draw_attack(self, attack_weapon, 1.0 - attack_left / attack_duration, facing, crouching, step)
 		return
 
 	var action := "idle"
@@ -399,10 +414,6 @@ func _draw() -> void:
 	if hurt_left > 0:
 		action = "hurt"
 		frame = _timed_frame(hurt_left, HURT_DURATION)
-	elif attack_left > 0:
-		if not attack_with_staff:
-			action = "bow_attack" if attack_with_bow else "knife_attack"
-		frame = _timed_frame(attack_left, attack_duration)
 	elif gliding:
 		action = "glide"
 		frame = int(animation_time * 9) % HunterAnimation.FRAME_COUNT
@@ -425,39 +436,20 @@ func _draw() -> void:
 	elif landing_left > 0:
 		action = "land"
 		frame = _timed_frame(landing_left, LAND_DURATION)
-	elif absf(velocity.x) > 18:
-		action = "walk" if walking else "run"
-		frame = int(animation_time * (9 if walking else 14)) % HunterAnimation.FRAME_COUNT
-	var attacking := attack_left > 0.0 and hurt_left <= 0.0
-	var weapon := attack_weapon if attacking else selected_weapon()
-	var progress := 1.0 - attack_left / attack_duration
-	if WeaponArt.WEAPONS.has(weapon):
-		if attacking:
-			var step := blade_step
-			if attack_queued and weapon == "fang_dagger":
-				step = blade_step % 3 + 1 if blade_chain_left > 0.0 and blade_chain_weapon == weapon else 1
-			WeaponArt.draw_attack(self, weapon, progress, facing, crouching, step)
+	elif absf(velocity.x) > 18.0:
+		if velocity.x * facing < 0.0:
+			action = "retreat"
+			frame = int(animation_time * 9) % HunterAnimation.FRAME_COUNT
 		else:
-			WeaponArt.draw_held(self, weapon, action, frame, facing, _held_weapon_bob())
-		return
-	if weapon == "ember_staff":
-		if attacking:
-			WeaponArt.draw_ember_cast(self, progress, facing, crouching)
-		elif action == "walk" or action == "run":
-			HunterAnimation.draw_ember_stride(self, action, frame, facing)
-		else:
-			HunterAnimation.draw_ember_pose(self, facing, _held_weapon_bob())
-		return
-	if action == "knife_attack" and attack_weapon in SHORT_BLADES:
-		HunterAnimation.draw_short_blade(self, frame, facing)
-	else:
+			action = "walk" if walking else "run"
+			frame = int(animation_time * (9 if walking else 14)) % HunterAnimation.FRAME_COUNT
+	if weapon == "unarmed":
+		if action == "retreat":
+			action = "walk"
+			frame = HunterAnimation.FRAME_COUNT - 1 - frame
 		HunterAnimation.draw_frame(self, action, frame, facing)
-
-
-func _held_weapon_bob() -> float:
-	if crouching:
-		return 10.0
-	return sin(animation_time * 18.0) * 1.5 if absf(velocity.x) > 18 else 0.0
+	else:
+		HunterSprites.draw_motion(self, weapon, action, frame, facing)
 
 
 func _timed_frame(remaining: float, duration: float) -> int:

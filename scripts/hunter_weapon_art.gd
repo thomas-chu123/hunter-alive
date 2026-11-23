@@ -25,8 +25,56 @@ const BOW_BOTTOM := Vector2(166, 383)
 const HUNTER_BOW_STRING_AXIS := Vector2(287, -315)
 const DEFAULT_RELEASE := 0.26
 const MELEE_GROUND := 175.0
+# Grip pixels and knife outlines in the original movement frames.
+const MOTION_GRIPS := {
+	"jump": [Vector2(266, 132), Vector2(275, 85), Vector2(275, 73), Vector2(276, 88)],
+	"land": [Vector2(267, 88), Vector2(266, 120), Vector2(266, 100), Vector2(259, 89)],
+	"glide": [Vector2(277, 69), Vector2(285, 74), Vector2(285, 80), Vector2(268, 91)],
+	"hurt": [Vector2(260, 80), Vector2(244, 89), Vector2(254, 108), Vector2(253, 93)],
+	"crouch": [Vector2(266, 94), Vector2(266, 117), Vector2(275, 149), Vector2(267, 95)],
+}
+const MOTION_KNIVES := {
+	"jump": [
+		[Vector2(270, 122), Vector2(305, 109), Vector2(300, 124), Vector2(271, 139)],
+		[Vector2(276, 75), Vector2(311, 56), Vector2(294, 88), Vector2(280, 91)],
+		[Vector2(278, 64), Vector2(313, 48), Vector2(300, 73), Vector2(281, 80)],
+		[Vector2(278, 78), Vector2(314, 64), Vector2(302, 88), Vector2(281, 93)],
+	],
+	"land": [
+		[Vector2(271, 79), Vector2(311, 67), Vector2(298, 89), Vector2(275, 94)],
+		[Vector2(271, 110), Vector2(309, 100), Vector2(294, 122), Vector2(274, 127)],
+		[Vector2(270, 91), Vector2(304, 78), Vector2(292, 100), Vector2(273, 107)],
+		[Vector2(263, 80), Vector2(297, 67), Vector2(290, 89), Vector2(266, 96)],
+	],
+	"glide": [
+		[Vector2(280, 60), Vector2(313, 45), Vector2(304, 64), Vector2(282, 75)],
+		[Vector2(289, 67), Vector2(323, 55), Vector2(313, 74), Vector2(291, 82)],
+		[Vector2(287, 72), Vector2(320, 58), Vector2(311, 77), Vector2(291, 86)],
+		[Vector2(272, 83), Vector2(302, 70), Vector2(294, 89), Vector2(274, 97)],
+	],
+	"hurt": [
+		[Vector2(264, 74), Vector2(292, 57), Vector2(285, 77), Vector2(266, 86)],
+		[Vector2(248, 83), Vector2(279, 72), Vector2(272, 91), Vector2(249, 95)],
+		[Vector2(258, 101), Vector2(290, 93), Vector2(282, 107), Vector2(259, 114)],
+		[Vector2(257, 87), Vector2(295, 85), Vector2(287, 96), Vector2(258, 100)],
+	],
+	"crouch": [
+		[Vector2(271, 86), Vector2(304, 75), Vector2(294, 95), Vector2(273, 101)],
+		[Vector2(270, 108), Vector2(307, 98), Vector2(295, 118), Vector2(273, 124)],
+		[],
+		[Vector2(272, 87), Vector2(303, 78), Vector2(295, 96), Vector2(274, 102)],
+	],
+}
+const MOTION_ANGLE := {
+	"jump": [0.4, 0.22, 0.12, 0.27],
+	"land": [0.27, 0.48, 0.36, 0.16],
+	"glide": [0.18, 0.12, 0.12, 0.24],
+	"hurt": [-0.40, -0.25, 0.36, 0.16],
+	"crouch": [0.35, 0.62, 0.95, 0.35],
+}
 
 static var clean_bodies := {}
+static var motion_bodies := {}
 static var weapon_textures := {}
 
 
@@ -35,6 +83,9 @@ static func release_point(weapon: String, bow: bool) -> float:
 
 
 static func draw_held(canvas: Node2D, weapon: String, action: String, frame: int, facing: float, bob: float = 0.0) -> void:
+	if MOTION_GRIPS.has(action):
+		draw_held_motion(canvas, weapon, action, frame, facing)
+		return
 	var angle: float = WEAPONS[weapon][3]
 	if action == "walk" or action == "run":
 		var texture: Texture2D = HunterAnimation.FRAMES[action]
@@ -47,10 +98,42 @@ static func draw_held(canvas: Node2D, weapon: String, action: String, frame: int
 		HunterAnimation.draw_frame(canvas, "bow_attack", 0, facing, bob)
 	elif weapon == "thorn_bow" and action == "idle":
 		_draw_bow(canvas, 0, facing, bob)
-	elif action in ["crouch", "jump", "land", "glide", "hurt"]:
-		_draw_pose(canvas, weapon, "brace", angle + 0.24, facing, bob if action == "crouch" else 0.0)
 	else:
 		_draw_idle_weapon(canvas, weapon, angle, facing, bob)
+
+
+static func draw_held_motion(canvas: Node2D, weapon: String, action: String, frame: int, facing: float) -> void:
+	var texture: Texture2D = HunterAnimation.FRAMES[action]
+	var key := "%s_%d" % [action, frame]
+	if not motion_bodies.has(key):
+		var image := texture.get_image().get_region(Rect2i(frame * HunterAnimation.FRAME_WIDTH, 0,
+			HunterAnimation.FRAME_WIDTH, texture.get_height()))
+		# The knife overlaps the painted wing in the two spread-wing frames.
+		var sample_offset := Vector2i(0, 13) if action == "glide" and frame in [1, 2] else Vector2i.ZERO
+		var knife: Array = MOTION_KNIVES[action][frame]
+		if not knife.is_empty():
+			_mask(image, knife, sample_offset)
+		motion_bodies[key] = ImageTexture.create_from_image(image)
+	var body: Texture2D = motion_bodies[key]
+	var size := body.get_size() * HunterAnimation.SCALE
+	canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2(facing, 1.0))
+	canvas.draw_texture_rect(body, Rect2(-size.x * 0.5, -size.y, size.x, size.y), false)
+	canvas.draw_set_transform(Vector2.ZERO)
+
+	var grip_pixel: Vector2 = MOTION_GRIPS[action][frame]
+	var grip := _local(grip_pixel, texture.get_height())
+	var swing: float = MOTION_ANGLE[action][frame]
+	if weapon == "ember_staff":
+		HunterAnimation.draw_ember_staff(canvas, grip, swing, facing)
+	else:
+		var angle: float = WEAPONS[weapon][3]
+		_draw_weapon(canvas, weapon, grip, angle + swing, facing)
+	# Draw the fist over the grip while keeping the bow in front of the wings.
+	var hand := Rect2(grip_pixel - Vector2(6, 6), Vector2(12, 12))
+	var area := Rect2(_local(hand.position, body.get_height()), hand.size * HunterAnimation.SCALE)
+	canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2(facing, 1.0))
+	canvas.draw_texture_rect_region(body, area, hand)
+	canvas.draw_set_transform(Vector2.ZERO)
 
 
 static func draw_attack(canvas: Node2D, weapon: String, progress: float, facing: float, crouching: bool, step: int) -> void:

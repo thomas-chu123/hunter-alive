@@ -1,18 +1,18 @@
 extends RefCounted
 
 const FRAMES := {
-	"idle": preload("res://assets/characters/hunter/idle.png"),
-	"walk": preload("res://assets/characters/hunter/walk.png"),
-	"run": preload("res://assets/characters/hunter/run.png"),
-	"crouch": preload("res://assets/characters/hunter/crouch.png"),
-	"jump": preload("res://assets/characters/hunter/jump.png"),
-	"land": preload("res://assets/characters/hunter/land.png"),
-	"knife_attack": preload("res://assets/characters/hunter/knife_attack.png"),
-	"bow_attack": preload("res://assets/characters/hunter/bow_attack.png"),
-	"hurt": preload("res://assets/characters/hunter/hurt.png"),
-	"glide": preload("res://assets/characters/hunter/glide.png"),
+	"idle": preload("res://assets/characters/hunter/_source/idle.png"),
+	"walk": preload("res://assets/characters/hunter/_source/walk.png"),
+	"run": preload("res://assets/characters/hunter/_source/run.png"),
+	"crouch": preload("res://assets/characters/hunter/_source/crouch.png"),
+	"jump": preload("res://assets/characters/hunter/_source/jump.png"),
+	"land": preload("res://assets/characters/hunter/_source/land.png"),
+	"knife_attack": preload("res://assets/characters/hunter/_source/knife_attack.png"),
+	"bow_attack": preload("res://assets/characters/hunter/_source/bow_attack.png"),
+	"hurt": preload("res://assets/characters/hunter/_source/hurt.png"),
+	"glide": preload("res://assets/characters/hunter/_source/glide.png"),
 }
-const EMBER_POSE := preload("res://assets/characters/hunter/ember_staff_pose.png")
+const EMBER_POSE := preload("res://assets/characters/hunter/_source/ember_staff_pose.png")
 const EMBER_ANCHOR := Vector2(160, 405)
 const EMBER_SCALE := 0.17
 const EMBER_GRIP := Vector2(228, 173)
