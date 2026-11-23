@@ -57,13 +57,13 @@ texture = ExtResource("pillar")
 offset = Vector2(0, -150)
 
 [node name="Pillar2" type="Sprite2D" parent="Landscape/Props" unique_id=1262095819]
-position = Vector2(1900, 480)
+position = Vector2(1899, 465.00003)
 scale = Vector2(0.3, 0.3)
 texture = ExtResource("pillar")
 offset = Vector2(0, -150)
 
 [node name="Pillar3" type="Sprite2D" parent="Landscape/Props" unique_id=1233369653]
-position = Vector2(2240, 540)
+position = Vector2(2240, 526)
 scale = Vector2(0.3, 0.3)
 texture = ExtResource("pillar")
 offset = Vector2(0, -150)
@@ -84,7 +84,8 @@ offset = Vector2(0, -150)
 position = Vector2(400, 540)
 
 [node name="Sprite" type="Sprite2D" parent="Landscape/Props/Campfire" unique_id=968057115]
-scale = Vector2(0.36, 0.36)
+position = Vector2(-22.970018, 3.8999984)
+scale = Vector2(0.24005213, 0.27333346)
 texture = ExtResource("camp")
 offset = Vector2(0, -120)
 
@@ -92,7 +93,8 @@ offset = Vector2(0, -120)
 position = Vector2(3110, 540)
 
 [node name="Sprite" type="Sprite2D" parent="Landscape/Props/Portal" unique_id=63835300]
-scale = Vector2(0.58, 0.58)
+position = Vector2(12.18755, -106.29499)
+scale = Vector2(0.41833317, 0.34947324)
 texture = ExtResource("gate")
 offset = Vector2(0, -139)
 
@@ -100,14 +102,15 @@ offset = Vector2(0, -139)
 position = Vector2(2500, 540)
 
 [node name="Sprite" type="Sprite2D" parent="Landscape/Props/Reliquary" unique_id=1262552465]
-scale = Vector2(0.38, 0.38)
+position = Vector2(43.99996, -4.0000143)
+scale = Vector2(0.12617011, 0.13656928)
 texture = ExtResource("cache")
 offset = Vector2(0, -78)
 
 [node name="Darkness" type="Sprite2D" parent="Landscape" unique_id=1807566166]
 z_index = -1
 position = Vector2(1365, -50)
-scale = Vector2(4.9, 11.4)
+scale = Vector2(5.15625, 11.71875)
 texture = SubResource("DarknessTexture")
 centered = false
 
@@ -126,7 +129,7 @@ width = 3.0
 default_color = Color(0.36, 0.67, 0.58, 0.76)
 
 [node name="Arch" type="Sprite2D" parent="Landscape/LightGate" unique_id=1400604769]
-position = Vector2(0, 120)
+position = Vector2(-5, 22)
 scale = Vector2(0.37, 0.37)
 texture = ExtResource("gate")
 offset = Vector2(0, -139)
