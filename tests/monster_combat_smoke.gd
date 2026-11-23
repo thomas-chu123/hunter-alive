@@ -18,7 +18,7 @@ func _initialize() -> void:
 
 func run() -> void:
 	var ground_fire_only := "--ground-fire" in OS.get_cmdline_user_args()
-	change_scene_to_file("res://scenes/buried_court.tscn" if ground_fire_only else "res://scenes/flooded_corridor.tscn")
+	change_scene_to_file("res://scenes/buried_court/buried_court.tscn" if ground_fire_only else "res://scenes/flooded_corridor/flooded_corridor.tscn")
 	await scene_changed
 	level = current_scene
 	for enemy in level.enemies:
@@ -42,13 +42,13 @@ func run() -> void:
 		var entry: Dictionary = Bestiary.creatures[id]
 		var attack: Dictionary = entry.attack
 		elements[attack.element] = true
-		var sheet: Texture2D = Art.POSES[id].attack
+		var sheet: Texture2D = Art.poses[id].attack
 		attack_paths[sheet.resource_path] = true
 		check(valid_poses(sheet.get_image()),
 			"%s has three distinct transparent sprite frames" % id)
 		await encounter(id, false)
 		if attack.has("unarmed"):
-			var unarmed: Texture2D = Art.POSES[id].attack_unarmed
+			var unarmed: Texture2D = Art.poses[id].attack_unarmed
 			check(valid_poses(unarmed.get_image()),
 				"%s has three distinct disarmed frames" % id)
 			await encounter(id, true)

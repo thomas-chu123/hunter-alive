@@ -14,7 +14,7 @@ func _initialize() -> void:
 
 
 func run() -> void:
-	change_scene_to_file("res://scenes/flooded_corridor.tscn")
+	change_scene_to_file("res://scenes/flooded_corridor/flooded_corridor.tscn")
 	await scene_changed
 	level = current_scene
 	for enemy in level.enemies:
@@ -145,9 +145,9 @@ func attack_transition() -> void:
 
 func check_motion_sheets(action: String, disarmed_action: String, expected: int, frame_count: int) -> void:
 	var count := 0
-	for species: String in Art.POSES:
+	for species: String in Art.poses:
 		for key in [action, disarmed_action]:
-			var texture: Texture2D = Art.POSES[species].get(key)
+			var texture: Texture2D = Art.poses[species].get(key)
 			if texture == null:
 				continue
 			count += 1

@@ -1,7 +1,7 @@
 extends SceneTree
 
 const CampSave := preload("res://scripts/camp_save.gd")
-const TITLE := "res://scenes/title.tscn"
+const TITLE := "res://scenes/title/title.tscn"
 
 var failed := false
 

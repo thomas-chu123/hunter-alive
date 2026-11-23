@@ -10,7 +10,7 @@ func _initialize() -> void:
 
 
 func run() -> void:
-	change_scene_to_file("res://scenes/ruins.tscn")
+	change_scene_to_file("res://scenes/ruins/ruins.tscn")
 	await scene_changed
 	var level: Ruins = current_scene
 	var hunter := level.hunter

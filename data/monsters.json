@@ -42,7 +42,37 @@
     "soul_reward": [
       1,
       2
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/spider/idle.png",
+        "attack": "res://assets/monster/spider/attack.png",
+        "walk": "res://assets/monster/spider/walk.png"
+      },
+      "kind": "ground",
+      "body_size": [
+        76,
+        55
+      ],
+      "anchor": 146,
+      "scale": 0.3
+    },
+    "combat": {
+      "arrow_upper_body": {
+        "above": 40,
+        "rect": [
+          -20,
+          -53,
+          40,
+          16
+        ],
+        "facing_offset": -7
+      }
+    },
+    "soul": {
+      "name": "蛛步",
+      "hint": "貼牆時按住方向與 Shift 攀爬。"
+    }
   },
   "lizard": {
     "name": "滑翔蜥蜴",
@@ -92,7 +122,25 @@
     "soul_reward": [
       2,
       3
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/lizard/idle.png",
+        "attack": "res://assets/monster/lizard/attack.png",
+        "walk": "res://assets/monster/lizard/walk.png"
+      },
+      "kind": "ground",
+      "body_size": [
+        92,
+        70
+      ],
+      "anchor": 158,
+      "scale": 0.33
+    },
+    "soul": {
+      "name": "蜥翼",
+      "hint": "跳起後按住 Shift 滑翔。"
+    }
   },
   "treant": {
     "name": "埋根樹靈",
@@ -145,7 +193,40 @@
     "soul_reward": [
       8,
       10
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/treant/idle.png",
+        "idle_unarmed": "res://assets/monster/treant/idle_unarmed.png",
+        "attack": "res://assets/monster/treant/attack.png",
+        "attack_transition": "res://assets/monster/treant/attack_transition.png",
+        "attack_transition_unarmed": "res://assets/monster/treant/attack_transition_unarmed.png",
+        "attack_unarmed": "res://assets/monster/treant/attack_unarmed.png",
+        "walk": "res://assets/monster/treant/walk.png",
+        "walk_unarmed": "res://assets/monster/treant/walk_unarmed.png"
+      },
+      "kind": "ground",
+      "body_size": [
+        110,
+        120
+      ],
+      "anchor": 121,
+      "scale": 0.46,
+      "unarmed_anchor": 145
+    },
+    "combat": {
+      "starts_armed": true,
+      "weapon_hitbox": {
+        "rect": [
+          -24,
+          -71,
+          48,
+          56
+        ],
+        "facing_offset": 81
+      },
+      "disarm_projectile_only": false
+    }
   },
   "bell_moth": {
     "name": "石鐘蛾",
@@ -158,7 +239,16 @@
       "patrol_radius": 32,
       "acceleration": 690,
       "collider_width": 28,
-      "collider_height": 29
+      "collider_height": 29,
+      "hover": {
+        "height": 63,
+        "horizontal_rate": 1.2,
+        "bob_rate": 3.1,
+        "bob_height": 9,
+        "recoil_limit": 34,
+        "recoil_decay": 56,
+        "attack_height": 130
+      }
     },
     "attack": {
       "kind": "pollen",
@@ -170,7 +260,8 @@
       "windup": 0.95,
       "active": 0.58,
       "recovery": 1.1,
-      "damage": 0
+      "damage": 0,
+      "hit_effect": "pollen"
     },
     "sound": {
       "step": "wing",
@@ -188,7 +279,44 @@
     "soul_reward": [
       1,
       3
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/bell_moth/idle.png",
+        "attack": "res://assets/monster/bell_moth/attack.png"
+      },
+      "kind": "hover",
+      "body_size": [
+        64,
+        49
+      ],
+      "cell": 627,
+      "scale": 0.126,
+      "y_offset": -22,
+      "abdomen": [
+        [
+          305,
+          365
+        ],
+        [
+          307,
+          372
+        ],
+        [
+          334,
+          383
+        ],
+        [
+          298,
+          373
+        ]
+      ],
+      "flap_rate": 19,
+      "flap_amplitude": 0.08
+    },
+    "combat": {
+      "windup_interrupt": "projectile"
+    }
   },
   "lantern_crab": {
     "name": "提燈石蟹",
@@ -240,7 +368,63 @@
     "soul_reward": [
       3,
       5
-    ]
+    ],
+    "art": {
+      "poses": {
+        "attack": "res://assets/monster/lantern_crab/attack.png",
+        "attack_transition": "res://assets/monster/lantern_crab/attack_transition.png",
+        "attack_unarmed": "res://assets/monster/lantern_crab/attack_unarmed.png",
+        "walk": "res://assets/monster/lantern_crab/walk.png",
+        "walk_unarmed": "res://assets/monster/lantern_crab/walk_unarmed.png",
+        "idle": "res://assets/monster/lantern_crab/idle.png"
+      },
+      "kind": "guard",
+      "body_size": [
+        97,
+        60
+      ],
+      "scale": 0.085,
+      "anchor": [
+        836,
+        814
+      ],
+      "armed_regions": [
+        [
+          130,
+          28,
+          1490,
+          790
+        ]
+      ],
+      "unarmed_regions": [
+        [
+          130,
+          28,
+          1230,
+          790
+        ],
+        [
+          1360,
+          28,
+          260,
+          386
+        ]
+      ]
+    },
+    "combat": {
+      "starts_armed": true,
+      "weapon_hitbox": {
+        "rect": [
+          -14,
+          -49,
+          28,
+          41
+        ],
+        "facing_offset": 58
+      },
+      "disarm_projectile_only": true,
+      "unarmed_if": "lantern_found"
+    }
   },
   "seal_keeper": {
     "name": "古封守衛",
@@ -266,7 +450,8 @@
       "active": 0.74,
       "recovery": 0.97,
       "damage": 1,
-      "hits": 2
+      "hits": 2,
+      "second_hit_extent_bonus": 20
     },
     "animation": {
       "stride": 105
@@ -287,7 +472,57 @@
     "soul_reward": [
       16,
       20
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/seal_keeper/idle.png",
+        "attack": "res://assets/monster/seal_keeper/attack.png",
+        "attack_transition": "res://assets/monster/seal_keeper/attack_transition.png",
+        "walk": "res://assets/monster/seal_keeper/walk.png"
+      },
+      "kind": "guard",
+      "body_size": [
+        102,
+        136
+      ],
+      "scale": 0.128,
+      "anchor": [
+        594,
+        1307
+      ],
+      "shield_aura": {
+        "center": [
+          0,
+          -70
+        ],
+        "radius": 65,
+        "color": [
+          0.62,
+          0.71,
+          1,
+          0.68
+        ]
+      }
+    },
+    "combat": {
+      "starts_armed": false,
+      "weapon_hitbox": {
+        "rect": [
+          -20,
+          -62,
+          40,
+          43
+        ],
+        "facing_offset": 55
+      },
+      "disarm_projectile_only": false,
+      "guard": "seal",
+      "phase": {
+        "hp": 13,
+        "raise_shield": true,
+        "recovery": 0.6
+      }
+    }
   },
   "shale_beetle": {
     "name": "頁岩甲蟲",
@@ -329,7 +564,20 @@
     "soul_reward": [
       2,
       3
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/shale_beetle/idle.tres",
+        "attack": "res://assets/monster/shale_beetle/attack.png"
+      }
+    },
+    "combat": {
+      "guard": "closed",
+      "recovery_push": {
+        "gear": "stonegrip_gloves",
+        "force": 110
+      }
+    }
   },
   "dust_hare": {
     "name": "塵躍野兔",
@@ -372,7 +620,13 @@
     "soul_reward": [
       1,
       2
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/dust_hare/idle.tres",
+        "attack": "res://assets/monster/dust_hare/attack.png"
+      }
+    }
   },
   "mirror_eel": {
     "name": "鏡潭長鰻",
@@ -419,7 +673,13 @@
     "soul_reward": [
       3,
       5
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/mirror_eel/idle.tres",
+        "attack": "res://assets/monster/mirror_eel/attack.png"
+      }
+    }
   },
   "root_mole": {
     "name": "鑿根鼴獸",
@@ -461,7 +721,16 @@
     "soul_reward": [
       3,
       5
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/root_mole/idle.tres",
+        "attack": "res://assets/monster/root_mole/attack.png"
+      }
+    },
+    "combat": {
+      "guard": "closed"
+    }
   },
   "reed_leech": {
     "name": "蘆苔水蛭",
@@ -486,7 +755,8 @@
       "windup": 0.5,
       "active": 0.52,
       "recovery": 0.78,
-      "damage": 0
+      "damage": 0,
+      "hit_effect": "latch"
     },
     "sound": {
       "step": "pad",
@@ -503,7 +773,13 @@
     "soul_reward": [
       2,
       3
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/reed_leech/idle.tres",
+        "attack": "res://assets/monster/reed_leech/attack.png"
+      }
+    }
   },
   "silt_ray": {
     "name": "淤泥鰩",
@@ -529,7 +805,8 @@
       "active": 0.5,
       "recovery": 0.88,
       "damage": 1,
-      "target_mark": true
+      "target_mark": true,
+      "hit_effect": "mud"
     },
     "sound": {
       "step": "pad",
@@ -546,7 +823,13 @@
     "soul_reward": [
       3,
       4
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/silt_ray/idle.tres",
+        "attack": "res://assets/monster/silt_ray/attack.png"
+      }
+    }
   },
   "sluice_snail": {
     "name": "水閘岩螺",
@@ -593,7 +876,20 @@
     "soul_reward": [
       4,
       6
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/sluice_snail/idle.tres",
+        "attack": "res://assets/monster/sluice_snail/attack.png"
+      }
+    },
+    "combat": {
+      "guard": "closed",
+      "guard_break": {
+        "weapon": "tide_hammer",
+        "recovery": 1.25
+      }
+    }
   },
   "tide_salamander": {
     "name": "潮汐蠑螈",
@@ -640,7 +936,17 @@
     "soul_reward": [
       4,
       6
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/tide_salamander/idle.tres",
+        "attack": "res://assets/monster/tide_salamander/attack.png"
+      }
+    },
+    "combat": {
+      "windup_interrupt": "rear",
+      "windup_interrupt_recovery": 0.75
+    }
   },
   "thorn_archer": {
     "name": "荊骨弓衛",
@@ -694,7 +1000,28 @@
     "soul_reward": [
       4,
       7
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/thorn_archer/idle.tres",
+        "attack": "res://assets/monster/thorn_archer/attack.png",
+        "attack_unarmed": "res://assets/monster/thorn_archer/attack_unarmed.png"
+      },
+      "unarmed_idle_from_recovery": true
+    },
+    "combat": {
+      "starts_armed": true,
+      "weapon_hitbox": {
+        "rect": [
+          -18,
+          -66,
+          36,
+          45
+        ],
+        "facing_offset": 39
+      },
+      "disarm_projectile_only": true
+    }
   },
   "shield_heron": {
     "name": "陶盾長腳鳥",
@@ -743,7 +1070,29 @@
     "soul_reward": [
       5,
       7
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/shield_heron/idle.tres",
+        "attack": "res://assets/monster/shield_heron/attack.png",
+        "attack_unarmed": "res://assets/monster/shield_heron/attack_unarmed.png"
+      },
+      "unarmed_idle_from_recovery": true
+    },
+    "combat": {
+      "starts_armed": true,
+      "weapon_hitbox": {
+        "rect": [
+          -18,
+          -65,
+          36,
+          48
+        ],
+        "facing_offset": -35
+      },
+      "disarm_projectile_only": false,
+      "guard": "front_shield"
+    }
   },
   "key_jackal": {
     "name": "逐鑰豺獸",
@@ -786,7 +1135,13 @@
     "soul_reward": [
       4,
       6
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/key_jackal/idle.tres",
+        "attack": "res://assets/monster/key_jackal/attack.png"
+      }
+    }
   },
   "ash_scribe": {
     "name": "灰燼抄寫員",
@@ -829,7 +1184,31 @@
     "soul_reward": [
       5,
       8
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/ash_scribe/idle.tres",
+        "attack": "res://assets/monster/ash_scribe/attack.png"
+      },
+      "ground_effect": {
+        "texture": "res://assets/monster/ash_scribe/ground_fire.png",
+        "cell": [
+          768,
+          512
+        ],
+        "frame": [
+          31,
+          140,
+          704,
+          283
+        ],
+        "columns": 2,
+        "frames": 4
+      }
+    },
+    "combat": {
+      "windup_interrupt": "any"
+    }
   },
   "shard_warden": {
     "name": "碎岩守衛",
@@ -875,7 +1254,20 @@
     "soul_reward": [
       6,
       9
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/shard_warden/idle.tres",
+        "attack": "res://assets/monster/shard_warden/attack.png",
+        "walk": "res://assets/monster/shard_warden/walk.png"
+      }
+    },
+    "combat": {
+      "phase": {
+        "health_fraction": 0.5,
+        "windup": 0.45
+      }
+    }
   },
   "copper_cicada": {
     "name": "銅翼蟬",
@@ -917,7 +1309,13 @@
     "soul_reward": [
       5,
       7
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/copper_cicada/idle.tres",
+        "attack": "res://assets/monster/copper_cicada/attack.png"
+      }
+    }
   },
   "burial_ram": {
     "name": "埋碑岩羊",
@@ -960,6 +1358,12 @@
     "soul_reward": [
       6,
       9
-    ]
+    ],
+    "art": {
+      "poses": {
+        "idle": "res://assets/monster/burial_ram/idle.tres",
+        "attack": "res://assets/monster/burial_ram/attack.png"
+      }
+    }
   }
 }

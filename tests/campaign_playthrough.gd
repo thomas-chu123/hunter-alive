@@ -20,7 +20,7 @@ func run() -> void:
 		route.store_csv_line(PackedStringArray(["seconds", "region", "x", "y", "hp", "event"]))
 	if not verify(Save.read().get("state", {}).is_empty(), "isolated profile has no checkpoint"):
 		return
-	change_scene_to_file("res://scenes/title.tscn")
+	change_scene_to_file("res://scenes/title/title.tscn")
 	await scene_changed
 	await frames(20)
 	start_frame = Engine.get_physics_frames()
@@ -149,7 +149,7 @@ func camp_reload() -> bool:
 	var save_button: Button = ruins.camp_save_exit
 	await click(save_button)
 	for frame in range(180):
-		if is_instance_valid(current_scene) and current_scene.scene_file_path == "res://scenes/title.tscn":
+		if is_instance_valid(current_scene) and current_scene.scene_file_path == "res://scenes/title/title.tscn":
 			await frames(20)
 			if not verify(not current_scene.continue_game.disabled, "saved to camp and returned to title"):
 				return false

@@ -26,7 +26,7 @@ func _process(_delta: float) -> bool:
 func run() -> void:
 	if DisplayServer.get_name() != "headless" and not OS.has_feature("movie"):
 		root.size = Vector2i(1280, 720)
-	var scene: PackedScene = load("res://scenes/ruins.tscn")
+	var scene: PackedScene = load("res://scenes/ruins/ruins.tscn")
 	ruins = scene.instantiate()
 	root.add_child(ruins)
 	hunter = ruins.hunter

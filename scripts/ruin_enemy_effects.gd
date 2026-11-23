@@ -1,13 +1,11 @@
 extends RefCounted
 
+const Bestiary := preload("res://scripts/ruin_bestiary.gd")
+
 const COLORS := {
 	"metal": Color("#ffe7ab"), "wood": Color("#c6eb83"), "water": Color("#81e6ff"),
 	"fire": Color("#ff8352"), "earth": Color("#e6aa73"),
 }
-const GROUND_FIRE := preload("res://assets/monster/ash_scribe/ground_fire.png")
-const FIRE_CELL_SIZE := Vector2(768, 512)
-const FIRE_FRAME := Rect2(31, 140, 704, 283)
-const FIRE_FRAME_COUNT := 4
 
 
 static func charge(canvas: Node2D, at: Vector2, element: String, age: float) -> void:
@@ -62,9 +60,9 @@ static func bolt(canvas: Node2D, at: Vector2, direction: float, element: String,
 
 
 static func ground(canvas: Node2D, at: Vector2, radius: float, element: String,
-		active: bool, progress: float) -> void:
-	if active and element == "fire":
-		_draw_ground_fire(canvas, at, radius, progress)
+		active: bool, progress: float, texture: Texture2D, effect: Dictionary) -> void:
+	if active and texture != null:
+		_draw_ground_sprite(canvas, at, radius, progress, texture, effect)
 		return
 	var color: Color = COLORS[element]
 	var ink := Color(color, 0.68 if active else 0.28 + absf(sin(progress * 11.0)) * 0.44)
@@ -86,16 +84,19 @@ static func ground(canvas: Node2D, at: Vector2, radius: float, element: String,
 					root + Vector2(3, -height), root + Vector2(9, 0)]), ink)
 
 
-static func _draw_ground_fire(canvas: Node2D, at: Vector2, radius: float, progress: float) -> void:
-	var frame := clampi(floori(progress * FIRE_FRAME_COUNT), 0, FIRE_FRAME_COUNT - 1)
-	var cell := Vector2(frame % 2, frame >> 1) * FIRE_CELL_SIZE
-	var source := Rect2(FIRE_FRAME.position + cell, FIRE_FRAME.size)
+static func _draw_ground_sprite(canvas: Node2D, at: Vector2, radius: float, progress: float,
+		texture: Texture2D, effect: Dictionary) -> void:
+	var frame_count := int(effect.frames)
+	var columns := int(effect.columns)
+	var frame := clampi(floori(progress * frame_count), 0, frame_count - 1)
+	var cell := Vector2(frame % columns, floori(float(frame) / columns)) * Bestiary.vector(effect.cell)
+	var frame_region := Bestiary.rectangle(effect.frame)
+	var source := Rect2(frame_region.position + cell, frame_region.size)
 	var width := radius * 2.0
 	var growth := lerpf(0.68, 1.0, smoothstep(0.0, 0.23, progress))
-	var height := width * FIRE_FRAME.size.y / FIRE_FRAME.size.x * growth
+	var height := width * frame_region.size.y / frame_region.size.x * growth
 	var tint := Color(1.0, 1.0, 1.0, 1.0 - smoothstep(0.73, 1.0, progress))
-	canvas.draw_texture_rect_region(GROUND_FIRE, Rect2(at.x - radius, at.y - height, width, height),
-		source, tint)
+	canvas.draw_texture_rect_region(texture, Rect2(at.x - radius, at.y - height, width, height), source, tint)
 
 
 static func pollen(canvas: Node2D, progress: float) -> void:

@@ -169,7 +169,7 @@ func select_camp_item(id: String, sell_extra: bool) -> bool:
 func reload_court() -> bool:
 	await click(ruins.camp_save_exit)
 	for _frame in range(150):
-		if is_instance_valid(current_scene) and current_scene.scene_file_path == "res://scenes/title.tscn":
+		if is_instance_valid(current_scene) and current_scene.scene_file_path == "res://scenes/title/title.tscn":
 			await frames(8)
 			await click(current_scene.continue_game)
 			mark("CONTINUE respawned ordinary enemies")

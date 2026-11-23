@@ -1,0 +1,108 @@
+{
+  "ruins": [
+    {
+      "species": "spider",
+      "x": 1310
+    },
+    {
+      "species": "lizard",
+      "x": 1880
+    },
+    {
+      "species": "spider",
+      "x": 2240
+    },
+    {
+      "species": "treant",
+      "x": 2840,
+      "skip_if": "guardian_felled",
+      "hint": {
+        "from_x": 2560,
+        "unless_flag": "guardian_felled",
+        "text": "樹靈舉起木刃時，攻擊握刃處的亮點可以繳械"
+      }
+    },
+    {
+      "species": "bell_moth",
+      "x": 2330,
+      "hint": {
+        "radius": 175,
+        "unless_owned": "scaleveil_hood",
+        "text": "石鐘蛾腹部發光時，向上攻擊可打斷落粉。"
+      }
+    },
+    {
+      "species": "shale_beetle",
+      "x": 1580
+    },
+    {
+      "species": "dust_hare",
+      "x": 243
+    }
+  ],
+  "flooded_corridor": [
+    {
+      "species": "lantern_crab",
+      "x": 1180
+    },
+    {
+      "species": "reed_leech",
+      "x": 670
+    },
+    {
+      "species": "mirror_eel",
+      "x": 1590
+    },
+    {
+      "species": "root_mole",
+      "x": 1775
+    },
+    {
+      "species": "silt_ray",
+      "x": 2190
+    },
+    {
+      "species": "sluice_snail",
+      "x": 2640
+    },
+    {
+      "species": "tide_salamander",
+      "x": 2930
+    }
+  ],
+  "buried_court": [
+    {
+      "species": "seal_keeper",
+      "x": 2850,
+      "skip_if": "keeper_felled"
+    },
+    {
+      "species": "thorn_archer",
+      "x": 690
+    },
+    {
+      "species": "shield_heron",
+      "x": 1020
+    },
+    {
+      "species": "key_jackal",
+      "x": 1320
+    },
+    {
+      "species": "ash_scribe",
+      "x": 1600
+    },
+    {
+      "species": "shard_warden",
+      "x": 1960
+    },
+    {
+      "species": "copper_cicada",
+      "x": 2260
+    },
+    {
+      "species": "burial_ram",
+      "x": 2550
+    }
+  ]
+}

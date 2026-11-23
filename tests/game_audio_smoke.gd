@@ -5,7 +5,7 @@ const Monster := preload("res://scripts/ruin_monster.gd")
 const Bestiary := preload("res://scripts/ruin_bestiary.gd")
 const EnemyAudio := preload("res://scripts/ruin_enemy_audio.gd")
 const Music := preload("res://scripts/game_music.gd")
-const ScenePaths := ["res://scenes/ruins.tscn", "res://scenes/flooded_corridor.tscn", "res://scenes/buried_court.tscn"]
+const ScenePaths := ["res://scenes/ruins/ruins.tscn", "res://scenes/flooded_corridor/flooded_corridor.tscn", "res://scenes/buried_court/buried_court.tscn"]
 const MusicLabels := ["崩塌神殿｜背景音樂", "淹沒的迴廊｜背景音樂淡入", "埋碑內庭｜背景音樂換曲"]
 
 var level: Ruins
@@ -32,7 +32,7 @@ func run() -> void:
 	await enter(2)
 	await encounter("seal_keeper", 430.0, 670.0, "古門封印者｜重甲腳步與兩段揮擊", "step_metal", "strike_metal")
 	await volume_menu()
-	change_scene_to_file("res://scenes/title.tscn")
+	change_scene_to_file("res://scenes/title/title.tscn")
 	await scene_changed
 	await frames(82)
 	check(music.current_region == -1 and not music.voices[0].playing and not music.voices[1].playing,

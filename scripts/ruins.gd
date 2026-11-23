@@ -17,8 +17,6 @@ const CacheTexture := preload("res://assets/environment/common/props/reliquary.p
 const Campaign := preload("res://scripts/campaign.gd")
 const MonsterArt := preload("res://scripts/ruin_sprite_art.gd")
 const START := Vector2(950, 526)
-const MOTH_X := 2330.0
-const SOUL_NAMES := {"lizard": "蜥翼", "spider": "蛛步"}
 const DROP_COLORS := {
 	"material": Color("#eac18c"), "lizard": Color("#a4f2d0"),
 	"spider": Color("#ed9e96"), "blade": Color("#ffda84"), "soul_currency": Color("#8de7fb"),
@@ -224,31 +222,24 @@ func _input(event: InputEvent) -> void:
 		# A scene change immediately detaches this node from its viewport.
 		get_viewport().set_input_as_handled()
 		if region == Campaign.Region.COURT:
-			get_tree().change_scene_to_file("res://scenes/title.tscn")
+			get_tree().change_scene_to_file(Campaign.TITLE_SCENE)
 		else:
 			_queue_region(region + 1)
 
 
 func _spawn_enemies() -> void:
-	match region:
-		Campaign.Region.TEMPLE:
-			_add_monster("spider", 1310)
-			_add_monster("lizard", 1880)
-			_add_monster("spider", 2240)
-			if not guardian_felled:
-				_add_monster("treant", 2840)
-			_add_monster("bell_moth", MOTH_X)
-		Campaign.Region.COURT:
-			if not keeper_felled:
-				_add_monster("seal_keeper", 2850)
-	for encounter in Bestiary.ENCOUNTERS[region]:
-		_add_monster(encounter[0], encounter[1])
+	for encounter in Bestiary.encounters[Campaign.IDS[region]]:
+		var skip_if: String = encounter.get("skip_if", "")
+		if skip_if.is_empty() or not bool(get(skip_if)):
+			_add_monster(encounter.species, float(encounter.x), float(encounter.get("y", Landscape.FLOOR_Y)))
 
 
-func _add_monster(species: String, x: float) -> void:
+func _add_monster(species: String, x: float, y: float = Landscape.FLOOR_Y) -> void:
 	var monster := Monster.new()
-	monster.configure(species, Vector2(x, Landscape.FLOOR_Y), hunter)
-	if species == "lantern_crab" and lantern_found:
+	monster.configure(species, Vector2(x, y), hunter)
+	var combat: Dictionary = monster.design.get("combat", {})
+	var unarmed_if: String = combat.get("unarmed_if", "")
+	if not unarmed_if.is_empty() and bool(get(unarmed_if)):
 		monster.armed = false
 	monster.felled.connect(_on_monster_felled)
 	monster.disarmed.connect(_on_monster_disarmed)
@@ -313,7 +304,7 @@ func _cast(origin: Vector2, direction: float, weapon: String) -> void:
 func _launch_enemy_projectile(origin: Vector2, direction: float, attack: Dictionary) -> void:
 	var speed := float(attack.speed)
 	arrows.append({"at": origin, "direction": direction, "damage": int(attack.damage),
-		"left": (float(attack.trigger_range) + 75.0) / speed, "hostile": attack.kind,
+		"left": (float(attack.trigger_range) + float(Bestiary.rules.combat.projectile_range_padding)) / speed, "hostile": attack.kind,
 		"speed": speed, "radius": float(attack.extent), "element": attack.element})
 
 
@@ -406,8 +397,9 @@ func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector
 		projectile: bool = false, weapon: String = "", blade_step: int = 0) -> void:
 	var result := monster.receive_hit(damage, weapon_hit, projectile, weapon, direction)
 	if not projectile and not monster.is_queued_for_deletion():
-		if hunter.gear.get("手部") == "stonegrip_gloves" and monster.attack_kind == "roll" and monster.recovery > 0.0:
-			monster.apply_equipment_push(direction, 110.0)
+		var push: Dictionary = monster.combat.get("recovery_push", {})
+		if not push.is_empty() and hunter.gear.get("手部") == push.gear and monster.recovery > 0.0:
+			monster.apply_equipment_push(direction, float(push.force))
 		elif hunter.gear.get("手部") == "hardroot_bracers" and not hunter.is_on_floor():
 			monster.apply_equipment_push(direction, 85.0)
 	if weapon == "ember_staff":
@@ -427,71 +419,80 @@ func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector
 func _on_monster_felled(monster: Monster) -> void:
 	enemies.erase(monster)
 	var x := monster.position.x
-	if monster.species == "lantern_crab":
-		_drop_corridor_lantern(x)
+	var rules: Dictionary = Bestiary.loot.monsters.get(monster.species, {})
+	for rule in rules.get("before_defeat", []):
+		_apply_drop_rule(rule, x)
 	var reward := loot_rng.randi_range(int(monster.soul_reward[0]), int(monster.soul_reward[1]))
-	_drop("soul_currency", x, reward)
+	var soul_currency: Dictionary = Bestiary.loot.soul_currency
+	_drop(soul_currency.item, x + float(soul_currency.offset), reward)
 	var rank := Progression.drop_rank(loot_rng.randf())
 	if rank > 0:
 		var item := loot_catalog[loot_rng.randi_range(0, loot_catalog.size() - 1)]
-		_drop(item, x + 22, 1, rank, true)
-	var loot: String = Bestiary.DROPS.get(monster.species, "")
-	if not loot.is_empty() and not obtained_equipment.has(loot) and not _has_drop(loot):
-		_drop(loot, x - 12)
-	if monster.species == "ash_scribe" and not obtained_equipment.has("scribe_staff") and not _has_drop("scribe_staff"):
-		_drop("scribe_staff", x + 28)
-	match monster.species:
-		"spider":
-			if rng.randf() < 0.37 and not collected_souls.has("spider") and not _has_drop("spider"):
-				_drop("spider", x - 12)
-			if not owned_equipment.has("fang_dagger"):
-				_drop("fang_material", x + 8)
-		"lizard":
-			if not collected_souls.has("lizard"):
-				_drop("lizard", x - 12)
-		"bell_moth":
-			if not obtained_equipment.has("scaleveil_hood") and not _has_drop("scaleveil_hood"):
-				_drop("scaleveil_hood", x - 12)
-		"seal_keeper":
-			keeper_felled = true
-			_sync_region_gate()
-			_notice("封印者倒下了。往東調查主祭壇。", 4.0)
-			return
-		"treant":
-			guardian_felled = true
-			landscape.portal_open = true
-			_drop("material", x + 19, 3)
-			_notice("樹靈倒下了。回到神殿入口，借蜥翼滑過斷橋。", 4.0)
-			return
-	if rng.randf() < 0.76:
-		_drop("material", x + 15, 2 if monster.species == "lizard" else 1)
+		_drop(item, x + float(Bestiary.loot.random_equipment.offset), 1, rank, true)
+	for rule in rules.get("defeat", []):
+		_apply_drop_rule(rule, x)
+	var flag: String = rules.get("defeat_flag", "")
+	if not flag.is_empty():
+		set(flag, true)
+		_sync_region_gate()
+	var materials_override = rules.get("materials", {})
+	if materials_override != null:
+		var material_rule: Dictionary = Bestiary.loot.material_default.duplicate()
+		material_rule.merge(materials_override, true)
+		_apply_drop_rule(material_rule, x)
+	var notice: String = rules.get("defeat_notice", "")
+	if not notice.is_empty():
+		_notice(notice, float(rules.get("defeat_notice_seconds", 4.0)))
 
 
-func _drop_corridor_lantern(x: float) -> void:
-	if region != Campaign.Region.CORRIDOR or lantern_found or _has_drop("lantern"):
-		return
-	var gate: StaticBody2D = landscape.get_node("LightGate")
-	_drop("lantern", minf(x, gate.position.x - 50.0))
-	_notice("提燈落在地上。靠近拾取，用它打開暗水道。", 4.0)
+func _apply_drop_rule(rule: Dictionary, x: float, facing: float = 1.0) -> bool:
+	var chance: float = rule.get("chance", 1.0)
+	if chance < 1.0 and rng.randf() >= chance:
+		return false
+	var item: String = rule.item
+	var at := x + float(rule.get("offset", 0.0)) * facing
+	if owned_equipment.has(rule.get("unless_owned", "")):
+		return false
+	match rule.get("policy", "always"):
+		"once_equipment":
+			if obtained_equipment.has(item) or _has_drop(item):
+				return false
+		"once_soul":
+			if collected_souls.has(item) or (rule.get("check_pending", false) and _has_drop(item)):
+				return false
+		"lantern":
+			return _drop_corridor_lantern(at)
+		"guardian_blade":
+			if hunter.stolen_blade or _has_drop(item):
+				return false
+			unclaimed_blade_x = at
+	_drop(item, at, int(rule.get("amount", 1)), int(rule.get("rank", 1)))
+	return true
+
+
+func _drop_corridor_lantern(x: float) -> bool:
+	var rules: Dictionary = Bestiary.loot.lantern
+	if Campaign.IDS[region] != rules.region or bool(get(rules.progress_flag)) or _has_drop(rules.item):
+		return false
+	var gate: Node2D = landscape.get_node(rules.gate_node)
+	_drop(rules.item, minf(x, gate.position.x + float(rules.gate_offset)))
+	_notice(rules.notice, float(rules.notice_seconds))
+	return true
 
 
 func _on_monster_disarmed(monster: Monster) -> void:
-	if monster.species == "lantern_crab":
-		_drop_corridor_lantern(monster.position.x + monster.facing * 72.0)
-		return
-	if monster.species in ["thorn_archer", "shield_heron"]:
-		var item := "thorn_bow" if monster.species == "thorn_archer" else "earthen_armor"
-		if not obtained_equipment.has(item) and not _has_drop(item):
-			_drop(item, monster.position.x + monster.facing * 50.0)
-		return
-	if monster.species == "seal_keeper":
-		_notice("護印已破，趁硬直反擊。", 3.0)
-		return
-	if hunter.stolen_blade or _has_drop("blade"):
-		return
-	unclaimed_blade_x = monster.position.x + monster.facing * 104
-	_drop("blade", unclaimed_blade_x)
-	_notice("%s掉在地上了。" % _ranked_gear_name("root_blade", 1), 3.0)
+	var rules: Dictionary = Bestiary.loot.monsters.get(monster.species, {})
+	var notice: String = rules.get("disarm_notice", "")
+	var disarm_rules: Array = rules.get("disarm", [])
+	for rule in disarm_rules:
+		if _apply_drop_rule(rule, monster.position.x, monster.facing) and not notice.is_empty():
+			if rule.get("policy", "") == "guardian_blade":
+				var weapon: String = Bestiary.loot.guardian_blade.grants
+				_notice(notice % _ranked_gear_name(weapon, 1), float(rules.get("disarm_notice_seconds", 3.0)))
+			else:
+				_notice(notice, float(rules.get("disarm_notice_seconds", 3.0)))
+	if disarm_rules.is_empty() and not notice.is_empty():
+		_notice(notice, float(rules.get("disarm_notice_seconds", 3.0)))
 
 
 func _has_drop(kind: String) -> bool:
@@ -502,8 +503,10 @@ func _has_drop(kind: String) -> bool:
 
 
 func _drop(kind: String, x: float, amount: int = 1, rank: int = 1, rolled: bool = false) -> void:
-	drops.append({"kind": kind, "at": Vector2(clampf(x, 736 if region == Campaign.Region.TEMPLE else 60, 3240), Landscape.FLOOR_Y - 27),
-		"amount": amount, "spawn": elapsed, "rank": rank, "rolled": rolled})
+	var bounds: Dictionary = Bestiary.loot.drop_bounds
+	var left: float = bounds.region_x_min.get(Campaign.IDS[region], bounds.default_x_min)
+	var at := Vector2(clampf(x, left, float(bounds.x_max)), Landscape.FLOOR_Y + float(bounds.y_offset))
+	drops.append({"kind": kind, "at": at, "amount": amount, "spawn": elapsed, "rank": rank, "rolled": rolled})
 
 
 func _collect_drops() -> void:
@@ -525,9 +528,12 @@ func _collect_drops() -> void:
 			"blade":
 				hunter.stolen_blade = true
 				unclaimed_blade_x = -1.0
-				if _grant_equipment("root_blade"):
-					_show_pickup(_ranked_gear_name("root_blade", 1))
-				_notice("取得%s。按 I 換裝。" % _ranked_gear_name("root_blade", 1), 3.0)
+				var weapon: String = Bestiary.loot.guardian_blade.grants
+				var rank := int(drop.rank)
+				var item_name := _ranked_gear_name(weapon, rank)
+				if _grant_equipment(weapon, rank):
+					_show_pickup(item_name)
+				_notice("取得%s。按 I 換裝。" % item_name, 3.0)
 			"fang_material":
 				fangs += 1
 				_show_pickup("蛛牙 +1", DROP_COLORS["material"])
@@ -538,8 +544,8 @@ func _collect_drops() -> void:
 				_show_pickup("潮火提燈")
 				_notice("取得潮火提燈，暗水道已照亮。", 4.0)
 			_:
-				if SOUL_NAMES.has(drop.kind):
-					var soul_name := "%s之魂" % SOUL_NAMES[drop.kind]
+				if not Bestiary.soul(drop.kind).is_empty():
+					var soul_name := "%s之魂" % Bestiary.soul(drop.kind).name
 					if not collected_souls.has(drop.kind):
 						collected_souls.append(drop.kind)
 						_show_pickup(soul_name, DROP_COLORS[drop.kind])
@@ -563,8 +569,8 @@ func _equip_next_soul() -> void:
 		return
 	var slot := collected_souls.find(hunter.equipped_soul)
 	hunter.equipped_soul = collected_souls[(slot + 1) % collected_souls.size()]
-	var hint := "跳起後按住 Shift 滑翔。" if hunter.equipped_soul == "lizard" else "貼牆時按住方向與 Shift 攀爬。"
-	_notice("已裝備%s。%s" % [SOUL_NAMES[hunter.equipped_soul], hint], 3.0)
+	var soul := Bestiary.soul(hunter.equipped_soul)
+	_notice("已裝備%s。%s" % [soul.name, soul.hint], 3.0)
 
 
 func _interact() -> void:
@@ -649,7 +655,8 @@ func _retry() -> void:
 	glyphs.clear()
 	hit_effects.clear()
 	# A disarmed guardian stays dead after victory. Keep its unclaimed weapon reachable.
-	drops = drops.filter(func(drop: Dictionary) -> bool: return guardian_felled and drop.kind == "blade")
+	var blade: Dictionary = Bestiary.loot.guardian_blade
+	drops = drops.filter(func(drop: Dictionary) -> bool: return bool(get(blade.defeat_flag)) and drop.kind == blade.item)
 	hunter.respawn(_camp_start())
 	camera.reset_smoothing()
 	_spawn_enemies()
@@ -756,8 +763,9 @@ func _draw() -> void:
 		var color: Color = DROP_COLORS.get(drop.kind, Color("#dfb9ff"))
 		draw_circle(at, 15, Color(color, 0.16))
 		if drop.kind == "lantern":
-			draw_texture_rect_region(MonsterArt.CRAB, Rect2(at - Vector2(10, 14), Vector2(20, 28)),
-				MonsterArt.LANTERN_REGION)
+			var lantern: Dictionary = Bestiary.loot.lantern
+			draw_texture_rect_region(MonsterArt.poses[lantern.icon_species].idle,
+				Rect2(at - Vector2(10, 14), Vector2(20, 28)), Bestiary.rectangle(lantern.icon_region))
 		elif drop.kind == "blade":
 			draw_line(at - Vector2(10, -7), at + Vector2(12, -8), color, 4, true)
 		elif not Equipment.item(drop.kind).is_empty():
@@ -1022,7 +1030,7 @@ func _camp_heal() -> void:
 
 func _camp_return_to_title() -> void:
 	if _save_camp():
-		get_tree().change_scene_to_file("res://scenes/title.tscn")
+		get_tree().change_scene_to_file(Campaign.TITLE_SCENE)
 
 
 func _save_camp() -> bool:
@@ -1060,7 +1068,7 @@ func _checkpoint_state() -> Dictionary:
 		"guardian_felled": guardian_felled,
 		"cache_open": cache_flags.get(Campaign.Region.TEMPLE, false),
 	}
-	if guardian_felled and unclaimed_blade_x >= 0.0:
+	if bool(get(Bestiary.loot.guardian_blade.defeat_flag)) and unclaimed_blade_x >= 0.0:
 		state["blade_x"] = unclaimed_blade_x
 	return state
 
@@ -1072,7 +1080,7 @@ func _restore_camp(state: Dictionary) -> void:
 	fangs = maxi(0, state.get("fangs", 0))
 	hunter.stolen_blade = state.get("stolen_blade", false)
 	for soul in state.get("souls", []):
-		if SOUL_NAMES.has(soul) and not collected_souls.has(soul):
+		if not Bestiary.soul(soul).is_empty() and not collected_souls.has(soul):
 			collected_souls.append(soul)
 	var equipped: String = state.get("equipped_soul", "")
 	if collected_souls.has(equipped):
@@ -1091,8 +1099,9 @@ func _restore_camp(state: Dictionary) -> void:
 	cache_flags = state.get("cache_flags", {Campaign.Region.TEMPLE: state.get("cache_open", false)})
 	landscape.cache_open = cache_flags.get(region, false)
 	unclaimed_blade_x = state.get("blade_x", -1.0)
-	if region == Campaign.Region.TEMPLE and guardian_felled and not hunter.stolen_blade and unclaimed_blade_x >= 0.0:
-		_drop("blade", unclaimed_blade_x)
+	var blade: Dictionary = Bestiary.loot.guardian_blade
+	if Campaign.IDS[region] == blade.region and bool(get(blade.defeat_flag)) and not hunter.stolen_blade and unclaimed_blade_x >= 0.0:
+		_drop(blade.item, unclaimed_blade_x)
 
 
 func _forge_fang_dagger() -> void:
@@ -1280,7 +1289,7 @@ func _update_hud() -> void:
 	health_label.text = "體力 %d/%d" % [hunter.health, max_health]
 	health_hearts.update_health(hunter.health, max_health)
 	weapon_status.text = _ranked_gear_name(weapon, hunter.item_rank(weapon))
-	spirit_status.text = SOUL_NAMES.get(hunter.equipped_soul, "未裝備")
+	spirit_status.text = Bestiary.soul(hunter.equipped_soul).get("name", "未裝備")
 	soul_status.text = str(soul_balance)
 	mana_status.get_parent().visible = hunter.staff_unlocked
 	mana_status.text = "%d/%d" % [hunter.mana, Hunter.MAX_MANA]
@@ -1316,10 +1325,22 @@ func _update_hud() -> void:
 		prompt_label.text = "E　打開補給石匣"
 	elif hunter.position.x > 677 and hunter.position.x < 805:
 		prompt_label.text = "斷橋　／　裝備蜥翼，跳起後按住 Shift 滑翔"
-	elif hunter.position.x > 2560 and not guardian_felled:
-		prompt_label.text = "樹靈舉起木刃時，攻擊握刃處的亮點可以繳械"
-	elif absf(hunter.position.x - MOTH_X) < 175.0 and not owned_equipment.has("scaleveil_hood"):
-		prompt_label.text = "石鐘蛾腹部發光時，向上攻擊可打斷落粉。"
+	else:
+		prompt_label.text = _monster_hint()
+
+
+func _monster_hint() -> String:
+	for encounter in Bestiary.encounters[Campaign.IDS[region]]:
+		var hint: Dictionary = encounter.get("hint", {})
+		if hint.is_empty() or owned_equipment.has(hint.get("unless_owned", "")):
+			continue
+		var flag: String = hint.get("unless_flag", "")
+		if not flag.is_empty() and bool(get(flag)):
+			continue
+		if hunter.position.x > float(hint.get("from_x", -INF)) and (
+				absf(hunter.position.x - float(encounter.x)) < float(hint.get("radius", INF))):
+			return hint.text
+	return ""
 
 
 func _update_region_hud() -> void:

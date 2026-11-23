@@ -1,5 +1,7 @@
 extends RefCounted
 
+const Bestiary := preload("res://scripts/ruin_bestiary.gd")
+
 const MAX_RANK := 5
 const MAX_LEVEL := 10
 # Material names are internal design references.
@@ -8,7 +10,6 @@ const COLORS := [
 	Color.TRANSPARENT, Color("#a9734d"), Color("#718d9a"), Color("#ce8555"),
 	Color("#d1def0"), Color("#f2ca61"),
 ]
-const DROP_RATES := [0.20, 0.10, 0.05, 0.025, 0.0125]
 
 
 static func rank_name(rank: int) -> String:
@@ -33,8 +34,9 @@ static func salvage_value(rank: int) -> int:
 
 static func drop_rank(roll: float) -> int:
 	var edge := 0.0
-	for index in range(DROP_RATES.size()):
-		edge += DROP_RATES[index]
+	var rates: Array = Bestiary.loot.random_equipment.rank_rates
+	for index in range(rates.size()):
+		edge += float(rates[index])
 		if roll < edge:
 			return index + 1
 	return 0

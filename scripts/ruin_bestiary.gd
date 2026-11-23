@@ -1,18 +1,30 @@
 extends RefCounted
 
-const DATA_PATH := "res://data/monsters.json"
-static var creatures: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(DATA_PATH))
+const DATA_DIR := "res://data"
 
-const DROPS := {
-	"shale_beetle": "stonegrip_gloves", "mirror_eel": "eel_greaves",
-	"root_mole": "hardroot_bracers", "sluice_snail": "silt_shell",
-	"ash_scribe": "rune_gloves", "copper_cicada": "copper_helm", "burial_ram": "ram_boots",
-}
+static var creatures: Dictionary = _read_table("monsters")
+static var encounters: Dictionary = _read_table("monster_encounters")
+static var loot: Dictionary = _read_table("monster_loot")
+static var rules: Dictionary = _read_table("monster_rules")
 
-const ENCOUNTERS := [
-	[["shale_beetle", 1580], ["dust_hare", 243]],
-	[["lantern_crab", 1180], ["reed_leech", 670], ["mirror_eel", 1590],
-		["root_mole", 1775], ["silt_ray", 2190], ["sluice_snail", 2640], ["tide_salamander", 2930]],
-	[["thorn_archer", 690], ["shield_heron", 1020], ["key_jackal", 1320],
-		["ash_scribe", 1600], ["shard_warden", 1960], ["copper_cicada", 2260], ["burial_ram", 2550]],
-]
+
+static func _read_table(name: String) -> Dictionary:
+	var path := "%s/%s.json" % [DATA_DIR, name]
+	var document := JSON.new()
+	if document.parse(FileAccess.get_file_as_string(path)) != OK or not document.data is Dictionary:
+		push_error("Invalid monster data table: %s" % path)
+		return {}
+	return document.data
+
+
+static func soul(id: String) -> Dictionary:
+	var creature: Dictionary = creatures.get(id, {})
+	return creature.get("soul", {})
+
+
+static func vector(values: Array) -> Vector2:
+	return Vector2(values[0], values[1])
+
+
+static func rectangle(values: Array) -> Rect2:
+	return Rect2(values[0], values[1], values[2], values[3])

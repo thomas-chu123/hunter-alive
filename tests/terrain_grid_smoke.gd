@@ -7,9 +7,9 @@ const TILE_CORNERS := [
 	Vector2(-10, -10), Vector2(10, -10), Vector2(10, 10), Vector2(-10, 10)
 ]
 const MAPS := [
-	"res://scenes/ruins.tscn",
-	"res://scenes/flooded_corridor.tscn",
-	"res://scenes/buried_court.tscn",
+	"res://scenes/ruins/ruins.tscn",
+	"res://scenes/flooded_corridor/flooded_corridor.tscn",
+	"res://scenes/buried_court/buried_court.tscn",
 ]
 
 var failures := 0

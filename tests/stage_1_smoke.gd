@@ -16,7 +16,7 @@ func check(condition: bool, description: String) -> void:
 
 
 func run_checks() -> void:
-	var scene: PackedScene = load("res://scenes/ruins.tscn")
+	var scene: PackedScene = load("res://scenes/ruins/ruins.tscn")
 	var ruins = scene.instantiate()
 	root.add_child(ruins)
 	await physics_frame

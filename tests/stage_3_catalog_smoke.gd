@@ -52,7 +52,7 @@ func run() -> void:
 			if id in ["treant", "thorn_archer", "shield_heron"]:
 				monster.windup = 0.5
 				monster.receive_hit(1, true, true)
-			if Bestiary.DROPS.has(id) or id in ["spider", "bell_moth"]:
+			if Bestiary.loot.monsters[id].has("defeat"):
 				monster.state = monster.State.RECOVER
 				monster.receive_hit(200, false)
 		# Catalog verification uses the dedicated sources. Random copies are tested separately.

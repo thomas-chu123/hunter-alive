@@ -2,7 +2,7 @@ extends SceneTree
 
 const SAVE := preload("res://scripts/camp_save.gd")
 const MONSTER := preload("res://scripts/ruin_monster.gd")
-const RUINS := "res://scenes/ruins.tscn"
+const RUINS := "res://scenes/ruins/ruins.tscn"
 
 var failed := false
 

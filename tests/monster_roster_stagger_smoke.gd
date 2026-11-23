@@ -14,7 +14,7 @@ func _initialize() -> void:
 
 
 func run() -> void:
-	change_scene_to_file("res://scenes/flooded_corridor.tscn")
+	change_scene_to_file("res://scenes/flooded_corridor/flooded_corridor.tscn")
 	await scene_changed
 	level = current_scene
 	for enemy in level.enemies:
@@ -37,7 +37,7 @@ func run() -> void:
 		OS.delay_msec(250)
 		await process_frame
 	else:
-		change_scene_to_file("res://scenes/title.tscn")
+		change_scene_to_file("res://scenes/title/title.tscn")
 		await scene_changed
 		await frames(75)
 	quit(1 if failures else 0)

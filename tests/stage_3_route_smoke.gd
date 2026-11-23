@@ -16,7 +16,7 @@ func run() -> void:
 		await check_court_grounding()
 		quit(1 if failures else 0)
 		return
-	change_scene_to_file("res://scenes/title.tscn")
+	change_scene_to_file("res://scenes/title/title.tscn")
 	await scene_changed
 	await press(current_scene.new_game)
 	await scene_changed
@@ -113,14 +113,14 @@ func run() -> void:
 	var ending_input_handled := await key(KEY_E)
 	if current_scene == null:
 		await scene_changed
-	check(ending_input_handled and current_scene != null and current_scene.scene_file_path == "res://scenes/title.tscn",
+	check(ending_input_handled and current_scene != null and current_scene.scene_file_path == "res://scenes/title/title.tscn",
 		"ending consumes the interaction before returning to the title")
 	await view()
 	quit(1 if failures else 0)
 
 
 func check_court_grounding() -> void:
-	change_scene_to_file("res://scenes/buried_court.tscn")
+	change_scene_to_file("res://scenes/buried_court/buried_court.tscn")
 	await scene_changed
 	var level := current_scene as Ruins
 	for monster in level.enemies:

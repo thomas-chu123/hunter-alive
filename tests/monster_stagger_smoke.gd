@@ -13,7 +13,7 @@ func _initialize() -> void:
 
 
 func run() -> void:
-	change_scene_to_file("res://scenes/flooded_corridor.tscn")
+	change_scene_to_file("res://scenes/flooded_corridor/flooded_corridor.tscn")
 	await scene_changed
 	level = current_scene
 	for enemy in level.enemies:

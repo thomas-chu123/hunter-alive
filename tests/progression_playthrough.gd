@@ -148,7 +148,7 @@ func run() -> void:
 	await view(78)
 	await verify_legacy_save()
 	if DisplayServer.get_name() != "headless":
-		change_scene_to_file("res://scenes/title.tscn")
+		change_scene_to_file("res://scenes/title/title.tscn")
 		await scene_changed
 		await frames(62)
 	quit(1 if failures else 0)
@@ -195,7 +195,7 @@ func verify_legacy_save() -> void:
 
 
 func load_temple() -> void:
-	change_scene_to_file("res://scenes/ruins.tscn")
+	change_scene_to_file("res://scenes/ruins/ruins.tscn")
 	await scene_changed
 	level = current_scene
 	for enemy in level.enemies:

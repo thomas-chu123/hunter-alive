@@ -1,0 +1,57 @@
+{
+  "motion": {
+    "gravity": 1380,
+    "fall_speed": 850,
+    "notice_time": 0.13,
+    "lost_sight_time": 0.62,
+    "blocked_time": 0.42,
+    "reacquire_delay": 0.8,
+    "chase_height": 230,
+    "landing_probe_step": 0.065,
+    "jump_retry_delay": 0.22,
+    "jump_cooldown": 0.35,
+    "fall_reset_depth": 250
+  },
+  "combat": {
+    "disarm_recovery": 0.5,
+    "strike_moments": [
+      0.12,
+      0.63
+    ],
+    "strike_cutoff": 0.91,
+    "double_windup_at": 0.46,
+    "projectile_range_padding": 75,
+    "transition_windup_ratio": 0.44,
+    "transition_release_start": 0.32,
+    "double_recovery_at": 0.82,
+    "weapon_hitbox": {
+      "rect": [
+        -24,
+        -71,
+        48,
+        56
+      ],
+      "facing_offset": 81
+    }
+  },
+  "art": {
+    "body_size": [
+      82,
+      69
+    ],
+    "frame_size": [
+      224,
+      224
+    ],
+    "frame_anchor": [
+      112,
+      197
+    ],
+    "frame_scale": 0.8,
+    "bestiary_size": [
+      103,
+      103
+    ],
+    "bestiary_anchor_y": 0.88
+  }
+}
