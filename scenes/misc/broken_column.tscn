@@ -1,8 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Texture2D" path="res://assets/environment/common/props/broken_column.png" id="1_art"]
-
-[node name="BrokenColumn" type="Sprite2D"]
-scale = Vector2(0.39312, 0.39312)
-texture = ExtResource("1_art")
-offset = Vector2(0, -122.1)

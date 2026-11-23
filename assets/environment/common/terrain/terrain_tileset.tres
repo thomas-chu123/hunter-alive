@@ -1,8 +1,6 @@
 [gd_resource type="TileSet" format=3 uid="uid://con8hl5nkiqgu"]
 
 [ext_resource type="Texture2D" uid="uid://b6c6rrg5imjea" path="res://assets/environment/common/terrain/terrain_grid.png" id="1_grid"]
-[ext_resource type="PackedScene" path="res://scenes/misc/broken_column.tscn" id="2_column"]
-[ext_resource type="PackedScene" path="res://scenes/misc/fern.tscn" id="3_fern"]
 
 [sub_resource type="TileMapPattern" id="MossFloor"]
 resource_name = "Moss floor"
@@ -361,16 +359,10 @@ texture_region_size = Vector2i(20, 20)
 11:6/0 = 0
 11:6/0/physics_layer_0/polygon_0/points = PackedVector2Array(-10, -10, 10, -10, 10, 10, -10, 10)
 
-[sub_resource type="TileSetScenesCollectionSource" id="Scenes_ruins_props"]
-resource_name = "Ruins decorations"
-scenes/1/scene = ExtResource("2_column")
-scenes/2/scene = ExtResource("3_fern")
-
 [resource]
 tile_size = Vector2i(20, 20)
 physics_layer_0/collision_layer = 1
 sources/0 = SubResource("Atlas_ruins")
-sources/1 = SubResource("Scenes_ruins_props")
 pattern_0 = SubResource("MossFloor")
 pattern_1 = SubResource("SandstoneFloor")
 pattern_2 = SubResource("RootFloor")
