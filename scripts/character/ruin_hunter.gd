@@ -2,6 +2,7 @@ extends CharacterBody2D
 
 signal attacked(origin: Vector2, facing: float, ranged: bool, damage: int, weapon: String)
 signal cast(origin: Vector2, direction: float, weapon: String)
+signal damaged(source_x: float, damage: int, effect: String)
 signal defeated
 
 const Progression := preload("res://scripts/game/ruin_progression.gd")
@@ -259,6 +260,7 @@ func hurt(source_x: float, damage: int = 1, effect: String = "") -> void:
 		invincible_left = 0.45
 		return
 	health = maxi(0, health - damage)
+	damaged.emit(source_x, damage, effect)
 	if health == 0:
 		defeated.emit()
 		return

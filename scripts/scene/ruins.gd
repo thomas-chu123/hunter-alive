@@ -130,6 +130,7 @@ func _ready() -> void:
 	hunter.position = _camp_start()
 	hunter.attacked.connect(_attack)
 	hunter.cast.connect(_cast)
+	hunter.damaged.connect(_on_hunter_damaged)
 	hunter.defeated.connect(_on_hunter_defeated)
 	add_child(hunter)
 	for id: String in Equipment.STARTING_WEAPONS:
@@ -640,6 +641,19 @@ func _near_treasure() -> String:
 
 func _near_cache() -> bool:
 	return hunter.global_position.distance_to(landscape.cache.global_position) < 65
+
+
+func _on_hunter_damaged(source_x: float, damage: int, effect: String) -> void:
+	var dir := signf(hunter.position.x - source_x)
+	if dir == 0.0:
+		dir = 1.0
+	var heavy := damage >= 2 or effect in ["ram", "slam", "crush", "hammer", "shards", "heavy"]
+	var hit_pt := hunter.position + Vector2(0, -28)
+	hit_effects.trigger_screen_flash(Color(0.85, 0.08, 0.05, 0.28 if heavy else 0.16), 0.14 if heavy else 0.08)
+	hit_effects.trigger_shockwave(hit_pt, 48.0 if heavy else 28.0, Color(0.95, 0.22, 0.12), 0.22)
+	hit_effects.trigger_slash_scar(hit_pt, dir, 65.0 if heavy else 38.0, Color(1.0, 0.20, 0.10), 0.28)
+	hit_effects.trigger_starburst(hit_pt, 36.0 if heavy else 20.0, Color(1.0, 0.45, 0.20), 0.18)
+	hit_effects._punctuate_hit(dir, heavy, 11.0 if heavy else 6.2)
 
 
 func _on_hunter_defeated() -> void:

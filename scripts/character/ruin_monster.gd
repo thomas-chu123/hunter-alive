@@ -449,7 +449,8 @@ func _attack_sound() -> void:
 	if position.distance_to(target.position) >= EnemyAudio.AUDIBLE_DISTANCE:
 		return
 	var key: String = sound.attack if armed else sound.get("unarmed_attack", sound.attack)
-	EnemyAudio.play(attack_voice, EnemyAudio.ATTACKS[key], 1.0)
+	var is_heavy: bool = key == "heavy" or int(attack.get("damage", 1)) >= 2 or attack_kind in ["ram", "slam", "crush", "hammer"] or _attack_value("mode") == "ground"
+	EnemyAudio.play_attack(attack_voice, key, is_heavy)
 
 
 func _attack_area() -> Rect2:
@@ -761,20 +762,22 @@ func _between_double_hits(progress: float) -> bool:
 func _draw_attack_effect(size: Vector2) -> void:
 	var mode: String = _attack_value("mode")
 	var element: String = attack.element
+	var key: String = sound.attack if armed else sound.get("unarmed_attack", sound.attack)
+	var is_heavy: bool = key == "heavy" or int(attack.get("damage", 1)) >= 2 or attack_kind in ["ram", "slam", "crush", "hammer"] or mode == "ground"
 	if mode == "ground" and ground_mark_valid and (windup > 0 or strike > 0):
 		Effects.ground(self, target_mark - position, float(attack.extent), element,
 			strike > 0, _strike_progress() if strike > 0 else age,
-			Art.poses[species].get("ground_effect"), appearance.get("ground_effect", {}))
+			Art.poses[species].get("ground_effect"), appearance.get("ground_effect", {}), is_heavy)
 	elif windup > 0:
 		var point := Vector2(facing * size.x * 0.28, -size.y * 0.67)
 		if armed:
 			point = weapon_hitbox().get_center() - position
-		Effects.charge(self, point, element, age)
+		Effects.charge(self, point, element, age, is_heavy)
 	elif strike > 0 and _attack_pose() == AttackPose.RELEASE:
 		var progress := _strike_progress()
 		if mode == "melee":
 			var reach := _attack_area().size.x + 12.0
-			Effects.sweep(self, size.y * 0.46, reach, facing, element, progress)
+			Effects.sweep(self, size.y * 0.46, reach, facing, element, progress, is_heavy, attack_kind)
 		elif mode == "pollen":
 			Effects.pollen(self, progress)
 
