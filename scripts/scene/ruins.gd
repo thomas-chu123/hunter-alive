@@ -255,8 +255,10 @@ func _attack(origin: Vector2, direction: float, ranged: bool, damage: int, weapo
 			"weapon": weapon, "pierce": int(weapon == "thorn_bow"), "hit_ids": []})
 		return
 	var reach: float = Armory.WEAPONS[weapon][4] if Armory.WEAPONS.has(weapon) else 51.0
-	var blade_step := maxi(1, hunter.blade_step) if weapon in Hunter.SHORT_BLADES else 0
-	if blade_step > 0:
+	var is_short_blade := weapon in Hunter.SHORT_BLADES
+	var blade_step := maxi(1, hunter.blade_step) if is_short_blade else 3
+	var is_melee := is_short_blade or weapon in ["root_blade", "tide_hammer", "gate_halberd", "sluice_spear"]
+	if is_melee:
 		hit_effects.swing(origin, direction, reach, blade_step, weapon)
 	else:
 		hit_effects.release_weapon(weapon)
@@ -405,13 +407,15 @@ func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector
 	if weapon == "ember_staff":
 		hit_effects.fire_impact(point)
 		return
-	if blade_step == 0:
+	var is_short_blade := weapon in Hunter.SHORT_BLADES
+	var effective_step := blade_step if is_short_blade else (3 if weapon in ["root_blade", "tide_hammer", "gate_halberd", "sluice_spear"] else 0)
+	if effective_step == 0:
 		hit_effects.impact(point, direction, weapon_hit)
 		return
 	var blocked := result == Monster.HitResult.BLOCKED
-	hit_effects.blade_impact(point, direction, blade_step, blocked, result == Monster.HitResult.DISARMED)
+	hit_effects.blade_impact(point, direction, effective_step, blocked, result == Monster.HitResult.DISARMED)
 	if not blocked:
-		hunter.blade_recoil = -direction * (52.0 if blade_step == 3 else 34.0)
+		hunter.blade_recoil = -direction * (52.0 if effective_step == 3 else 34.0)
 		if not monster.is_queued_for_deletion():
 			monster.flash_blade_hit()
 
