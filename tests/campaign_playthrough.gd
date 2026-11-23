@@ -80,6 +80,10 @@ func run() -> void:
 		return
 	if not verify(await glide_to(2225), "crossed the second corridor gap"):
 		return
+	if not verify(await walk_to(2510, 12, true), "reached the corridor reliquary"):
+		return
+	if not verify(await glide_to(2860), "glided past the eastern corridor encounter"):
+		return
 	if not verify(await walk_to(3121, 8, true), "reached the corridor drain exit"):
 		return
 	await tap("hunt_interact")
@@ -97,11 +101,11 @@ func run() -> void:
 	if not verify(await glide_to(3070), "glided behind the seal keeper"):
 		return
 	var keeper = find_enemy("seal_keeper")
-	if not verify(await push_keeper_to_seal(keeper), "reached the keeper's shield phase"):
+	if not verify(await shoot_keeper_from_range(keeper, true), "reached the keeper's shield phase"):
 		return
 	if not verify(await break_guard(keeper), "broke the keeper's seal with a bow shot"):
 		return
-	if not verify(await defeat(keeper), "defeated the final seal keeper"):
+	if not verify(await shoot_keeper_from_range(keeper, false), "defeated the final seal keeper"):
 		return
 	if not verify(await walk_to(3130, 8, true), "reached the main altar"):
 		return
@@ -155,11 +159,11 @@ func camp_reload() -> bool:
 	return verify(false, "returned to title from camp")
 
 
-func push_keeper_to_seal(keeper: Node2D) -> bool:
+func shoot_keeper_from_range(keeper: Node2D, until_seal: bool) -> bool:
 	for shot in range(24):
 		if not is_instance_valid(keeper) or ruins.restarting:
 			break
-		if keeper.second_phase:
+		if until_seal and keeper.second_phase:
 			release_inputs()
 			return true
 		var offset: float = keeper.position.x - hunter.position.x
@@ -173,7 +177,7 @@ func push_keeper_to_seal(keeper: Node2D) -> bool:
 		await tap("hunt_attack")
 		await frames(24)
 	release_inputs()
-	return false
+	return ruins.keeper_felled
 
 
 func aim_at(x: float) -> void:

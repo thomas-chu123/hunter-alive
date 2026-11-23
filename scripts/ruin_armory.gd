@@ -30,9 +30,9 @@ const WEAR := {
 }
 
 const CHESTS := [
-	[["cliff_boots", 1495, 448], ["wing_cape", 1920, 410]],
-	[["sealed_cap", 520, 540], ["reed_coat", 1950, 468],
+	[["cliff_boots", 1495, 440], ["wing_cape", 1920, 420]],
+	[["sealed_cap", 520, 540], ["reed_coat", 1950, 480],
 		["sluice_spear", 2535, 420], ["sluice_boots", 2990, 540], ["tide_hammer", 3050, 540]],
-	[["bowstring_gloves", 800, 486], ["ash_cowl", 1680, 459],
-		["cinder_greaves", 2075, 476], ["gate_halberd", 2380, 470]],
+	[["bowstring_gloves", 800, 480], ["ash_cowl", 1680, 460],
+		["cinder_greaves", 2075, 480], ["gate_halberd", 2380, 480]],
 ]

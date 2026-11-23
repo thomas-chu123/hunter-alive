@@ -133,22 +133,12 @@ func check_court_grounding() -> void:
 	level._grant_equipment("tide_hammer")
 	var hunter := level.hunter
 	hunter.select_weapon("tide_hammer")
-	var terrain := level.landscape.get_node("Terrain")
-	var platforms_checked := 0
-	var max_offset := 0.0
-	for platform in terrain.get_children():
-		if not platform.name.begins_with("Platform"):
-			continue
-		var collision: CollisionShape2D = platform.get_node("Shape")
-		var shape := collision.shape as RectangleShape2D
-		var surface := collision.position.y - shape.size.y * 0.5
-		for child in platform.get_children():
-			if child is Sprite2D:
-				var top: float = child.position.y + child.get_rect().position.y * child.scale.y
-				max_offset = maxf(max_offset, absf(top - surface))
-		platforms_checked += 1
-	check(platforms_checked == 8 and max_offset < 1.0,
-		"all eight stone surfaces align with their collision tops (max offset %.2f px)" % max_offset)
+	var terrain: TileMapLayer = level.landscape.get_node("Terrain")
+	var landing_cell := terrain.local_to_map(Vector2(780, 485))
+	var tile := terrain.get_cell_tile_data(landing_cell)
+	check(tile != null and tile.get_collision_polygons_count(0) > 0,
+		"first raised court platform has tile collision")
+	var landing_y := terrain.map_to_local(landing_cell).y - terrain.tile_set.tile_size.y * 0.5
 	var shrine := level.landscape.shrine
 	var brazier: Sprite2D = shrine.get_node("Sprite")
 	var brazier_width := brazier.get_rect().size.x * brazier.scale.x
@@ -176,8 +166,7 @@ func check_court_grounding() -> void:
 	await frames(35)
 	Input.action_release("hunt_right")
 	await frames(20)
-	var platform: StaticBody2D = terrain.get_node("Platform1")
-	check(hunter.is_on_floor() and absf(hunter.position.y - platform.position.y) < 0.25,
+	check(hunter.is_on_floor() and absf(hunter.position.y - landing_y) < 0.25,
 		"hunter lands on the raised stone platform")
 	await frames(17)
 
