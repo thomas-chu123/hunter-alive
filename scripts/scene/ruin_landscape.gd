@@ -76,12 +76,17 @@ func place_braziers(level_width: float, random: RandomNumberGenerator) -> void:
 func _has_brazier_space(terrain: TileMapLayer, floor_cell: Vector2i) -> bool:
 	for x in range(-1, 2):
 		var support := floor_cell + Vector2i(x, 0)
-		if terrain.get_cell_source_id(support) == -1:
+		if not _has_terrain_collision(terrain, support):
 			return false
 		for y in range(1, 4):
-			if terrain.get_cell_source_id(support + Vector2i(0, -y)) != -1:
+			if _has_terrain_collision(terrain, support + Vector2i(0, -y)):
 				return false
 	return true
+
+
+func _has_terrain_collision(terrain: TileMapLayer, cell: Vector2i) -> bool:
+	var tile := terrain.get_cell_tile_data(cell)
+	return tile != null and tile.get_collision_polygons_count(0) > 0
 
 
 func _collect_props(layer: TileMapLayer) -> void:

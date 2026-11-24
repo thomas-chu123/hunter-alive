@@ -11,9 +11,11 @@ const HunterAnimation := preload("res://scripts/character/hunter_animation.gd")
 const HunterSprites := preload("res://scripts/character/hunter_sprites.gd")
 const WeaponArt := preload("res://scripts/character/hunter_weapon_art.gd")
 const TrapArt := preload("res://scripts/trap/trap_art.gd")
+const ClimbableProp := preload("res://assets/environment/common/props/traversal/climbable_prop.gd")
 const RUN_SPEED := 250.0
 const WALK_SPEED := 115.0
 const CROUCH_SPEED := 64.0
+const CLIMB_SPEED := 110.0
 const KNIFE_DURATION := 0.29
 const BOW_DURATION := 0.39
 const ATTACK_BUFFER := 0.22
@@ -81,6 +83,8 @@ var blade_recoil := 0.0
 var collider: CollisionShape2D
 var animation_time := 0.0
 var wall_holding := false
+var prop_climbing := false
+var climb_jump_lock := false
 var jump_grace := 0.0
 
 
@@ -128,43 +132,59 @@ func _physics_process(delta: float) -> void:
 			hurt(position.x - facing, 1, "leech")
 			leech_tick = 1.5 if gear.get("身體") == "reed_coat" else 0.9
 	var grounded := is_on_floor()
-	_update_crouch(grounded and Input.is_action_pressed("hunt_crouch"))
+	var direction := Input.get_axis("hunt_left", "hunt_right")
+	var vertical := Input.get_axis("hunt_climb_up", "hunt_crouch")
+	var jumped := Input.is_action_just_pressed("hunt_jump")
+	var was_prop_climbing := prop_climbing
+	if is_zero_approx(vertical):
+		climb_jump_lock = false
+	if jumped and was_prop_climbing:
+		climb_jump_lock = true
+	var climb_prop: ClimbableProp
+	if not jumped and not climb_jump_lock and hurt_left <= 0.0 and attack_left <= 0.0 and is_zero_approx(direction):
+		if was_prop_climbing or not is_zero_approx(vertical):
+			climb_prop = _nearby_climb_prop(vertical)
+	_update_crouch(climb_prop == null and grounded and Input.is_action_pressed("hunt_crouch"))
+	prop_climbing = climb_prop != null and not crouching
 	crouch_time = crouch_time + delta if crouching else 0.0
 	walking = Input.is_action_pressed("hunt_walk")
 	invincible_left = maxf(invincible_left - delta, 0)
 	jump_grace = 0.08 if is_on_floor() else maxf(jump_grace - delta, 0)
-	var direction := Input.get_axis("hunt_left", "hunt_right")
 
 	wall_holding = (
-		equipped_soul == "spider" and Input.is_action_pressed("hunt_soul")
+		not prop_climbing and equipped_soul == "spider" and Input.is_action_pressed("hunt_soul")
 		and direction != 0 and _can_grip_wall(direction)
 	)
-	if wall_holding:
+	if prop_climbing:
+		var target_y := move_toward(global_position.y, climb_prop.climb_limit(vertical), CLIMB_SPEED * absf(vertical) * delta)
+		var climb_step := target_y - global_position.y
+		velocity.y = climb_step / delta if climb_step * vertical > 0.0 else 0.0
+	elif wall_holding:
 		velocity.y = -135.0
 	else:
 		velocity.y = minf(velocity.y + GRAVITY * delta, 950.0)
 
-	var jumped := Input.is_action_just_pressed("hunt_jump")
-	if jumped and not crouching and (jump_grace > 0.0 or wall_holding):
+	if jumped and not crouching and (jump_grace > 0.0 or wall_holding or was_prop_climbing):
 		velocity.y = -JUMP_SPEED
 		jump_grace = 0.0
 		wall_holding = false
 		leech_left = 0.0
 
 	gliding = (
-		equipped_soul == "lizard" and Input.is_action_pressed("hunt_soul")
+		not prop_climbing and equipped_soul == "lizard" and Input.is_action_pressed("hunt_soul")
 		and not is_on_floor() and velocity.y > 0
 	)
 	if gliding:
 		velocity.y = minf(velocity.y, 49.3 if gear.get("身體") == "wing_cape" else 58.0)
 
-	var on_ground := grounded and not wall_holding and velocity.y >= 0.0
+	var on_ground := grounded and not wall_holding and not prop_climbing and velocity.y >= 0.0
 	if direction != 0 and (not on_ground or attack_left <= 0.0):
 		facing = signf(direction)
 	if Input.is_action_just_pressed("hunt_switch") and not unlocked_weapons.is_empty():
 		var slot := unlocked_weapons.find(selected_weapon())
 		select_weapon(unlocked_weapons[(slot + 1) % unlocked_weapons.size()])
-	_start_requested_attack()
+	if not prop_climbing:
+		_start_requested_attack()
 
 	var speed := WALK_SPEED if walking else RUN_SPEED
 	if gliding:
@@ -179,7 +199,10 @@ func _physics_process(delta: float) -> void:
 	if shallow_water:
 		speed *= 1.20 if gear.get("腿部") == "eel_greaves" else 1.0
 		current_force = -16.0 if gear.get("腿部") == "sluice_boots" else -32.0
-	if on_ground and attack_left > 0.0:
+	if prop_climbing:
+		var offset := climb_prop.global_position.x - global_position.x
+		velocity.x = clampf(offset / delta, -CLIMB_SPEED, CLIMB_SPEED)
+	elif on_ground and attack_left > 0.0:
 		# Ground attack sprites are planted. Keep impact recoil separate from steering.
 		velocity.x = 0.0
 	else:
@@ -195,6 +218,29 @@ func _physics_process(delta: float) -> void:
 	animation_time += delta
 	_release_attack()
 	queue_redraw()
+
+
+func _nearby_climb_prop(direction: float) -> ClimbableProp:
+	var query := PhysicsPointQueryParameters2D.new()
+	query.position = global_position
+	query.collision_mask = ClimbableProp.DETECTION_LAYER
+	query.collide_with_areas = true
+	query.collide_with_bodies = false
+	var best: ClimbableProp
+	for hit in get_world_2d().direct_space_state.intersect_point(query):
+		var candidate := hit.collider as ClimbableProp
+		if candidate == null:
+			continue
+		if best == null:
+			best = candidate
+			continue
+		var candidate_distance := absf(candidate.global_position.x - global_position.x)
+		var best_distance := absf(best.global_position.x - global_position.x)
+		# When two stacked segments overlap, pick the one that extends farther along the climb.
+		var extends_climb := (candidate.climb_limit(direction) - best.climb_limit(direction)) * direction > 0.0
+		if candidate_distance < best_distance or (is_equal_approx(candidate_distance, best_distance) and extends_climb):
+			best = candidate
+	return best
 
 
 func _start_requested_attack() -> void:
@@ -278,6 +324,7 @@ func hurt(source_x: float, damage: int = 1, effect: String = "") -> void:
 		invincible_left = 0.45
 		return
 	health = maxi(0, health - damage)
+	prop_climbing = false
 	damaged.emit(source_x, damage, effect)
 	if health == 0:
 		defeated.emit()
@@ -405,6 +452,8 @@ func respawn(at: Vector2) -> void:
 	jump_grace = 0.0
 	gliding = false
 	wall_holding = false
+	prop_climbing = false
+	climb_jump_lock = false
 
 
 func show_electric_hit() -> void:
@@ -425,8 +474,10 @@ func _draw_hunter() -> void:
 		return
 
 	var weapon := selected_weapon()
-	if wall_holding and hurt_left <= 0.0:
+	if (wall_holding or prop_climbing) and hurt_left <= 0.0:
 		var climb_frame := int(animation_time * 12.0) % HunterAnimation.FRAME_COUNT
+		if prop_climbing and is_zero_approx(velocity.y):
+			climb_frame = 0
 		if weapon == "unarmed":
 			HunterAnimation.draw_climb(self, climb_frame, facing)
 		else:

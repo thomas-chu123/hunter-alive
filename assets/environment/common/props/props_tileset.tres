@@ -23,6 +23,10 @@
 [ext_resource type="PackedScene" path="res://assets/items/armor/chests/ash_cowl.tscn" id="28"]
 [ext_resource type="PackedScene" path="res://assets/items/armor/chests/cinder_greaves.tscn" id="29"]
 [ext_resource type="PackedScene" path="res://assets/items/weapon/chests/gate_halberd.tscn" id="30"]
+[ext_resource type="PackedScene" uid="uid://knp3vegc5sl1" path="res://assets/environment/common/props/traversal/climbing_rope.tscn" id="climbing_rope"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/iron_ladder.tscn" id="iron_ladder"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/wooden_ladder.tscn" id="wooden_ladder"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/wooden_stairs.tscn" id="wooden_stairs"]
 
 [sub_resource type="TileSetScenesCollectionSource" id="Collection0"]
 resource_name = "Props"
@@ -56,9 +60,17 @@ scenes/27/scene = ExtResource("27")
 scenes/28/scene = ExtResource("28")
 scenes/29/scene = ExtResource("29")
 
+[sub_resource type="TileSetScenesCollectionSource" id="Traversal"]
+resource_name = "Traversal"
+scenes/1/scene = ExtResource("wooden_stairs")
+scenes/2/scene = ExtResource("climbing_rope")
+scenes/3/scene = ExtResource("wooden_ladder")
+scenes/4/scene = ExtResource("iron_ladder")
+
 [resource]
 resource_name = "Props"
 tile_size = Vector2i(20, 20)
 sources/0 = SubResource("Collection0")
 sources/1 = SubResource("Collection1")
 sources/2 = SubResource("Collection2")
+sources/3 = SubResource("Traversal")

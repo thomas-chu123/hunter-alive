@@ -1,0 +1,30 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/traversal/wooden_stairs.png" id="1_art"]
+
+[sub_resource type="SegmentShape2D" id="Ramp"]
+a = Vector2(-64.031242, 0)
+b = Vector2(64.031242, 0)
+
+[sub_resource type="SegmentShape2D" id="Landing"]
+a = Vector2(-10, 0)
+b = Vector2(10, 0)
+
+[node name="WoodenStairs" type="StaticBody2D"]
+collision_mask = 0
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -40)
+texture = ExtResource("1_art")
+
+[node name="Ramp" type="CollisionShape2D" parent="."]
+position = Vector2(-10, -40)
+rotation = -0.67474094
+shape = SubResource("Ramp")
+one_way_collision = true
+
+[node name="Landing" type="CollisionShape2D" parent="."]
+position = Vector2(50, -80)
+shape = SubResource("Landing")
+one_way_collision = true

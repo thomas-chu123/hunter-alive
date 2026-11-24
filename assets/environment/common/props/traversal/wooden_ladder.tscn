@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/traversal/wooden_ladder.png" id="1_art"]
+[ext_resource type="Script" path="res://assets/environment/common/props/traversal/climbable_prop.gd" id="2_climb"]
+
+[sub_resource type="RectangleShape2D" id="ClimbBounds"]
+size = Vector2(42, 138)
+
+[node name="WoodenLadder" type="Area2D"]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+script = ExtResource("2_climb")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -60)
+texture = ExtResource("1_art")
+
+[node name="ClimbBounds" type="CollisionShape2D" parent="."]
+position = Vector2(0, -63)
+shape = SubResource("ClimbBounds")

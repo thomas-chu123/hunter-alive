@@ -21,3 +21,9 @@ godot --headless --path . --fixed-fps 60 --script tests/character/monster_data_s
 ```
 
 `tests/audio/game_audio_smoke.gd` 需用 Godot 視窗或 `--write-movie` 執行，才會跑音訊播放檢查。
+
+## 室內圖塊與攀爬道具
+
+- 在 `Terrain` 共用 TileSet 的筆刷選擇 `Interior Surfaces`、`Interior Fixtures`，或從「圖樣」蓋印整組牆面、地板和擺設。要把擺設疊在牆面上，可在牆面上方加一個使用同一 TileSet 的 TileMapLayer。室內圖塊只繪製背景，實體地板仍需鋪有碰撞的地形圖塊。
+- 在 `Props` 圖層選擇 `Traversal`，將圖塊原點放在下層地板線。木樓梯向右上升 80 px，上端承接平台的地板線位於原點右方 60 px。繩索和梯子長 120 px，可在同一垂直線每隔六格接續放置。上端留出可側移到平台的空間。
+- 靠近繩索或梯子時，按 W／↑ 上爬、S／↓ 下爬。放開上下鍵會停在原處，左右鍵或空白鍵可離開。樓梯用左右鍵行走。

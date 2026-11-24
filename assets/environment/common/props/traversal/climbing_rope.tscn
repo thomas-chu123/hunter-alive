@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://knp3vegc5sl1"]
+
+[ext_resource type="Texture2D" uid="uid://4u53bi0gmkl6" path="res://assets/environment/common/props/traversal/climbing_rope.png" id="1_art"]
+[ext_resource type="Script" uid="uid://w5bji500h43e" path="res://assets/environment/common/props/traversal/climbable_prop.gd" id="2_climb"]
+
+[sub_resource type="RectangleShape2D" id="ClimbBounds"]
+size = Vector2(34, 138)
+
+[node name="ClimbingRope" type="Area2D" unique_id=744504716]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+script = ExtResource("2_climb")
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1338342629]
+texture_filter = 1
+position = Vector2(0, -60)
+texture = ExtResource("1_art")
+
+[node name="ClimbBounds" type="CollisionShape2D" parent="." unique_id=787106144]
+position = Vector2(409, 274)
+shape = SubResource("ClimbBounds")

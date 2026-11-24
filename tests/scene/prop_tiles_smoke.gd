@@ -63,7 +63,7 @@ func run() -> void:
 
 func check_tile_sources() -> void:
 	var sources := {
-		"Props": {0: ["Props", 12], 1: ["Weapons", 3], 2: ["Armor", 8]},
+		"Props": {0: ["Props", 12], 1: ["Weapons", 3], 2: ["Armor", 8], 3: ["Traversal", 4]},
 		"BackgroundProps": {0: ["BackgroundProps", 8]},
 		"ObstacleProps": {0: ["ObstacleProps", 3]},
 		"Traps": {0: ["Mechanical", 5], 1: ["Elemental", 5], 2: ["Portals", 4], 3: ["Environment Effects", 3]},
