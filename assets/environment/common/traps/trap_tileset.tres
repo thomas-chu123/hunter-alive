@@ -14,6 +14,9 @@
 [ext_resource type="PackedScene" path="res://assets/environment/common/traps/random_portal.tscn" id="12"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/traps/random_landing.tscn" id="13"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/traps/electric.tscn" id="14"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/lava/lava_pool_180.tscn" id="31"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/lava/lava_pool_240.tscn" id="32"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/lava/lava_pool_280.tscn" id="33"]
 
 [sub_resource type="TileSetScenesCollectionSource" id="Collection_Mechanical"]
 resource_name = "Mechanical"
@@ -38,9 +41,16 @@ scenes/11/scene = ExtResource("11")
 scenes/12/scene = ExtResource("12")
 scenes/13/scene = ExtResource("13")
 
+[sub_resource type="TileSetScenesCollectionSource" id="Collection_Environment"]
+resource_name = "Environment Effects"
+scenes/31/scene = ExtResource("31")
+scenes/32/scene = ExtResource("32")
+scenes/33/scene = ExtResource("33")
+
 [resource]
-resource_name = "Trap"
+resource_name = "Traps"
 tile_size = Vector2i(20, 20)
 sources/0 = SubResource("Collection_Mechanical")
 sources/1 = SubResource("Collection_Elemental")
 sources/2 = SubResource("Collection_Portals")
+sources/3 = SubResource("Collection_Environment")

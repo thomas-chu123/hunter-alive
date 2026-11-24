@@ -7,7 +7,7 @@ const TILESETS := {
 	"Props": preload("res://assets/environment/common/props/props_tileset.tres"),
 	"BackgroundProps": preload("res://assets/environment/common/props/background_props_tileset.tres"),
 	"ObstacleProps": preload("res://assets/environment/common/props/obstacle_props_tileset.tres"),
-	"Effects": preload("res://assets/environment/common/props/effects_tileset.tres"),
+	"Traps": preload("res://assets/environment/common/traps/trap_tileset.tres"),
 }
 const PROP_COUNTS := [22, 15, 15, 13]
 const CHEST_COUNTS := [2, 5, 4, 0]
@@ -55,7 +55,7 @@ func check_tile_sources() -> void:
 		"Props": {0: ["Props", 11], 1: ["Weapons", 3], 2: ["Armor", 8]},
 		"BackgroundProps": {0: ["BackgroundProps", 8]},
 		"ObstacleProps": {0: ["ObstacleProps", 3]},
-		"Effects": {3: ["Effects", 3]},
+		"Traps": {0: ["Mechanical", 5], 1: ["Elemental", 5], 2: ["Portals", 4], 3: ["Environment Effects", 3]},
 	}
 	for layer_name in sources:
 		var tileset: TileSet = TILESETS[layer_name]
@@ -102,8 +102,8 @@ func check_props(level: Ruins, region: int) -> void:
 			% [level.name, layer.name, cells.size()])
 		count += matches
 	layers.sort()
-	check(layers == ["BackgroundProps", "Effects", "ObstacleProps", "Props"],
-		"%s uses the standard layer names" % level.name)
+	check(layers == ["BackgroundProps", "ObstacleProps", "Props", "Traps"] and not level.landscape.has_node("Effects"),
+		"%s uses the shared Traps layer in place of Effects" % level.name)
 	check(count == PROP_COUNTS[region], "%s has all %d migrated prop placements" % [level.name, PROP_COUNTS[region]])
 	var landscape := level.landscape
 	check(landscape.campfires.size() == 1 and landscape.portals.size() == 1 and landscape.reliquaries.size() == 1,
@@ -120,7 +120,7 @@ func check_props(level: Ruins, region: int) -> void:
 
 
 func check_lava_tiles(level: Ruins) -> void:
-	var layer := level.get_node("Landscape/Effects") as TileMapLayer
+	var layer := level.get_node("Landscape/Traps") as TileMapLayer
 	var obstacle := level.get_node("Landscape/ObstacleProps") as TileMapLayer
 	var barrier := obstacle.get_child(0).get_node("Collision") as CollisionShape2D
 	check(barrier.global_position == Vector2(390, 552) and barrier.shape.size == Vector2(400, 20),
@@ -129,6 +129,12 @@ func check_lava_tiles(level: Ruins) -> void:
 	var target := original + Vector2i(5, -4)
 	var focus := layer.to_global(layer.map_to_local(original)) + Vector2(90, 0)
 	check(layer.get_used_cells().size() == 4, "volcano places all four lava pools")
+	var pool_widths := {Vector2(300, 540): 180, Vector2(1200, 540): 280,
+		Vector2(2000, 540): 240, Vector2(2800, 540): 280}
+	for instance: Node2D in layer.get_children():
+		var pool := instance.get_node("Pool") as Polygon2D
+		check(pool_widths.get(instance.global_position) == roundi(pool.polygon[1].x)
+			and instance.has_node("Glow"), "lava pool and glow retain their placement and width at %s" % instance.global_position)
 	if not output.is_empty():
 		await capture(level, focus, "lava-01-original")
 	layer.set_pattern(target, layer.get_pattern([original]))

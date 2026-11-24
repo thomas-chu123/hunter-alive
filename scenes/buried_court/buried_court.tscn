@@ -7,7 +7,7 @@
 [ext_resource type="TileSet" path="res://assets/environment/common/props/props_tileset.tres" id="props_tileset"]
 [ext_resource type="TileSet" path="res://assets/environment/common/props/background_props_tileset.tres" id="background_props_tileset"]
 [ext_resource type="TileSet" path="res://assets/environment/common/props/obstacle_props_tileset.tres" id="obstacle_props_tileset"]
-[ext_resource type="TileSet" path="res://assets/environment/common/props/effects_tileset.tres" id="effects_tileset"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/trap_tilemap.tscn" id="traps"]
 [ext_resource type="TileSet" path="res://assets/monster/monster_tileset.tres" id="monster_tileset"]
 
 [node name="BuriedCourt" type="Node2D" unique_id=720679976]
@@ -44,10 +44,7 @@ position = Vector2(-10, -10)
 tile_map_data = PackedByteArray("AACCABoAAAAAAAAAEAA=")
 tile_set = ExtResource("obstacle_props_tileset")
 
-[node name="Effects" type="TileMapLayer" parent="Landscape" groups=["prop_tiles"]]
-editor_description = "Paint environment effects."
-position = Vector2(-10, -10)
-tile_set = ExtResource("effects_tileset")
+[node name="Traps" parent="Landscape" instance=ExtResource("traps")]
 
 [node name="Props" type="TileMapLayer" parent="Landscape" groups=["prop_tiles"]]
 editor_description = "Paint, move or copy scene props with the TileMap editor."

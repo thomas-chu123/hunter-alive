@@ -24,7 +24,7 @@
 | `Props` | `props_tileset.tres` | 營火、一般石匣、出口拱門、前景柱或蕨類。武器與防具寶箱分別從 **Weapons** 與 **Armor** 選取。 |
 | `BackgroundProps` | `background_props_tileset.tres` | 用來構圖的背景斷柱、黑曜石柱和蕨類。 |
 | `ObstacleProps` | `obstacle_props_tileset.tres` | 迴廊提燈石閘、內庭碰撞柱、火山熔岩碰撞區。 |
-| `Effects` | `effects_tileset.tres` | 熔岩和光暈等環境效果。 |
+| `Traps` | `trap_tileset.tres` | 陷阱、傳送門，以及熔岩和光暈等環境效果。 |
 
 1. 在場景樹選取圖層，再從下方 **TileMap → Tiles** 選來源與圖塊。
 2. 用 TileMap 選取工具框選後移動、複製或貼到另一關卡的同類圖層。各圖層的格子為 20 × 20 px。
@@ -34,4 +34,4 @@
 
 營火與門的光效、互動位置，以及石閘與碰撞柱的碰撞形狀，都跟著物件格移動。複製同款裝備寶箱會共用該裝備的領取狀態，石匣則共用該關卡的開啟狀態。迴廊的光鎖石閘由提燈解鎖。地形在 `Landscape/Terrain` 編輯。
 
-在火山熔爐，選取 `Landscape/Effects`，從 TileMap 的 **Effects** 來源選擇 180、240 或 280 px 寬的熔岩圖塊。每個圖塊是一個包含熔岩和光暈的 .tscn，兩者會一起移動、複製或刪除。熔岩圖塊的定位點在熔岩左上角。若要調整原有的熔岩碰撞區，可在 `ObstacleProps` 移動碰撞圖塊。
+在火山熔爐，選取 `Landscape/Traps`，從 TileMap 的 **Environment Effects** 來源選擇 180、240 或 280 px 寬的熔岩圖塊。每個圖塊是一個包含熔岩和光暈的 .tscn，兩者會一起移動、複製或刪除。熔岩圖塊的定位點在熔岩左上角。若要調整原有的熔岩碰撞區，可在 `ObstacleProps` 移動碰撞圖塊。

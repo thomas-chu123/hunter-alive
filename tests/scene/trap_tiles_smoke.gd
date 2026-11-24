@@ -33,12 +33,12 @@ func run() -> void:
 	await scene_changed
 	level = current_scene
 	check(level.scene_file_path == COURSE_SCENE, "title button opens the playable course")
-	var layer: TileMapLayer = level.get_node("Landscape/Trap")
+	var layer: TileMapLayer = level.get_node("Landscape/Traps")
 	layer.update_internals()
 	await physics_frame
 	await physics_frame
-	check(layer.get_used_cells().size() == 16 and layer.tile_set.get_source_count() == 3,
-		"editable 20 px scene-tile layer contains 16 placements and three source collections")
+	check(layer.get_used_cells().size() == 16 and layer.tile_set.get_source_count() == 4,
+		"editable 20 px Traps layer contains 16 placements and four source collections")
 	for tile in layer.get_children(true):
 		if tile is Trap:
 			tile.set_physics_process(false)
