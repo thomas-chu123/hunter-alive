@@ -1,6 +1,10 @@
 extends RefCounted
 
-const Bestiary := preload("res://scripts/character/ruin_bestiary.gd")
+const GROUND_FIRE := preload("res://assets/monster/ash_scribe/ground_fire.png")
+const GROUND_IMPACT := preload("res://assets/monster/ground_impact.png")
+const GROUND_FRAME := Vector2(256, 128)
+const GROUND_FRAME_COUNT := 4
+const GROUND_BASELINE := 112.0
 
 const COLORS := {
 	"metal": Color("#ffe7ab"), "wood": Color("#c6eb83"), "water": Color("#81e6ff"),
@@ -145,77 +149,36 @@ static func _flare(canvas: Node2D, at: Vector2, size: float, angle: float, tint:
 
 
 static func ground(canvas: Node2D, at: Vector2, radius: float, element: String,
-		active: bool, progress: float, texture: Texture2D, effect: Dictionary, heavy: bool = true) -> void:
-	if active and texture != null:
-		_draw_ground_sprite(canvas, at, radius, progress, texture, effect)
+		active: bool, progress: float) -> void:
+	if active:
+		_draw_ground_sprite(canvas, at, radius, progress, element)
+		return
 
 	var color := element_color(element)
-	var alpha_fade := 1.0 - smoothstep(0.22, 1.0, progress) if active else 1.0
-	var ink := Color(color, alpha_fade * (0.85 if active else 0.35 + progress * 0.52))
+	var ink := Color(color, 0.35 + progress * 0.52)
 	var ground_line := at - Vector2(0, 2)
 	var left := ground_line - Vector2(radius, 0.0)
 	var right := ground_line + Vector2(radius, 0.0)
-
 	canvas.draw_line(left, right, Color(color.darkened(0.40), ink.a * 0.45), 13.0, true)
-	canvas.draw_line(left, right, ink, 5.0 if heavy else 3.0, true)
-	if not active:
-		for edge in [left, right]:
-			canvas.draw_line(edge + Vector2.UP * 23.0, edge, ink, 3.0, true)
-		canvas.draw_line(ground_line.lerp(left, progress), ground_line.lerp(right, progress),
-			Color(color.lightened(0.48), 0.88), 2.5, true)
-		return
-
-	var spread := 1.0 - pow(1.0 - progress, 2.5)
-	var flash := 1.0 - smoothstep(0.0, 0.40, progress)
-	_halo(canvas, ground_line, minf(radius, 64.0), color, flash)
-	_flare(canvas, ground_line, radius * 0.76, 0.0, color, flash)
-	canvas.draw_line(left, right, Color(color.lightened(0.75), flash), 4.0, true)
-
-	for side in [-1.0, 1.0]:
-		var wave_pt := ground_line + Vector2(side * radius * lerpf(0.18, 1.15, spread), 0.0)
-		canvas.draw_arc(wave_pt, 16.0 + 19.0 * spread, -PI * 0.86, -PI * 0.14, 20,
-			Color(color, alpha_fade * 0.78), 7.0 * alpha_fade + 1.0, true)
-		canvas.draw_arc(wave_pt, 16.0 + 19.0 * spread, -PI * 0.78, -PI * 0.22, 20,
-			Color(color.lightened(0.7), alpha_fade), 2.5, true)
-
-	# 2. Jagged earth rock spikes erupting from ground
-	var spike_count := 9
-	for i in range(spike_count):
-		var frac := float(i) / float(spike_count - 1)
-		var spike_x := lerpf(-radius * 0.9, radius * 0.9, frac)
-		var root := ground_line + Vector2(spike_x, 0)
-		var max_h := (22.0 + sin(frac * PI) * 26.0) * (0.7 + sin(progress * PI) * 0.5)
-		var half_w := 6.0 + sin(frac * PI) * 4.0
-
-		var spike_poly := PackedVector2Array([
-			root + Vector2(-half_w, 0),
-			root + Vector2(sin(float(i) * 1.7) * 3.0, -max_h),
-			root + Vector2(half_w, 0)
-		])
-		canvas.draw_colored_polygon(spike_poly, ink)
-		canvas.draw_polyline(spike_poly, Color("#ffffff", alpha_fade * 0.6), 1.5, true)
-
-	# 3. Flying debris motes
-	for debris_i in range(8):
-		var d_angle := -PI * 0.85 + float(debris_i) * (PI * 0.7 / 7.0)
-		var d_dist := (28.0 + float(debris_i % 3) * 23.0) * spread
-		var d_pos := ground_line + Vector2.from_angle(d_angle) * d_dist
-		canvas.draw_circle(d_pos, 2.5 * alpha_fade, Color(color.lightened(0.3), alpha_fade * 0.85))
+	canvas.draw_line(left, right, ink, 5.0, true)
+	for edge in [left, right]:
+		canvas.draw_line(edge + Vector2.UP * 23.0, edge, ink, 3.0, true)
+	canvas.draw_line(ground_line.lerp(left, progress), ground_line.lerp(right, progress),
+		Color(color.lightened(0.48), 0.88), 2.5, true)
 
 
 static func _draw_ground_sprite(canvas: Node2D, at: Vector2, radius: float, progress: float,
-		texture: Texture2D, effect: Dictionary) -> void:
-	var frame_count := int(effect.frames)
-	var columns := int(effect.columns)
-	var frame := clampi(floori(progress * frame_count), 0, frame_count - 1)
-	var cell := Vector2(frame % columns, floori(float(frame) / columns)) * Bestiary.vector(effect.cell)
-	var frame_region := Bestiary.rectangle(effect.frame)
-	var source := Rect2(frame_region.position + cell, frame_region.size)
-	var width := radius * 2.0
-	var growth := lerpf(0.68, 1.0, smoothstep(0.0, 0.23, progress))
-	var height := width * frame_region.size.y / frame_region.size.x * growth
-	var tint := Color(1.0, 1.0, 1.0, 1.0 - smoothstep(0.73, 1.0, progress))
-	canvas.draw_texture_rect_region(texture, Rect2(at.x - radius, at.y - height, width, height), source, tint)
+		element: String) -> void:
+	var texture := GROUND_FIRE if element == "fire" else GROUND_IMPACT
+	var frame := clampi(floori(progress * GROUND_FRAME_COUNT), 0, GROUND_FRAME_COUNT - 1)
+	var source := Rect2(Vector2(frame * GROUND_FRAME.x, 0), GROUND_FRAME)
+	var sprite_scale := 2.0 * radius / GROUND_FRAME.x
+	var destination := Rect2(at - Vector2(radius, GROUND_BASELINE * sprite_scale), GROUND_FRAME * sprite_scale)
+	var tint := Color.WHITE
+	if element != "fire":
+		tint = tint.lerp(element_color(element), 0.30)
+	tint.a = 1.0 - smoothstep(0.73, 1.0, progress)
+	canvas.draw_texture_rect_region(texture, destination, source, tint)
 
 
 static func pollen(canvas: Node2D, extent: float, progress: float) -> void:

@@ -1138,21 +1138,6 @@
       "poses": {
         "action": "res://assets/monster/ash_scribe/action.png",
         "attack": "res://assets/monster/ash_scribe/attack.png"
-      },
-      "ground_effect": {
-        "texture": "res://assets/monster/ash_scribe/ground_fire.png",
-        "cell": [
-          768,
-          512
-        ],
-        "frame": [
-          31,
-          140,
-          704,
-          283
-        ],
-        "columns": 2,
-        "frames": 4
       }
     },
     "combat": {

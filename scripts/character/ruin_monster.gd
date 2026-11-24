@@ -880,8 +880,7 @@ func _draw_attack_effect(size: Vector2) -> void:
 	if mode == "ground" and ground_mark_valid and (windup > 0 or strike > 0):
 		var released := strike > 0.0 and impact_index > 0
 		Effects.ground(self, target_mark - position, float(_attack_value("extent")), element,
-			released, _release_vfx_progress(progress) if released else charge,
-			sprites.get("ground_effect"), appearance.get("ground_effect", {}), is_heavy)
+			released, _release_vfx_progress(progress) if released else charge)
 	elif windup > 0.0 or (strike > 0.0 and _between_double_hits(progress)):
 		var point := Vector2(facing * size.x * 0.28, -size.y * 0.67)
 		if mode == "bolt":

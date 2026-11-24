@@ -47,8 +47,8 @@ func run() -> void:
 		Effects.charge(vfx_canvas, hunter.position + Vector2(60, -30), "earth", 0.5, true)
 		# Test drawing heavy triple claw sweep
 		Effects.sweep(vfx_canvas, 35.0, 70.0, 1.0, "earth", 0.5, true, "slam")
-		# Test drawing active heavy ground slam shockwave & spikes
-		Effects.ground(vfx_canvas, hunter.position + Vector2(100, 0), 65.0, "earth", true, 0.45, null, {}, true)
+		# Test drawing active heavy ground slam sprite
+		Effects.ground(vfx_canvas, hunter.position + Vector2(100, 0), 65.0, "earth", true, 0.45)
 	)
 	ruins.add_child(vfx_canvas)
 	vfx_canvas.queue_redraw()
@@ -56,7 +56,9 @@ func run() -> void:
 	await process_frame
 
 	# Capture Monster Heavy Attack Ground Slam & Sweep VFX screenshot
-	var img_slam = root.get_viewport().get_texture().get_image()
+	var img_slam: Image
+	if DisplayServer.get_name() != "headless":
+		img_slam = root.get_viewport().get_texture().get_image()
 	if img_slam != null:
 		var err = img_slam.save_png(ARTIFACT_DIR + "/monster_heavy_attack_ground_slam.png")
 		check(err == OK, "Saved monster ground slam VFX screenshot")
@@ -83,7 +85,9 @@ func run() -> void:
 	check(not hit_effects.slash_scars.is_empty(), "Monster heavy claw slash scar spawned")
 
 	# Capture Monster Heavy Hit on Player screenshot
-	var img_hit = root.get_viewport().get_texture().get_image()
+	var img_hit: Image
+	if DisplayServer.get_name() != "headless":
+		img_hit = root.get_viewport().get_texture().get_image()
 	if img_hit != null:
 		var err = img_hit.save_png(ARTIFACT_DIR + "/monster_heavy_hit_player_impact.png")
 		check(err == OK, "Saved monster heavy hit on player screenshot")

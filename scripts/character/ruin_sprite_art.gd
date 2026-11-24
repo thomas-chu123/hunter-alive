@@ -12,8 +12,6 @@ static func load_poses(art: Dictionary) -> Dictionary:
 	var sheets := {}
 	for action: String in art.poses:
 		sheets[action] = load(art.poses[action]) as Texture2D
-	if art.has("ground_effect"):
-		sheets.ground_effect = load(art.ground_effect.texture) as Texture2D
 	return sheets
 
 

@@ -27,6 +27,7 @@ func run() -> void:
 
 	check_melee_timing(level)
 	check_projectiles(level)
+	check_ground_atlases()
 	print("Monster attack VFX failures: ", failures)
 	quit(1 if failures else 0)
 
@@ -87,6 +88,26 @@ func check_projectiles(level: Ruins) -> void:
 	level._update_arrows(0.02)
 	check(level.arrows.is_empty() and effects.starbursts.size() == 1 and effects.shockwaves.size() == 1,
 		"an expired projectile adds no collision burst")
+
+
+func check_ground_atlases() -> void:
+	var frame_size := Vector2i(EnemyEffects.GROUND_FRAME)
+	var count := EnemyEffects.GROUND_FRAME_COUNT
+	for texture in [EnemyEffects.GROUND_FIRE, EnemyEffects.GROUND_IMPACT]:
+		var atlas: Image = texture.get_image()
+		var frames := {}
+		var valid := atlas.get_size() == Vector2i(frame_size.x * count, frame_size.y)
+		if valid:
+			for frame in range(count):
+				var cel := atlas.get_region(Rect2i(Vector2i(frame * frame_size.x, 0), frame_size))
+				frames[hash(cel.get_data())] = true
+				var used := cel.get_used_rect()
+				valid = valid and cel.detect_alpha() != Image.ALPHA_NONE and used.has_area() \
+					and used.position.y < EnemyEffects.GROUND_BASELINE \
+					and used.end.y > EnemyEffects.GROUND_BASELINE
+		check(valid and frames.size() == count,
+			"%s has %d distinct transparent cels aligned to the ground baseline" %
+			[texture.resource_path.get_file(), count])
 
 
 func check(condition: bool, message: String) -> void:
