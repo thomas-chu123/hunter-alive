@@ -1,0 +1,26 @@
+[gd_resource type="TileSet" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/broken_column.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/fern.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/ruins_column_short.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/ruins_column_medium.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/ruins_column_tall.tscn" id="14"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/obsidian_pillar_130.tscn" id="17"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/obsidian_pillar_150.tscn" id="18"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/obsidian_pillar_170.tscn" id="19"]
+
+[sub_resource type="TileSetScenesCollectionSource" id="Collection0"]
+resource_name = "BackgroundProps"
+scenes/4/scene = ExtResource("4")
+scenes/5/scene = ExtResource("5")
+scenes/12/scene = ExtResource("12")
+scenes/13/scene = ExtResource("13")
+scenes/14/scene = ExtResource("14")
+scenes/17/scene = ExtResource("17")
+scenes/18/scene = ExtResource("18")
+scenes/19/scene = ExtResource("19")
+
+[resource]
+resource_name = "BackgroundProps"
+tile_size = Vector2i(20, 20)
+sources/0 = SubResource("Collection0")

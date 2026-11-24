@@ -4,6 +4,9 @@
 [ext_resource type="Script" uid="uid://d2gjkqovhn8ya" path="res://scripts/scene/ruin_landscape.gd" id="2_landscape"]
 [ext_resource type="Texture2D" uid="uid://doypcuyf44pwf" path="res://assets/environment/common/backdrops/ancient_temple.png" id="backdrop"]
 [ext_resource type="TileSet" uid="uid://df1u8hc5etjmy" path="res://assets/environment/common/props/props_tileset.tres" id="props_tileset"]
+[ext_resource type="TileSet" path="res://assets/environment/common/props/background_props_tileset.tres" id="background_props_tileset"]
+[ext_resource type="TileSet" path="res://assets/environment/common/props/obstacle_props_tileset.tres" id="obstacle_props_tileset"]
+[ext_resource type="TileSet" path="res://assets/environment/common/props/effects_tileset.tres" id="effects_tileset"]
 [ext_resource type="TileSet" uid="uid://con8hl5nkiqgu" path="res://assets/environment/common/terrain/terrain_tileset.tres" id="terrain_tileset"]
 
 [node name="Ruins" type="Node2D" unique_id=813475917]
@@ -26,7 +29,7 @@ script = ExtResource("2_landscape")
 editor_description = "Paint, move or copy scene props with the TileMap editor."
 position = Vector2(-10, -10)
 tile_map_data = PackedByteArray("AAAMABsAAAAAAAAADQAoABsAAAAAAAAADAA0ABsAAAAAAAAADgBCABsAAAAAAAAADQBUABsAAAAAAAAADAB0ABsAAAAAAAAADACHABsAAAAAAAAADACaABsAAAAAAAAADQA=")
-tile_set = ExtResource("props_tileset")
+tile_set = ExtResource("background_props_tileset")
 
 [node name="Terrain" type="TileMapLayer" parent="Landscape" unique_id=640193029]
 editor_description = "Shared 20 × 20 terrain grid. Paint rock, platforms and walls here."
@@ -45,12 +48,12 @@ vertex_colors = PackedColorArray(0.06, 0.11, 0.13, 0.3, 0.06, 0.11, 0.13, 0.3, 0
 [node name="Effects" type="TileMapLayer" parent="Landscape" groups=["prop_tiles"]]
 editor_description = "Paint environment effects."
 position = Vector2(-10, -10)
-tile_set = ExtResource("props_tileset")
+tile_set = ExtResource("effects_tileset")
 
 [node name="ObstacleProps" type="TileMapLayer" parent="Landscape" groups=["prop_tiles"]]
 editor_description = "Paint collision props and gates."
 position = Vector2(-10, -10)
-tile_set = ExtResource("props_tileset")
+tile_set = ExtResource("obstacle_props_tileset")
 
 [node name="Props" type="TileMapLayer" parent="Landscape" unique_id=1294869388 groups=["prop_tiles"]]
 editor_description = "Paint, move or copy scene props with the TileMap editor."

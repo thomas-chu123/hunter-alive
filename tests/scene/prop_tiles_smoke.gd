@@ -3,7 +3,12 @@ extends SceneTree
 const Armory := preload("res://scripts/game/ruin_armory.gd")
 const Campaign := preload("res://scripts/game/campaign.gd")
 const Ruins := preload("res://scripts/scene/ruins.gd")
-const PROPS := preload("res://assets/environment/common/props/props_tileset.tres")
+const TILESETS := {
+	"Props": preload("res://assets/environment/common/props/props_tileset.tres"),
+	"BackgroundProps": preload("res://assets/environment/common/props/background_props_tileset.tres"),
+	"ObstacleProps": preload("res://assets/environment/common/props/obstacle_props_tileset.tres"),
+	"Effects": preload("res://assets/environment/common/props/effects_tileset.tres"),
+}
 const PROP_COUNTS := [22, 15, 15, 13]
 const CHEST_COUNTS := [2, 5, 4, 0]
 
@@ -46,28 +51,31 @@ func run() -> void:
 
 
 func check_tile_sources() -> void:
-	var expected_names := ["Scene Props", "Weapons", "Armor", "Effects"]
-	var expected_counts := [20, 3, 8, 3]
-	check(PROPS.get_source_count() == expected_names.size(), "TileSet has all named scene collections")
-	for source_id in expected_names.size():
-		var source := PROPS.get_source(source_id) as TileSetScenesCollectionSource
-		if source == null:
-			check(false, "%s scene collection exists" % expected_names[source_id])
-			continue
-		var count := source.get_scene_tiles_count()
-		var categorized: bool = source.resource_name == expected_names[source_id] and count == expected_counts[source_id]
-		for index in count:
-			var packed := source.get_scene_tile_scene(source.get_scene_tile_id(index))
-			var prop := packed.instantiate()
-			if prop is Ruins.Landscape.EquipmentChest:
-				var item_id: String = prop.equipment_id
-				categorized = categorized and ((source_id == 1 and Armory.WEAPONS.has(item_id))
-					or (source_id == 2 and Armory.WEAR.has(item_id)))
-			else:
-				categorized = categorized and (source_id == 0 or (source_id == 3
-					and prop.has_node("Pool") and prop.has_node("Glow")))
-			prop.free()
-		check(categorized, "%s contains %d correctly categorized tiles" % [source.resource_name, count])
+	var sources := {
+		"Props": {0: ["Props", 11], 1: ["Weapons", 3], 2: ["Armor", 8]},
+		"BackgroundProps": {0: ["BackgroundProps", 8]},
+		"ObstacleProps": {0: ["ObstacleProps", 3]},
+		"Effects": {3: ["Effects", 3]},
+	}
+	for layer_name in sources:
+		var tileset: TileSet = TILESETS[layer_name]
+		check(tileset.resource_name == layer_name and tileset.get_source_count() == sources[layer_name].size(),
+			"%s uses its own named TileSet" % layer_name)
+		for source_id in sources[layer_name]:
+			var expected: Array = sources[layer_name][source_id]
+			var source := tileset.get_source(source_id) as TileSetScenesCollectionSource
+			check(source != null and source.resource_name == expected[0] and source.get_scene_tiles_count() == expected[1],
+				"%s contains %d tiles in %s" % [layer_name, expected[1], expected[0]])
+			if source == null:
+				continue
+			for index in source.get_scene_tiles_count():
+				var packed := source.get_scene_tile_scene(source.get_scene_tile_id(index))
+				var prop := packed.instantiate()
+				if prop is Ruins.Landscape.EquipmentChest:
+					var item_id: String = prop.equipment_id
+					check(layer_name == "Props" and ((source_id == 1 and Armory.WEAPONS.has(item_id))
+						or (source_id == 2 and Armory.WEAR.has(item_id))), "%s is categorized by equipment type" % item_id)
+				prop.free()
 
 
 func check_props(level: Ruins, region: int) -> void:
@@ -77,8 +85,8 @@ func check_props(level: Ruins, region: int) -> void:
 		if layer is not TileMapLayer or not layer.is_in_group("prop_tiles"):
 			continue
 		layers.append(layer.name)
-		check(layer.tile_set == PROPS and layer.tile_set.tile_size == Vector2i(20, 20),
-			"%s/%s uses the shared 20 × 20 prop TileSet" % [level.name, layer.name])
+		check(layer.tile_set == TILESETS.get(String(layer.name)) and layer.tile_set.tile_size == Vector2i(20, 20),
+			"%s/%s uses its 20 × 20 TileSet" % [level.name, layer.name])
 		var cells: Array[Vector2i] = layer.get_used_cells()
 		var instances := {}
 		for prop in layer.get_children():

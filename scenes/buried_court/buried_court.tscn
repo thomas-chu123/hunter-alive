@@ -5,6 +5,9 @@
 [ext_resource type="Script" uid="uid://cb2e02jbpr5sh" path="res://scripts/scene/ruins.gd" id="ruins"]
 [ext_resource type="TileSet" uid="uid://con8hl5nkiqgu" path="res://assets/environment/common/terrain/terrain_tileset.tres" id="terrain_tileset"]
 [ext_resource type="TileSet" path="res://assets/environment/common/props/props_tileset.tres" id="props_tileset"]
+[ext_resource type="TileSet" path="res://assets/environment/common/props/background_props_tileset.tres" id="background_props_tileset"]
+[ext_resource type="TileSet" path="res://assets/environment/common/props/obstacle_props_tileset.tres" id="obstacle_props_tileset"]
+[ext_resource type="TileSet" path="res://assets/environment/common/props/effects_tileset.tres" id="effects_tileset"]
 
 [node name="BuriedCourt" type="Node2D" unique_id=720679976]
 script = ExtResource("ruins")
@@ -26,7 +29,7 @@ shrine_flame_height = 39.0
 [node name="BackgroundProps" type="TileMapLayer" parent="Landscape" groups=["prop_tiles"]]
 editor_description = "Paint background scenery."
 position = Vector2(-10, -10)
-tile_set = ExtResource("props_tileset")
+tile_set = ExtResource("background_props_tileset")
 
 [node name="Terrain" type="TileMapLayer" parent="Landscape" unique_id=1550837361]
 editor_description = "Shared 20 × 20 terrain grid. Paint rock, platforms and walls here."
@@ -38,12 +41,12 @@ tile_set = ExtResource("terrain_tileset")
 editor_description = "Paint, move or copy scene props with the TileMap editor."
 position = Vector2(-10, -10)
 tile_map_data = PackedByteArray("AACCABoAAAAAAAAAEAA=")
-tile_set = ExtResource("props_tileset")
+tile_set = ExtResource("obstacle_props_tileset")
 
 [node name="Effects" type="TileMapLayer" parent="Landscape" groups=["prop_tiles"]]
 editor_description = "Paint environment effects."
 position = Vector2(-10, -10)
-tile_set = ExtResource("props_tileset")
+tile_set = ExtResource("effects_tileset")
 
 [node name="Props" type="TileMapLayer" parent="Landscape" groups=["prop_tiles"]]
 editor_description = "Paint, move or copy scene props with the TileMap editor."

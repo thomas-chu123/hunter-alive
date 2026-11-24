@@ -1,0 +1,16 @@
+[gd_resource type="TileSet" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/light_gate.tscn" id="15"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/impact_column.tscn" id="16"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/lava/lava_barrier.tscn" id="34"]
+
+[sub_resource type="TileSetScenesCollectionSource" id="Collection0"]
+resource_name = "ObstacleProps"
+scenes/15/scene = ExtResource("15")
+scenes/16/scene = ExtResource("16")
+scenes/34/scene = ExtResource("34")
+
+[resource]
+resource_name = "ObstacleProps"
+tile_size = Vector2i(20, 20)
+sources/0 = SubResource("Collection0")
