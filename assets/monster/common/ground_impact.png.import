@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bekxscd8cqtwm"
-path="res://.godot/imported/ground_impact.png-0bfc369b26474becb18112d0429886dc.ctex"
+path="res://.godot/imported/ground_impact.png-8b578254d2157709eafd91d3e1cea848.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/monster/ground_impact.png"
-dest_files=["res://.godot/imported/ground_impact.png-0bfc369b26474becb18112d0429886dc.ctex"]
+source_file="res://assets/monster/common/ground_impact.png"
+dest_files=["res://.godot/imported/ground_impact.png-8b578254d2157709eafd91d3e1cea848.ctex"]
 
 [params]
 

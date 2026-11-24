@@ -2,6 +2,7 @@ extends SceneTree
 
 const Armory := preload("res://scripts/game/ruin_armory.gd")
 const Campaign := preload("res://scripts/game/campaign.gd")
+const Save := preload("res://scripts/game/camp_save.gd")
 const Ruins := preload("res://scripts/scene/ruins.gd")
 const TILESETS := {
 	"Props": preload("res://assets/environment/common/props/props_tileset.tres"),
@@ -58,6 +59,7 @@ func run() -> void:
 			check_floor_visibility(level)
 
 	await check_moved_and_copied_props()
+	await check_reliquary()
 	quit(1 if failures else 0)
 
 
@@ -270,15 +272,27 @@ func check_weapon_chest(level: Ruins) -> void:
 		if chest.equipment_id != "sluice_spear":
 			continue
 		var at := chest.global_position
+		var base := chest.sprite.get_rect().end.y
 		level.hunter.position = at
 		if not output.is_empty():
 			await capture(level, at, "weapon-01-chest")
 		await interact()
 		await process_frame
-		check(level.hunter.unlocked_weapons.has("sluice_spear") and not chest.visible,
-			"opening the spear chest in Weapons grants the spear and hides the chest")
+		check(level.hunter.unlocked_weapons.has("sluice_spear") and level._near_treasure().is_empty(),
+			"opening the spear chest grants the spear and consumes the interaction")
+		check_open_chest(chest, base, "spear chest")
 		if not output.is_empty():
 			await capture(level, at, "weapon-02-looted")
+
+		set_meta(Save.RESTORE_META, level._checkpoint_state())
+		change_scene_to_file(level.scene_file_path)
+		await scene_changed
+		var restored := current_scene as Ruins
+		for restored_chest in restored.landscape.equipment_chests:
+			if restored_chest.equipment_id == "sluice_spear":
+				check_open_chest(restored_chest, base, "spear chest restored from checkpoint")
+				return
+		check(false, "the restored scene contains the spear chest")
 		return
 	check(false, "the original spear chest is in the corridor")
 
@@ -329,6 +343,41 @@ func check_moved_and_copied_props() -> void:
 		"opening the moved chest grants the equipment once")
 	if not output.is_empty():
 		await capture(level, chest_position, "move-02-looted")
+
+
+func check_reliquary() -> void:
+	var scene: String = Campaign.SCENES[Campaign.Region.TEMPLE]
+	change_scene_to_file(scene)
+	await scene_changed
+	var level := current_scene as Ruins
+	var cache := level.landscape.reliquaries[0]
+	var base := cache.sprite.get_rect().end.y
+	check(not cache.opened and cache.sprite.texture == cache.closed_texture, "a fresh reliquary is closed")
+	level.hunter.set_physics_process(false)
+	level.hunter.position = cache.global_position
+	if not output.is_empty():
+		await capture(level, cache.global_position, "cache-01-closed")
+	var materials := level.materials
+	await interact()
+	check(level.landscape.cache_open and level.materials == materials + 3, "opening the reliquary grants materials")
+	check_open_chest(cache, base, "reliquary")
+	await interact()
+	check(level.materials == materials + 3, "the opened reliquary grants materials only once")
+	if not output.is_empty():
+		await capture(level, cache.global_position, "cache-02-open")
+
+	set_meta(Save.RESTORE_META, level._checkpoint_state())
+	change_scene_to_file(scene)
+	await scene_changed
+	var restored := current_scene as Ruins
+	check_open_chest(restored.landscape.reliquaries[0], base, "reliquary restored from checkpoint")
+
+
+func check_open_chest(chest: Ruins.Landscape.Reliquary, base: float, label: String) -> void:
+	var sprite := chest.sprite
+	check(chest.opened and chest.visible and sprite.texture == chest.OPEN_TEXTURE
+		and sprite.modulate == Color.WHITE and is_equal_approx(sprite.get_rect().end.y, base),
+		"%s displays the undimmed open sprite at its original base" % label)
 
 
 func interact() -> void:

@@ -225,8 +225,6 @@ func _process(delta: float) -> void:
 	background.position.x = backdrop_origin.x - clampf((hunter.position.x - 950.0) * 0.050, -95, 95)
 	notice_left = maxf(0.0, notice_left - delta)
 	notice_label.visible = notice_left > 0 and not completed
-	for chest in landscape.equipment_chests:
-		chest.visible = not obtained_equipment.has(chest.equipment_id)
 	if not completed:
 		_update_hud()
 	enemy_projectile_layer.queue_redraw()
@@ -1633,6 +1631,8 @@ func _remove_inventory_item(uid: int) -> void:
 
 
 func _sync_equipment(desired_weapon: String = "") -> void:
+	for chest in landscape.equipment_chests:
+		chest.set_opened(obtained_equipment.has(chest.equipment_id))
 	var weapon := desired_weapon if not desired_weapon.is_empty() else hunter.selected_weapon()
 	var known := {}
 	hunter.unlocked_weapons.clear()

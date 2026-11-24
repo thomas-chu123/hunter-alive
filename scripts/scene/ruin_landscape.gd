@@ -1,6 +1,7 @@
 extends Node2D
 
 const FLOOR_Y := 540.0
+const Reliquary := preload("res://assets/environment/common/props/reliquary.gd")
 const EquipmentChest := preload("res://assets/environment/common/props/equipment_chest.gd")
 const BRAZIER_TILE_ID := 12
 const BRAZIER_SPACING := 500.0
@@ -10,12 +11,16 @@ const BRAZIER_MIN_GAP := 280.0
 
 var time := 0.0
 var portal_open := false
-var cache_open := false
+var cache_open := false:
+	set(value):
+		cache_open = value
+		for cache in reliquaries:
+			cache.set_opened(value)
 var effects: Node2D
 
 var campfires: Array[Node2D] = []
 var portals: Array[Node2D] = []
-var reliquaries: Array[Node2D] = []
+var reliquaries: Array[Reliquary] = []
 var light_gates: Array[StaticBody2D] = []
 var equipment_chests: Array[EquipmentChest] = []
 
@@ -115,9 +120,8 @@ func _draw_effects() -> void:
 		_draw_portal(to_local(portal.global_position))
 	for campfire in campfires:
 		_draw_shrine(to_local(campfire.global_position))
-	for cache in reliquaries:
-		cache.get_node("Sprite").modulate = Color("#7d9189") if cache_open else Color.WHITE
-		if not cache_open:
+	if not cache_open:
+		for cache in reliquaries:
 			effects.draw_circle(to_local(cache.global_position) + Vector2(0, -22), 6 + sin(time * 3.0),
 				Color(1.0, 0.75, 0.36, 0.22))
 	_draw_motes()

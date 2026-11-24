@@ -1,8 +1,10 @@
 [gd_scene format=3 uid="uid://lyj42n5453n7"]
 
 [ext_resource type="Texture2D" uid="uid://cx0536cb3t4iq" path="res://assets/environment/common/props/reliquary.png" id="texture"]
+[ext_resource type="Script" path="res://assets/environment/common/props/reliquary.gd" id="reliquary"]
 
 [node name="Reliquary" type="Node2D" unique_id=1932592947 groups=["reliquary"]]
+script = ExtResource("reliquary")
 
 [node name="Sprite" type="Sprite2D" parent="." unique_id=213584876]
 position = Vector2(-23.928831, -31)

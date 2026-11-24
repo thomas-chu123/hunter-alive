@@ -1,7 +1,7 @@
 extends RefCounted
 
 const GROUND_FIRE := preload("res://assets/monster/ash_scribe/ground_fire.png")
-const GROUND_IMPACT := preload("res://assets/monster/ground_impact.png")
+const GROUND_IMPACT := preload("res://assets/monster/common/ground_impact.png")
 const GROUND_FRAME := Vector2(256, 128)
 const GROUND_FRAME_COUNT := 4
 const GROUND_BASELINE := 112.0
