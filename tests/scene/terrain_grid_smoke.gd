@@ -15,6 +15,7 @@ func _initialize() -> void:
 
 
 func run() -> void:
+	check(terrain_atlas_casts_shadows(), "all solid and one-way terrain tiles use collision-shaped shadow occluders")
 	for path in Campaign.SCENES:
 		var packed := load(path) as PackedScene
 		var level := packed.instantiate() as Node2D
@@ -35,6 +36,23 @@ func run() -> void:
 		level.free()
 	await process_frame
 	quit(0 if failures == 0 else 1)
+
+
+func terrain_atlas_casts_shadows() -> bool:
+	if TERRAIN_TILESET.get_occlusion_layers_count() != 1 or TERRAIN_TILESET.get_occlusion_layer_light_mask(0) != 1:
+		return false
+	var atlas := TERRAIN_TILESET.get_source(0) as TileSetAtlasSource
+	for tile_index in atlas.get_tiles_count():
+		var coords := atlas.get_tile_id(tile_index)
+		for alternative_index in atlas.get_alternative_tiles_count(coords):
+			var alternative := atlas.get_alternative_tile_id(coords, alternative_index)
+			var data := atlas.get_tile_data(coords, alternative)
+			if data.get_occluder_polygons_count(0) != 1:
+				return false
+			var occluder := data.get_occluder_polygon(0, 0)
+			if occluder == null or not occluder.closed or occluder.polygon != data.get_collision_polygon_points(0, 0):
+				return false
+	return true
 
 
 func cells_match_grid(terrain: TileMapLayer, cells: Array[Vector2i]) -> bool:

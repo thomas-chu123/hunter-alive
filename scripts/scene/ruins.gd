@@ -14,6 +14,9 @@ const Bestiary := preload("res://scripts/character/ruin_bestiary.gd")
 const Progression := preload("res://scripts/game/ruin_progression.gd")
 const Armory := preload("res://scripts/game/ruin_armory.gd")
 const Campaign := preload("res://scripts/game/campaign.gd")
+const FloorVisibility := preload("res://scripts/scene/ruin_floor_visibility.gd")
+const SOFT_LIGHT := preload("res://assets/environment/common/props/soft_light.tres")
+const AMBIENT_LIGHT := Color(0.30, 0.33, 0.38)
 const START := Vector2(950, 526)
 const STAGE_WIDTH := 1840
 const BOSS_SIZES := [1.9, 2.4, 1.75, 2.15]
@@ -132,6 +135,8 @@ func _ready() -> void:
 	rng.randomize()
 	loot_rng.randomize()
 	loot_catalog = Equipment.catalog_ids()
+	var level_width := STAGE_WIDTH if stage > 0 else 3330
+	landscape.initialize_props(level_width)
 	_resize_backdrop()
 	get_viewport().size_changed.connect(_resize_backdrop)
 
@@ -143,6 +148,7 @@ func _ready() -> void:
 	hunter.damaged.connect(_on_hunter_damaged)
 	hunter.defeated.connect(_on_hunter_defeated)
 	add_child(hunter)
+	_set_up_lighting()
 	for id: String in Equipment.STARTING_WEAPONS:
 		_grant_equipment(id)
 	var listener := AudioListener2D.new()
@@ -150,7 +156,7 @@ func _ready() -> void:
 	listener.make_current()
 	camera = Camera2D.new()
 	camera.limit_left = 0
-	camera.limit_right = STAGE_WIDTH if stage > 0 else 3330
+	camera.limit_right = level_width
 	camera.limit_top = -360 if stage > 0 else -10
 	camera.limit_bottom = 662
 	camera.position.y = -155 if stage > 0 else -204
@@ -158,6 +164,12 @@ func _ready() -> void:
 	camera.position_smoothing_speed = 7.0
 	hunter.add_child(camera)
 	camera.reset_smoothing()
+	if stage > 0 and stage < Campaign.BOSS_STAGE:
+		var terrain: TileMapLayer = $Landscape/Terrain
+		var ground_y := to_global(Vector2(0, Landscape.FLOOR_Y)).y
+		var floor_visibility := FloorVisibility.new(terrain, hunter, level_width, ground_y)
+		floor_visibility.name = "FloorVisibility"
+		add_child(floor_visibility)
 	hit_effects = HitEffects.new()
 	hit_effects.camera = camera
 	add_child(hit_effects)
@@ -181,6 +193,25 @@ func _ready() -> void:
 			_notice("暗水道的石閘需要光。留意石蟹舉起的提燈。", 5.0)
 		Campaign.Region.COURT:
 			_notice("沿王座外階走到主祭壇，找到古門封印者。", 5.0)
+
+
+func _set_up_lighting() -> void:
+	var ambient := CanvasModulate.new()
+	ambient.name = "AmbientLight"
+	ambient.color = AMBIENT_LIGHT
+	add_child(ambient)
+	# The parallax backdrop draws on its own canvas, outside the world lighting.
+	background.self_modulate = AMBIENT_LIGHT
+
+	var nearby_light := PointLight2D.new()
+	nearby_light.name = "NearbyLight"
+	nearby_light.position.y = -24.0
+	nearby_light.color = Color(1.0, 0.93, 0.80)
+	nearby_light.energy = 0.9
+	nearby_light.texture = SOFT_LIGHT
+	nearby_light.texture_scale = 1.35
+	nearby_light.shadow_enabled = true
+	hunter.add_child(nearby_light)
 
 
 func _process(delta: float) -> void:

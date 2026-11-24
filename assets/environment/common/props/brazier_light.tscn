@@ -1,0 +1,25 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/iron_brazier.png" id="brazier"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/soft_light.tres" id="light"]
+
+[sub_resource type="AtlasTexture" id="BrazierArt"]
+atlas = ExtResource("brazier")
+region = Rect2(164, 182, 763, 1101)
+filter_clip = true
+
+[node name="BrazierLight" type="Node2D" groups=["brazier_light"]]
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture_filter = 4
+scale = Vector2(0.044, 0.044)
+texture = SubResource("BrazierArt")
+offset = Vector2(0, -550.5)
+
+[node name="Light" type="PointLight2D" parent="."]
+position = Vector2(0, -35)
+color = Color(1, 0.75, 0.45, 1)
+energy = 0.85
+shadow_enabled = true
+texture = ExtResource("light")
+texture_scale = 1.15

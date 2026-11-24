@@ -2,6 +2,9 @@ extends Node2D
 
 const FLOOR_Y := 540.0
 const EquipmentChest := preload("res://assets/environment/common/props/equipment_chest.gd")
+const BRAZIER_TILE_ID := 12
+const BRAZIER_SPACING := 500.0
+const BRAZIER_MIN_GAP := 280.0
 
 @export var shrine_flame_height := 29.0
 
@@ -18,6 +21,15 @@ var equipment_chests: Array[EquipmentChest] = []
 
 
 func _ready() -> void:
+	effects = Node2D.new()
+	effects.draw.connect(_draw_effects)
+	add_child(effects)
+
+
+func initialize_props(level_width: float) -> void:
+	var random := RandomNumberGenerator.new()
+	random.randomize()
+	place_braziers(level_width, random)
 	for child in get_children():
 		if child is TileMapLayer and child.is_in_group("prop_tiles"):
 			_collect_props(child)
@@ -25,9 +37,51 @@ func _ready() -> void:
 		return a.global_position.x < b.global_position.x or (
 			a.global_position.x == b.global_position.x and a.global_position.y < b.global_position.y))
 
-	effects = Node2D.new()
-	effects.draw.connect(_draw_effects)
-	add_child(effects)
+
+func place_braziers(level_width: float, random: RandomNumberGenerator) -> void:
+	var terrain: TileMapLayer = $Terrain
+	var props: TileMapLayer = $Props
+	var occupied: Array[Vector2] = []
+	for layer: TileMapLayer in [$Props, $ObstacleProps, $Traps, $Monster]:
+		for cell in layer.get_used_cells():
+			occupied.append(to_local(layer.to_global(layer.map_to_local(cell))))
+
+	var band_count := maxi(1, roundi(level_width / BRAZIER_SPACING))
+	var band_width := level_width / band_count
+	var bands: Array[Array] = []
+	for band in band_count:
+		bands.append([])
+	for floor_cell in terrain.get_used_cells():
+		var surface := terrain.map_to_local(floor_cell) - Vector2(0, terrain.tile_set.tile_size.y * 0.5)
+		var foot := to_local(terrain.to_global(surface))
+		if foot.x < 120.0 or foot.x > level_width - 120.0 or not _has_brazier_space(terrain, floor_cell):
+			continue
+		var clearance := Rect2(foot - Vector2(100, 72), Vector2(200, 100))
+		if occupied.any(func(at: Vector2) -> bool: return clearance.has_point(at)):
+			continue
+		var band := floori(foot.x / band_width)
+		bands[band].append(foot)
+
+	var last_x := -INF
+	for band in bands:
+		var candidates := band.filter(func(at: Vector2) -> bool: return at.x >= last_x + BRAZIER_MIN_GAP)
+		if candidates.is_empty():
+			continue
+		var foot: Vector2 = candidates[random.randi_range(0, candidates.size() - 1)]
+		var cell := props.local_to_map(props.to_local(to_global(foot)))
+		props.set_cell(cell, 0, Vector2i.ZERO, BRAZIER_TILE_ID)
+		last_x = foot.x
+
+
+func _has_brazier_space(terrain: TileMapLayer, floor_cell: Vector2i) -> bool:
+	for x in range(-1, 2):
+		var support := floor_cell + Vector2i(x, 0)
+		if terrain.get_cell_source_id(support) == -1:
+			return false
+		for y in range(1, 4):
+			if terrain.get_cell_source_id(support + Vector2i(0, -y)) != -1:
+				return false
+	return true
 
 
 func _collect_props(layer: TileMapLayer) -> void:

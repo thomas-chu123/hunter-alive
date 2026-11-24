@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/court_reliquary.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/corridor_reliquary.tscn" id="10"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/corridor_exit.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/brazier_light.tscn" id="12"]
 [ext_resource type="PackedScene" path="res://assets/items/armor/chests/cliff_boots.tscn" id="20"]
 [ext_resource type="PackedScene" path="res://assets/items/armor/chests/wing_cape.tscn" id="21"]
 [ext_resource type="PackedScene" path="res://assets/items/armor/chests/sealed_cap.tscn" id="22"]
@@ -36,6 +37,7 @@ scenes/8/scene = ExtResource("8")
 scenes/9/scene = ExtResource("9")
 scenes/10/scene = ExtResource("10")
 scenes/11/scene = ExtResource("11")
+scenes/12/scene = ExtResource("12")
 
 [sub_resource type="TileSetScenesCollectionSource" id="Collection1"]
 resource_name = "Weapons"

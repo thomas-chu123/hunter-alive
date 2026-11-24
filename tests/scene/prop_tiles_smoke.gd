@@ -22,6 +22,8 @@ func _initialize() -> void:
 
 func run() -> void:
 	check_tile_sources()
+	check_brazier_art()
+	check_seeded_braziers()
 	for region in Campaign.SCENES.size():
 		change_scene_to_file(Campaign.SCENES[region])
 		await scene_changed
@@ -30,6 +32,7 @@ func run() -> void:
 		for enemy in level.enemies:
 			enemy.set_physics_process(false)
 		check_props(level, region)
+		check_lighting(level)
 		if not output.is_empty():
 			await capture(level, level.landscape.campfires[0].global_position, "%d-camp" % region)
 			var focus := level.landscape.portals[0].global_position
@@ -46,13 +49,21 @@ func run() -> void:
 		if region == Campaign.Region.VOLCANO:
 			await check_lava_tiles(level)
 
+	for region in Campaign.IDS.size():
+		for stage in range(1, Campaign.BOSS_STAGE + 1):
+			change_scene_to_file(Campaign.scene_path({"region": region, "stage": stage}))
+			await scene_changed
+			var level := current_scene as Ruins
+			check_lighting(level)
+			check_floor_visibility(level)
+
 	await check_moved_and_copied_props()
 	quit(1 if failures else 0)
 
 
 func check_tile_sources() -> void:
 	var sources := {
-		"Props": {0: ["Props", 11], 1: ["Weapons", 3], 2: ["Armor", 8]},
+		"Props": {0: ["Props", 12], 1: ["Weapons", 3], 2: ["Armor", 8]},
 		"BackgroundProps": {0: ["BackgroundProps", 8]},
 		"ObstacleProps": {0: ["ObstacleProps", 3]},
 		"Traps": {0: ["Mechanical", 5], 1: ["Elemental", 5], 2: ["Portals", 4], 3: ["Environment Effects", 3]},
@@ -101,6 +112,8 @@ func check_props(level: Ruins, region: int) -> void:
 		check(matches == cells.size(), "%s/%s instantiates all %d scene tiles at their cell centers"
 			% [level.name, layer.name, cells.size()])
 		count += matches
+		if layer.name == &"Props":
+			count -= layer.get_used_cells_by_id(0, Vector2i.ZERO, Ruins.Landscape.BRAZIER_TILE_ID).size()
 	layers.sort()
 	check(layers == ["BackgroundProps", "ObstacleProps", "Props", "Traps"] and not level.landscape.has_node("Effects"),
 		"%s uses the shared Traps layer in place of Effects" % level.name)
@@ -117,6 +130,106 @@ func check_props(level: Ruins, region: int) -> void:
 		check(terrain.get_cell_tile_data(cell) != null and terrain.get_cell_tile_data(cell + Vector2i.UP) == null
 			and is_equal_approx(position.y, terrain.map_to_local(cell).y - 10.0),
 			"%s rests on a terrain tile at %s" % [chest.equipment_id, position])
+
+
+func check_brazier_art() -> void:
+	var source := TILESETS.Props.get_source(0) as TileSetScenesCollectionSource
+	var brazier := source.get_scene_tile_scene(Ruins.Landscape.BRAZIER_TILE_ID).instantiate()
+	var campfire := source.get_scene_tile_scene(1).instantiate()
+	var sprite := brazier.get_node("Sprite") as Sprite2D
+	var camp_sprite := campfire.get_node("Sprite") as Sprite2D
+	var art := sprite.texture as AtlasTexture
+	check(art != null and art.atlas != null and art.atlas != camp_sprite.texture,
+		"the randomized brazier has its own art distinct from the campfire")
+	var bounds := sprite.transform * sprite.get_rect()
+	var light := brazier.get_node("Light") as PointLight2D
+	check(bounds.size.y > bounds.size.x and is_zero_approx(bounds.end.y)
+		and bounds.has_point(light.position) and light.position.y < bounds.get_center().y,
+		"the narrow brazier stands at the tile origin and the light is in its fire basket")
+	brazier.free()
+	campfire.free()
+
+
+func check_seeded_braziers() -> void:
+	var packed := load(Campaign.scene_path({})) as PackedScene
+	var layouts: Array[Array] = []
+	var random := RandomNumberGenerator.new()
+	for placement_seed in [12, 12, 34]:
+		var level := packed.instantiate() as Ruins
+		var landscape := level.get_node("Landscape") as Ruins.Landscape
+		var props := landscape.get_node("Props") as TileMapLayer
+		var authored_cells := props.get_used_cells()
+		random.seed = placement_seed
+		landscape.place_braziers(Ruins.STAGE_WIDTH, random)
+		var cells := props.get_used_cells_by_id(0, Vector2i.ZERO, Ruins.Landscape.BRAZIER_TILE_ID)
+		cells.sort()
+		layouts.append(cells)
+		check(not cells.is_empty() and cells.all(func(cell: Vector2i) -> bool: return cell not in authored_cells),
+			"seed %d adds braziers to empty cells" % placement_seed)
+		level.free()
+	check(layouts[0] == layouts[1] and layouts[0] != layouts[2], "seeded braziers reproduce and vary across seeds")
+
+
+func check_lighting(level: Ruins) -> void:
+	var path := level.scene_file_path.get_file()
+	var ambient := level.get_node_or_null("AmbientLight") as CanvasModulate
+	var nearby := level.hunter.get_node_or_null("NearbyLight") as PointLight2D
+	var ambient_luminance := ambient.color.get_luminance() if ambient != null else 0.0
+	check(ambient_luminance >= 0.28 and ambient_luminance <= 0.38 and level.background.self_modulate == ambient.color
+		and level.health_hearts.get_canvas() != ambient.get_canvas(), "%s uses moderate ambient light with a separate HUD canvas" % path)
+	check(nearby != null and nearby.enabled and nearby.shadow_enabled and nearby.texture != null and nearby.energy > 0
+		and nearby.texture.get_width() * nearby.texture_scale < 400.0, "%s lights a small area around the hunter and casts terrain shadows" % path)
+
+	var props := level.landscape.get_node("Props") as TileMapLayer
+	var terrain := level.landscape.get_node("Terrain") as TileMapLayer
+	var braziers: Array[Node] = get_nodes_in_group("brazier_light")
+	var cells := props.get_used_cells_by_id(0, Vector2i.ZERO, Ruins.Landscape.BRAZIER_TILE_ID)
+	check(cells.size() >= 2 and cells.size() == braziers.size(), "%s instantiates %d brazier light tiles" % [path, cells.size()])
+	for brazier: Node2D in braziers:
+		var floor_cell := terrain.local_to_map(terrain.to_local(brazier.global_position) + Vector2.DOWN)
+		var lamp := brazier.get_node_or_null("Light") as PointLight2D
+		check(brazier.get_parent() == props and terrain.get_cell_source_id(floor_cell) >= 0
+			and terrain.get_cell_source_id(floor_cell + Vector2i.UP) == -1
+			and lamp != null and lamp.enabled and lamp.shadow_enabled and lamp.texture != null and lamp.color.r > lamp.color.b,
+			"%s has a floor-mounted warm light with shadows at %s" % [path, brazier.position])
+	cells.sort()
+	for index in range(1, cells.size()):
+		check(props.map_to_local(cells[index]).x - props.map_to_local(cells[index - 1]).x >= Ruins.Landscape.BRAZIER_MIN_GAP,
+			"%s keeps space between brazier lights" % path)
+
+
+func check_floor_visibility(level: Ruins) -> void:
+	var path := level.scene_file_path.get_file()
+	var visibility := level.get_node_or_null("FloorVisibility") as Ruins.FloorVisibility
+	if level.stage == Campaign.BOSS_STAGE:
+		check(visibility == null, "%s leaves the single-floor arena open" % path)
+		return
+	check(visibility != null and visibility.visible_band(500.0) == Vector2(420.0, 560.0)
+		and visibility.visible_band(459.0) == Vector2(420.0, 560.0),
+		"%s shows the ground floor and its short steps without exposing the floor above" % path)
+	if visibility == null:
+		return
+	check(visibility.visible_band(410.0) == Vector2(300.0, 440.0)
+		and visibility.visible_band(40.0) == Vector2(-INF, 80.0),
+		"%s changes floors across the slab and leaves the top floor open above" % path)
+	check(visibility.layer > 0 and visibility.layer < (level.health_hearts.get_canvas_layer_node() as CanvasLayer).layer,
+		"%s draws the darkness above the world and below the HUD" % path)
+	var upper_mask := visibility.get_child(0) as ColorRect
+	var lower_mask := visibility.get_child(1) as ColorRect
+	for foot_y in [540.0, 420.0]:
+		level.hunter.position.y = foot_y
+		level.camera.reset_smoothing()
+		level.camera.force_update_scroll()
+		visibility._process(0.0)
+		var canvas := root.get_canvas_transform()
+		var view_size := root.get_visible_rect().size
+		var ceiling_y := clampf((canvas * Vector2(0, foot_y - 120.0)).y, 0.0, view_size.y)
+		var floor_y := clampf((canvas * Vector2(0, foot_y + 20.0)).y, 0.0, view_size.y)
+		check(upper_mask.size.is_equal_approx(Vector2(view_size.x, ceiling_y))
+			and is_equal_approx(lower_mask.position.y, floor_y)
+			and lower_mask.size.is_equal_approx(Vector2(view_size.x, view_size.y - floor_y))
+			and upper_mask.color.a == 1.0 and lower_mask.color.a == 1.0,
+			"%s masks both other floors to the viewport edges at y=%d" % [path, foot_y])
 
 
 func check_lava_tiles(level: Ruins) -> void:
