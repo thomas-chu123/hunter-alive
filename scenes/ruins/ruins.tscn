@@ -3,11 +3,7 @@
 [ext_resource type="Script" uid="uid://cb2e02jbpr5sh" path="res://scripts/scene/ruins.gd" id="1_ruins"]
 [ext_resource type="Script" uid="uid://d2gjkqovhn8ya" path="res://scripts/scene/ruin_landscape.gd" id="2_landscape"]
 [ext_resource type="Texture2D" uid="uid://doypcuyf44pwf" path="res://assets/environment/common/backdrops/ancient_temple.png" id="backdrop"]
-[ext_resource type="Texture2D" uid="uid://ds6srd382bdhf" path="res://assets/environment/common/props/brazier.png" id="brazier"]
-[ext_resource type="Texture2D" uid="uid://wivdl66iq62q" path="res://assets/environment/common/props/broken_column.png" id="broken_column"]
-[ext_resource type="Texture2D" uid="uid://cy1ork26yelux" path="res://assets/environment/common/props/fern.png" id="fern"]
-[ext_resource type="Texture2D" uid="uid://cx0536cb3t4iq" path="res://assets/environment/common/props/reliquary.png" id="reliquary"]
-[ext_resource type="Texture2D" uid="uid://boe8r5yegmem1" path="res://assets/environment/common/props/stone_gate.png" id="stone_gate"]
+[ext_resource type="TileSet" uid="uid://df1u8hc5etjmy" path="res://assets/environment/common/props/props_tileset.tres" id="props_tileset"]
 [ext_resource type="TileSet" uid="uid://con8hl5nkiqgu" path="res://assets/environment/common/terrain/terrain_tileset.tres" id="terrain_tileset"]
 
 [node name="Ruins" type="Node2D" unique_id=813475917]
@@ -26,63 +22,11 @@ centered = false
 [node name="Landscape" type="Node2D" parent="." unique_id=825624333]
 script = ExtResource("2_landscape")
 
-[node name="Columns" type="Node2D" parent="Landscape" unique_id=1100745089]
-
-[node name="Column1" type="Sprite2D" parent="Landscape/Columns" unique_id=1829925891]
-modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
-position = Vector2(204.08476, 387)
-scale = Vector2(0.37592137, 0.37592137)
-texture = ExtResource("broken_column")
-centered = false
-
-[node name="Column2" type="Sprite2D" parent="Landscape/Columns" unique_id=94230548]
-modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
-position = Vector2(759, 412)
-scale = Vector2(0.31941032, 0.31941032)
-texture = ExtResource("broken_column")
-centered = false
-
-[node name="Column3" type="Sprite2D" parent="Landscape/Columns" unique_id=10840534]
-modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
-position = Vector2(988, 357)
-scale = Vector2(0.45454544, 0.45454544)
-texture = ExtResource("broken_column")
-centered = false
-
-[node name="Column4" type="Sprite2D" parent="Landscape/Columns" unique_id=1861261794]
-modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
-position = Vector2(1289, 393)
-scale = Vector2(0.36363637, 0.36363637)
-texture = ExtResource("broken_column")
-centered = false
-
-[node name="Column5" type="Sprite2D" parent="Landscape/Columns" unique_id=1603548565]
-modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
-position = Vector2(1650, 403)
-scale = Vector2(0.33660933, 0.33660933)
-texture = ExtResource("broken_column")
-centered = false
-
-[node name="Column6" type="Sprite2D" parent="Landscape/Columns" unique_id=1192493927]
-modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
-position = Vector2(2284, 406)
-scale = Vector2(0.32678133, 0.32678133)
-texture = ExtResource("broken_column")
-centered = false
-
-[node name="Column7" type="Sprite2D" parent="Landscape/Columns" unique_id=1453555851]
-modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
-position = Vector2(2668.0295, 416)
-scale = Vector2(0.3046683, 0.3046683)
-texture = ExtResource("broken_column")
-centered = false
-
-[node name="Column8" type="Sprite2D" parent="Landscape/Columns" unique_id=1965904118]
-modulate = Color(0.5764706, 0.6666667, 0.6313725, 1)
-position = Vector2(3035.3723, 399)
-scale = Vector2(0.34643736, 0.34643736)
-texture = ExtResource("broken_column")
-centered = false
+[node name="BackgroundProps" type="TileMapLayer" parent="Landscape" unique_id=340268336 groups=["prop_tiles"]]
+editor_description = "Paint, move or copy scene props with the TileMap editor."
+position = Vector2(-10, -10)
+tile_map_data = PackedByteArray("AAAMABsAAAAAAAAADQAoABsAAAAAAAAADAA0ABsAAAAAAAAADgBCABsAAAAAAAAADQBUABsAAAAAAAAADAB0ABsAAAAAAAAADACHABsAAAAAAAAADACaABsAAAAAAAAADQA=")
+tile_set = ExtResource("props_tileset")
 
 [node name="Terrain" type="TileMapLayer" parent="Landscape" unique_id=640193029]
 editor_description = "Shared 20 × 20 terrain grid. Paint rock, platforms and walls here."
@@ -98,96 +42,18 @@ show_behind_parent = true
 polygon = PackedVector2Array(0, 20, 434, 20, 407, 141, 27, 141)
 vertex_colors = PackedColorArray(0.06, 0.11, 0.13, 0.3, 0.06, 0.11, 0.13, 0.3, 0, 0, 0, 0, 0, 0, 0, 0)
 
-[node name="Fern" type="Sprite2D" parent="Landscape/OverlookDetails" unique_id=1652197418]
-modulate = Color(0.6941176, 0.7490196, 0.5372549, 1)
-position = Vector2(386.33334, -24)
-scale = Vector2(0.11111111, 0.11111111)
-texture = ExtResource("fern")
-centered = false
+[node name="Effects" type="TileMapLayer" parent="Landscape" groups=["prop_tiles"]]
+editor_description = "Paint environment effects."
+position = Vector2(-10, -10)
+tile_set = ExtResource("props_tileset")
 
-[node name="Ferns" type="Node2D" parent="Landscape" unique_id=1416575089]
+[node name="ObstacleProps" type="TileMapLayer" parent="Landscape" groups=["prop_tiles"]]
+editor_description = "Paint collision props and gates."
+position = Vector2(-10, -10)
+tile_set = ExtResource("props_tileset")
 
-[node name="Fern1" type="Sprite2D" parent="Landscape/Ferns" unique_id=71223408]
-modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
-position = Vector2(273.68518, 507)
-scale = Vector2(0.15432099, 0.15432099)
-texture = ExtResource("fern")
-centered = false
-
-[node name="Fern2" type="Sprite2D" parent="Landscape/Ferns" unique_id=1419988817]
-modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
-position = Vector2(708.87036, 509.64)
-scale = Vector2(0.14197531, 0.14197531)
-texture = ExtResource("fern")
-centered = false
-
-[node name="Fern3" type="Sprite2D" parent="Landscape/Ferns" unique_id=1655296587]
-modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
-position = Vector2(1369.787, 515.58)
-scale = Vector2(0.11419753, 0.11419753)
-texture = ExtResource("fern")
-centered = false
-
-[node name="Fern4" type="Sprite2D" parent="Landscape/Ferns" unique_id=360154024]
-modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
-position = Vector2(1637.6019, 512.94)
-scale = Vector2(0.12654321, 0.12654321)
-texture = ExtResource("fern")
-centered = false
-
-[node name="Fern5" type="Sprite2D" parent="Landscape/Ferns" unique_id=1474033586]
-modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
-position = Vector2(1944.3241, 508.98)
-scale = Vector2(0.14506173, 0.14506173)
-texture = ExtResource("fern")
-centered = false
-
-[node name="Fern6" type="Sprite2D" parent="Landscape/Ferns" unique_id=905715243]
-modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
-position = Vector2(2433.3333, 516.24)
-scale = Vector2(0.11111111, 0.11111111)
-texture = ExtResource("fern")
-centered = false
-
-[node name="Fern7" type="Sprite2D" parent="Landscape/Ferns" unique_id=1085945581]
-modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
-position = Vector2(2756.787, 515.58)
-scale = Vector2(0.11419753, 0.11419753)
-texture = ExtResource("fern")
-centered = false
-
-[node name="Fern8" type="Sprite2D" parent="Landscape/Ferns" unique_id=762930445]
-modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
-position = Vector2(3181.5925, 505.68)
-scale = Vector2(0.16049384, 0.16049384)
-texture = ExtResource("fern")
-centered = false
-
-[node name="Props" type="Node2D" parent="Landscape" unique_id=1485666532]
-
-[node name="Campfire" type="Node2D" parent="Landscape/Props" unique_id=952656091]
-position = Vector2(885, 540)
-
-[node name="Sprite" type="Sprite2D" parent="Landscape/Props/Campfire" unique_id=246276602]
-position = Vector2(-33.077274, -57)
-scale = Vector2(0.17272727, 0.17272727)
-texture = ExtResource("brazier")
-centered = false
-
-[node name="Portal" type="Node2D" parent="Landscape/Props" unique_id=2082972432]
-position = Vector2(122, 540)
-
-[node name="Sprite" type="Sprite2D" parent="Landscape/Props/Portal" unique_id=225838003]
-position = Vector2(-54.513065, -136)
-scale = Vector2(0.16152018, 0.16152018)
-texture = ExtResource("stone_gate")
-centered = false
-
-[node name="Reliquary" type="Node2D" parent="Landscape/Props" unique_id=820861824]
-position = Vector2(2270, 348)
-
-[node name="Sprite" type="Sprite2D" parent="Landscape/Props/Reliquary" unique_id=1690686650]
-position = Vector2(-23.928831, -31)
-scale = Vector2(0.11313869, 0.11313869)
-texture = ExtResource("reliquary")
-centered = false
+[node name="Props" type="TileMapLayer" parent="Landscape" unique_id=1294869388 groups=["prop_tiles"]]
+editor_description = "Paint, move or copy scene props with the TileMap editor."
+position = Vector2(-10, -10)
+tile_map_data = PackedByteArray("AAB5ABIAAAAAAAAABQAPABwAAAAAAAAABQAlABwAAAAAAAAABQBFABwAAAAAAAAABQBTABwAAAAAAAAABQBjABwAAAAAAAAABQB7ABwAAAAAAAAABQCLABwAAAAAAAAABQCgABwAAAAAAAAABQAGABsAAAAAAAAAAwByABEAAAAAAAAAAgBgABUAAgAAAAAAFQBLABYAAgAAAAAAFAAtABsAAAAAAAAAAQA=")
+tile_set = ExtResource("props_tileset")

@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://dde178f2u1eqj"]
+
+[ext_resource type="Texture2D" uid="uid://boe8r5yegmem1" path="res://assets/environment/common/props/stone_gate.png" id="texture"]
+
+[node name="StoneGate" type="Node2D" unique_id=644727484 groups=["portal"]]
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=2146219682]
+position = Vector2(-54.513065, -136)
+scale = Vector2(0.16152018, 0.16152018)
+texture = ExtResource("texture")
+centered = false

@@ -1,0 +1,90 @@
+[gd_resource type="TileSet" format=3 uid="uid://df1u8hc5etjmy"]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/campfire.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/reliquary.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/stone_gate.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/broken_column.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/fern.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/shrine.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/court_campfire.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/corridor_campfire.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/court_reliquary.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/corridor_reliquary.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/corridor_exit.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/ruins_column_short.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/ruins_column_medium.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/ruins_column_tall.tscn" id="14"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/light_gate.tscn" id="15"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/impact_column.tscn" id="16"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/obsidian_pillar_130.tscn" id="17"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/obsidian_pillar_150.tscn" id="18"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/obsidian_pillar_170.tscn" id="19"]
+[ext_resource type="PackedScene" path="res://assets/items/armor/chests/cliff_boots.tscn" id="20"]
+[ext_resource type="PackedScene" path="res://assets/items/armor/chests/wing_cape.tscn" id="21"]
+[ext_resource type="PackedScene" path="res://assets/items/armor/chests/sealed_cap.tscn" id="22"]
+[ext_resource type="PackedScene" path="res://assets/items/armor/chests/reed_coat.tscn" id="23"]
+[ext_resource type="PackedScene" path="res://assets/items/weapon/chests/sluice_spear.tscn" id="24"]
+[ext_resource type="PackedScene" path="res://assets/items/armor/chests/sluice_boots.tscn" id="25"]
+[ext_resource type="PackedScene" path="res://assets/items/weapon/chests/tide_hammer.tscn" id="26"]
+[ext_resource type="PackedScene" path="res://assets/items/armor/chests/bowstring_gloves.tscn" id="27"]
+[ext_resource type="PackedScene" path="res://assets/items/armor/chests/ash_cowl.tscn" id="28"]
+[ext_resource type="PackedScene" path="res://assets/items/armor/chests/cinder_greaves.tscn" id="29"]
+[ext_resource type="PackedScene" path="res://assets/items/weapon/chests/gate_halberd.tscn" id="30"]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/lava/lava_pool_180.tscn" id="31"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/lava/lava_pool_240.tscn" id="32"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/lava/lava_pool_280.tscn" id="33"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/lava/lava_barrier.tscn" id="34"]
+
+[sub_resource type="TileSetScenesCollectionSource" id="Props"]
+resource_name = "Scene Props"
+scenes/1/scene = ExtResource("1")
+scenes/2/scene = ExtResource("2")
+scenes/3/scene = ExtResource("3")
+scenes/4/scene = ExtResource("4")
+scenes/5/scene = ExtResource("5")
+scenes/6/scene = ExtResource("6")
+scenes/7/scene = ExtResource("7")
+scenes/8/scene = ExtResource("8")
+scenes/9/scene = ExtResource("9")
+scenes/10/scene = ExtResource("10")
+scenes/11/scene = ExtResource("11")
+scenes/12/scene = ExtResource("12")
+scenes/13/scene = ExtResource("13")
+scenes/14/scene = ExtResource("14")
+scenes/15/scene = ExtResource("15")
+scenes/16/scene = ExtResource("16")
+scenes/17/scene = ExtResource("17")
+scenes/18/scene = ExtResource("18")
+scenes/19/scene = ExtResource("19")
+scenes/34/scene = ExtResource("34")
+
+[sub_resource type="TileSetScenesCollectionSource" id="Weapons"]
+resource_name = "Weapons"
+scenes/24/scene = ExtResource("24")
+scenes/26/scene = ExtResource("26")
+scenes/30/scene = ExtResource("30")
+
+[sub_resource type="TileSetScenesCollectionSource" id="Armor"]
+resource_name = "Armor"
+scenes/20/scene = ExtResource("20")
+scenes/21/scene = ExtResource("21")
+scenes/22/scene = ExtResource("22")
+scenes/23/scene = ExtResource("23")
+scenes/25/scene = ExtResource("25")
+scenes/27/scene = ExtResource("27")
+scenes/28/scene = ExtResource("28")
+scenes/29/scene = ExtResource("29")
+
+[sub_resource type="TileSetScenesCollectionSource" id="Effects"]
+resource_name = "Effects"
+scenes/31/scene = ExtResource("31")
+scenes/32/scene = ExtResource("32")
+scenes/33/scene = ExtResource("33")
+
+[resource]
+tile_size = Vector2i(20, 20)
+sources/0 = SubResource("Props")
+sources/1 = SubResource("Weapons")
+sources/2 = SubResource("Armor")
+sources/3 = SubResource("Effects")

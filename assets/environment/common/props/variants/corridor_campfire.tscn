@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/campfire.tscn" id="base"]
+
+[node name="CorridorCampfire" instance=ExtResource("base")]
+
+[node name="Sprite" parent="." index="0"]
+position = Vector2(-22.970018, 3.8999984)
+scale = Vector2(0.24005213, 0.27333346)
+centered = true
+offset = Vector2(0, -120)

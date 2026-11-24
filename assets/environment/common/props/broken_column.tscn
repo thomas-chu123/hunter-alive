@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://b4otpp2rbxdn2"]
+
+[ext_resource type="Texture2D" uid="uid://wivdl66iq62q" path="res://assets/environment/common/props/broken_column.png" id="texture"]
+
+[node name="BrokenColumn" type="Node2D" unique_id=639852237]
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1504549376]
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("texture")
+offset = Vector2(0, -150)

@@ -29,7 +29,7 @@ func run_checks() -> void:
 		quit(1)
 		return
 
-	ruins.hunter.position = Vector2(Landscape.PORTAL_X, Landscape.FLOOR_Y)
+	ruins.hunter.position = ruins.landscape.portals[0].global_position
 	ruins._interact()
 	check(not ruins.completed, "gate stays closed until guardian is defeated")
 

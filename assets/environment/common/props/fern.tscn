@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://cm1kk7hhqf0wm"]
+
+[ext_resource type="Texture2D" uid="uid://cy1ork26yelux" path="res://assets/environment/common/props/fern.png" id="texture"]
+
+[node name="Fern" type="Node2D" unique_id=1652043646]
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1208220016]
+modulate = Color(0.6117647, 0.6745098, 0.4941176, 1)
+scale = Vector2(0.13, 0.13)
+texture = ExtResource("texture")
+offset = Vector2(0, -162)

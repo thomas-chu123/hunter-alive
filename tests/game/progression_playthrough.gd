@@ -90,7 +90,7 @@ func run() -> void:
 	await view(60)
 	var soul_reward := level.soul_balance
 	level.soul_balance += 120
-	level.hunter.position = level.landscape.shrine.position
+	level.hunter.position = level.landscape.campfires[0].global_position
 	level.hunter.velocity = Vector2.ZERO
 	await frames(5)
 	await tap("hunt_interact")

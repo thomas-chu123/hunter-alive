@@ -1,0 +1,25 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/stone_gate.png" id="gate"]
+
+[sub_resource type="RectangleShape2D" id="LightGate"]
+size = Vector2(20, 720)
+
+[node name="LightGate" type="StaticBody2D" unique_id=82199943 groups=["unclimbable", "light_gate"]]
+
+[node name="Collision" type="CollisionShape2D" parent="." unique_id=527545038]
+position = Vector2(0, -240)
+shape = SubResource("LightGate")
+
+[node name="Bar" type="Node2D" parent="." unique_id=1657709987]
+
+[node name="Grate" type="Line2D" parent="Bar" unique_id=645535663]
+points = PackedVector2Array(-32, 115, -32, 52, 0, 28, 32, 52, 32, 115, 16, 115, 16, 41, 0, 28, 0, 115, -16, 115, -16, 41)
+width = 3.0
+default_color = Color(0.36, 0.67, 0.58, 0.76)
+
+[node name="Arch" type="Sprite2D" parent="." unique_id=1400604769]
+position = Vector2(-5, 22)
+scale = Vector2(0.37, 0.37)
+texture = ExtResource("gate")
+offset = Vector2(0, -139)

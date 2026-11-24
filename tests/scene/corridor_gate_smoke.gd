@@ -23,7 +23,7 @@ func run() -> void:
 			enemy.queue_free()
 	crab.set_physics_process(false)
 	var hunter := level.hunter
-	var gate: StaticBody2D = level.landscape.get_node("LightGate")
+	var gate: StaticBody2D = level.landscape.light_gates[0]
 	var barrier: CollisionShape2D = gate.get_node("Collision")
 	var darkness: Sprite2D = level.landscape.get_node("Darkness")
 	hunter.equipped_soul = "spider"
@@ -41,7 +41,7 @@ func run() -> void:
 		await process_frame
 		gate_climbed = gate_climbed or hunter.wall_holding
 	release_motion()
-	check(hunter.position.x < gate.position.x and not gate_climbed and not barrier.disabled,
+	check(hunter.position.x < gate.global_position.x and not gate_climbed and not barrier.disabled,
 		"locked gate stops the hunter and cannot be climbed")
 	check(darkness.visible and darkness.z_index < hunter.z_index,
 		"locked corridor tint draws behind the hunter and foreground")
@@ -61,7 +61,7 @@ func run() -> void:
 	Input.action_release("hunt_right")
 	check(level.lantern_found and barrier.disabled and not darkness.visible
 		and not gate.get_node("Bar").visible and gate.get_node("Arch").visible
-		and hunter.position.x > gate.position.x, "lantern clears the grate and tint, preserves the arch and allows walking through")
+		and hunter.position.x > gate.global_position.x, "lantern clears the grate and tint, preserves the arch and allows walking through")
 
 	hunter.position = Vector2(1505, 539)
 	hunter.velocity = Vector2.ZERO

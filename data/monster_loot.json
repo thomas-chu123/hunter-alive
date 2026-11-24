@@ -19,7 +19,6 @@
     "item": "lantern",
     "region": "flooded_corridor",
     "progress_flag": "lantern_found",
-    "gate_node": "LightGate",
     "gate_offset": -50,
     "notice": "提燈落在地上。靠近拾取，用它打開暗水道。",
     "notice_seconds": 4,

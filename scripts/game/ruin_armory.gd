@@ -28,11 +28,3 @@ const WEAR := {
 	"cinder_greaves": ["熱碑護脛", "腿部", "碎陶散片造成的受擊硬直減半。"],
 	"ram_boots": ["踏階長靴", "腿部", "墓階角獸衝撞造成的擊退減少 45%。"],
 }
-
-const CHESTS := [
-	[["cliff_boots", 1495, 440], ["wing_cape", 1920, 420]],
-	[["sealed_cap", 520, 540], ["reed_coat", 1950, 480],
-		["sluice_spear", 2535, 420], ["sluice_boots", 2990, 540], ["tide_hammer", 3050, 540]],
-	[["bowstring_gloves", 800, 480], ["ash_cowl", 1680, 460],
-		["cinder_greaves", 2075, 480], ["gate_halberd", 2380, 480]],
-]

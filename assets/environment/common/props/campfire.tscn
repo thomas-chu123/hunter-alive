@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://co71hno4kvfg"]
+
+[ext_resource type="Texture2D" uid="uid://ds6srd382bdhf" path="res://assets/environment/common/props/brazier.png" id="texture"]
+
+[node name="Campfire" type="Node2D" unique_id=863604045 groups=["campfire"]]
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1882375057]
+position = Vector2(-33.077274, -57)
+scale = Vector2(0.17272727, 0.17272727)
+texture = ExtResource("texture")
+centered = false

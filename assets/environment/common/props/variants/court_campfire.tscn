@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/campfire.tscn" id="base"]
+
+[node name="CourtCampfire" instance=ExtResource("base")]
+
+[node name="Sprite" parent="." index="0"]
+position = Vector2(0, 0)
+scale = Vector2(0.22, 0.22)
+centered = true
+offset = Vector2(0, -152)

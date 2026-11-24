@@ -1,0 +1,17 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/broken_column.png" id="pillar"]
+
+[sub_resource type="RectangleShape2D" id="RamBarrier"]
+size = Vector2(30, 54)
+
+[node name="ImpactColumn" type="StaticBody2D" unique_id=605416891]
+
+[node name="Collision" type="CollisionShape2D" parent="." unique_id=1983708316]
+position = Vector2(5, -7)
+shape = SubResource("RamBarrier")
+
+[node name="Stone" type="Sprite2D" parent="." unique_id=36392345]
+position = Vector2(5, -7)
+scale = Vector2(0.19, 0.19)
+texture = ExtResource("pillar")

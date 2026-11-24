@@ -3,7 +3,6 @@ extends SceneTree
 const Campaign := preload("res://scripts/game/campaign.gd")
 const Bestiary := preload("res://scripts/character/ruin_bestiary.gd")
 const Equipment := preload("res://scripts/game/ruin_equipment.gd")
-const Armory := preload("res://scripts/game/ruin_armory.gd")
 const Save := preload("res://scripts/game/camp_save.gd")
 
 var failures := 0
@@ -32,16 +31,16 @@ func run() -> void:
 				ordinary[id] = true
 		area.hunter.set_physics_process(false)
 
-		for chest in Armory.CHESTS[region]:
-			area.hunter.position = Vector2(chest[1], chest[2])
+		for chest in area.landscape.equipment_chests:
+			area.hunter.position = chest.global_position
 			area._interact()
-			check(area.owned_equipment.has(chest[0]), "interacting with chest grants " + chest[0])
+			check(area.owned_equipment.has(chest.equipment_id), "interacting with chest grants " + chest.equipment_id)
 		if region == Campaign.Region.TEMPLE:
-			area.hunter.position = area.landscape.shrine.position
+			area.hunter.position = area.landscape.campfires[0].global_position
 			area._interact()
 			area._set_camp_open(false)
 			area.hunter.set_physics_process(false)
-			area.hunter.position = area.landscape.cache.position
+			area.hunter.position = area.landscape.reliquaries[0].global_position
 			area._interact()
 			check(area.owned_equipment.has("ember_staff") and area.owned_equipment.has("moss_vest"), "temple overlook grants base staff and vest")
 

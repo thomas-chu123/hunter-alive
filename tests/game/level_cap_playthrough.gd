@@ -98,7 +98,7 @@ func leave_court_camp() -> bool:
 
 
 func purchase_at_camp() -> bool:
-	var shrine: float = ruins.landscape.shrine.position.x
+	var shrine: float = ruins.landscape.campfires[0].global_position.x
 	if not ruins.camp_menu.visible:
 		if not await walk_to(shrine + 8, 22):
 			return verify(false, "walked back to the court camp")

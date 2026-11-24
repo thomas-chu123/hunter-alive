@@ -13,7 +13,6 @@ const Equipment := preload("res://scripts/game/ruin_equipment.gd")
 const Bestiary := preload("res://scripts/character/ruin_bestiary.gd")
 const Progression := preload("res://scripts/game/ruin_progression.gd")
 const Armory := preload("res://scripts/game/ruin_armory.gd")
-const CacheTexture := preload("res://assets/environment/common/props/reliquary.png")
 const Campaign := preload("res://scripts/game/campaign.gd")
 const MonsterArt := preload("res://scripts/character/ruin_sprite_art.gd")
 const START := Vector2(950, 526)
@@ -51,7 +50,7 @@ var obtained_equipment: Dictionary = {}
 var armor_equipped: Dictionary = {}
 var preferred_weapons: Dictionary = {}
 var next_item_uid := 1
-@export_enum("Temple", "Flooded Corridor", "Buried Court") var region := 0
+@export_enum("Temple", "Flooded Corridor", "Buried Court", "Volcanic Caldera") var region := 0
 
 var guardian_felled := false
 var unclaimed_blade_x := -1.0
@@ -138,7 +137,7 @@ func _ready() -> void:
 	var listener := AudioListener2D.new()
 	hunter.add_child(listener)
 	listener.make_current()
-	get_node("/root/GameMusic").play_region(region)
+	get_node("/root/GameMusic").play_region(-1 if region == Campaign.Region.VOLCANO else region)
 	camera = Camera2D.new()
 	camera.limit_left = 0
 	camera.limit_right = 3330
@@ -174,6 +173,8 @@ func _process(delta: float) -> void:
 	background.position.x = backdrop_origin.x - clampf((hunter.position.x - 950.0) * 0.050, -95, 95)
 	notice_left = maxf(0.0, notice_left - delta)
 	notice_label.visible = notice_left > 0 and not completed
+	for chest in landscape.equipment_chests:
+		chest.visible = not obtained_equipment.has(chest.equipment_id)
 	if not completed:
 		_update_hud()
 	queue_redraw()
@@ -229,7 +230,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _spawn_enemies() -> void:
-	for encounter in Bestiary.encounters[Campaign.IDS[region]]:
+	for encounter in Bestiary.encounters.get(Campaign.IDS[region], []):
 		var skip_if: String = encounter.get("skip_if", "")
 		if skip_if.is_empty() or not bool(get(skip_if)):
 			_add_monster(encounter.species, float(encounter.x), float(encounter.get("y", Landscape.FLOOR_Y)))
@@ -479,8 +480,9 @@ func _drop_corridor_lantern(x: float) -> bool:
 	var rules: Dictionary = Bestiary.loot.lantern
 	if Campaign.IDS[region] != rules.region or bool(get(rules.progress_flag)) or _has_drop(rules.item):
 		return false
-	var gate: Node2D = landscape.get_node(rules.gate_node)
-	_drop(rules.item, minf(x, gate.position.x + float(rules.gate_offset)))
+	for gate in landscape.light_gates:
+		x = minf(x, to_local(gate.global_position).x + float(rules.gate_offset))
+	_drop(rules.item, x)
 	_notice(rules.notice, float(rules.notice_seconds))
 	return true
 
@@ -585,12 +587,12 @@ func _interact() -> void:
 			_notice("石匣內有%s。按 I 看裝備。" % _ranked_gear_name(loot, 1), 4.0)
 		else:
 			_warn_full_bag()
-	elif _near(landscape.shrine.global_position):
+	elif _near_prop(landscape.campfires):
 		for id in ["linen_hood", "hunter_wraps"]:
 			if not obtained_equipment.has(id):
 				_grant_equipment(id)
 		_set_camp_open(true)
-	elif _near(landscape.portal.global_position):
+	elif _near_prop(landscape.portals):
 		match region:
 			Campaign.Region.TEMPLE:
 				if guardian_felled:
@@ -628,19 +630,26 @@ func _interact() -> void:
 			_notice("從石匣取得 3 份工坊素材。", 4.0)
 
 
-func _near(at: Vector2) -> bool:
-	return absf(hunter.global_position.x - at.x) < 79 and absf(hunter.global_position.y - at.y) < 60
+func _near_prop(props: Array[Node2D]) -> bool:
+	for prop in props:
+		var separation := hunter.global_position - prop.global_position
+		if absf(separation.x) < 79 and absf(separation.y) < 60:
+			return true
+	return false
 
 
 func _near_treasure() -> String:
-	for chest in Armory.CHESTS[region]:
-		if not obtained_equipment.has(chest[0]) and hunter.position.distance_to(Vector2(chest[1], chest[2])) < 50:
-			return chest[0]
+	for chest in landscape.equipment_chests:
+		if not obtained_equipment.has(chest.equipment_id) and hunter.global_position.distance_to(chest.global_position) < 50:
+			return chest.equipment_id
 	return ""
 
 
 func _near_cache() -> bool:
-	return hunter.global_position.distance_to(landscape.cache.global_position) < 65
+	for cache in landscape.reliquaries:
+		if hunter.global_position.distance_to(cache.global_position) < 65:
+			return true
+	return false
 
 
 func _on_hunter_damaged(source_x: float, damage: int, effect: String) -> void:
@@ -691,7 +700,9 @@ func _finish() -> void:
 
 
 func _camp_start() -> Vector2:
-	return START if region == Campaign.Region.TEMPLE else landscape.shrine.position + Vector2(48, -14)
+	if region == Campaign.Region.TEMPLE or landscape.campfires.is_empty():
+		return START
+	return to_local(landscape.campfires[0].global_position) + Vector2(48, -14)
 
 
 func _sync_region_gate() -> void:
@@ -701,8 +712,9 @@ func _sync_region_gate() -> void:
 		Campaign.Region.CORRIDOR:
 			landscape.portal_open = lantern_found
 			landscape.get_node("Darkness").visible = not lantern_found
-			landscape.get_node("LightGate/Bar").visible = not lantern_found
-			landscape.get_node("LightGate/Collision").set_deferred("disabled", lantern_found)
+			for gate in landscape.light_gates:
+				gate.get_node("Bar").visible = not lantern_found
+				gate.get_node("Collision").set_deferred("disabled", lantern_found)
 		Campaign.Region.COURT:
 			landscape.portal_open = keeper_felled
 
@@ -742,11 +754,6 @@ func _resize_backdrop() -> void:
 
 
 func _draw() -> void:
-	for chest in Armory.CHESTS[region]:
-		if not obtained_equipment.has(chest[0]):
-			var at := Vector2(chest[1], chest[2])
-			draw_texture_rect(CacheTexture, Rect2(at - Vector2(21, 24), Vector2(42, 24)), false)
-			draw_circle(at - Vector2(0, 26), 3.5, Color(1.0, 0.79, 0.46, 0.62))
 	for glyph in glyphs:
 		var center: Vector2 = glyph.at - Vector2(0, 9)
 		var charge := 1.0 - float(glyph.left) / 0.46
@@ -1331,11 +1338,9 @@ func _update_hud() -> void:
 		objective_label.text = "崩塌神殿\n回到西側斷橋，用蜥翼抵達石門。"
 
 	prompt_label.text = ""
-	if _near(landscape.shrine.global_position):
+	if _near_prop(landscape.campfires):
 		prompt_label.text = "E　打開營火與工坊選單"
-	elif region == Campaign.Region.CORRIDOR and not lantern_found and absf(hunter.position.x - landscape.get_node("LightGate").position.x) < 108.0:
-		prompt_label.text = "石閘上鎖　／　擊倒石蟹或射落牠的提燈"
-	elif _near(landscape.portal.global_position):
+	elif _near_prop(landscape.portals):
 		prompt_label.text = "E　查看石門"
 	elif _near_cache() and not landscape.cache_open:
 		prompt_label.text = "E　查看觀景台上的石匣"
@@ -1348,7 +1353,7 @@ func _update_hud() -> void:
 
 
 func _monster_hint() -> String:
-	for encounter in Bestiary.encounters[Campaign.IDS[region]]:
+	for encounter in Bestiary.encounters.get(Campaign.IDS[region], []):
 		var hint: Dictionary = encounter.get("hint", {})
 		if hint.is_empty() or owned_equipment.has(hint.get("unless_owned", "")):
 			continue
@@ -1369,9 +1374,9 @@ func _update_region_hud() -> void:
 		objective_label.text = Campaign.NAMES[region] + "\n" + (
 			"調查東側主祭壇。" if keeper_felled else "避開雙段橫掃，蓄力時擊破護印。")
 	prompt_label.text = ""
-	if _near(landscape.shrine.global_position):
+	if _near_prop(landscape.campfires):
 		prompt_label.text = "E　打開營火與工坊選單"
-	elif _near(landscape.portal.global_position):
+	elif _near_prop(landscape.portals):
 		prompt_label.text = "E　查看排水出口" if region == Campaign.Region.CORRIDOR else "E　調查主祭壇"
 	elif (_near_cache() and not landscape.cache_open) or not _near_treasure().is_empty():
 		prompt_label.text = "E　打開石匣"

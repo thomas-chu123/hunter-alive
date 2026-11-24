@@ -30,7 +30,7 @@ func run() -> void:
 	level.collected_souls.append("lizard")
 	level.hunter.equipped_soul = "lizard"
 	level.guardian_felled = true
-	await stand(level, level.landscape.portal.position.x)
+	await stand(level, level.landscape.portals[0].global_position.x)
 	await tap("hunt_interact")
 	check(level.completed, "temple west gate opens the transition card")
 	await view()
@@ -40,9 +40,9 @@ func run() -> void:
 	check(level.region == Campaign.Region.CORRIDOR and Save.read().state.region == Campaign.Region.CORRIDOR, "corridor transition saves its arrival checkpoint")
 	check(level.hunter.with_bow and level.hunter.bow_level == 2 and level.hunter.equipped_soul == "lizard", "weapon and wing soul survive the transition")
 	await view()
-	check(level.landscape.get_node("Darkness").visible and not level.landscape.get_node("LightGate/Collision").disabled,
+	check(level.landscape.get_node("Darkness").visible and not level.landscape.light_gates[0].get_node("Collision").disabled,
 		"dark waterway blocks passage before collecting its lantern")
-	await stand(level, level.landscape.portal.position.x)
+	await stand(level, level.landscape.portals[0].global_position.x)
 	await tap("hunt_interact")
 	check(current_scene == level and not level.transitioning, "corridor exit stays locked without lantern")
 	var crab = enemy(level, "lantern_crab")
@@ -55,10 +55,10 @@ func run() -> void:
 	await view(0.25)
 	await stand(level, find_drop(level, "lantern"))
 	await frames(18)
-	check(level.lantern_found and not level.landscape.get_node("Darkness").visible and level.landscape.get_node("LightGate/Collision").disabled,
+	check(level.lantern_found and not level.landscape.get_node("Darkness").visible and level.landscape.light_gates[0].get_node("Collision").disabled,
 		"picking up the lantern illuminates the route and opens the physical gate")
 	await view()
-	await stand(level, level.landscape.shrine.position.x)
+	await stand(level, level.landscape.campfires[0].global_position.x)
 	await tap("hunt_interact")
 	await press(level.camp_save_exit)
 	await scene_changed
@@ -66,7 +66,7 @@ func run() -> void:
 	await scene_changed
 	level = current_scene
 	check(level.region == Campaign.Region.CORRIDOR and level.lantern_found, "Continue restores the correct camp and lantern")
-	await stand(level, level.landscape.portal.position.x)
+	await stand(level, level.landscape.portals[0].global_position.x)
 	await tap("hunt_interact")
 	for index in range(15):
 		if current_scene != null and current_scene.region == Campaign.Region.COURT:
@@ -78,7 +78,7 @@ func run() -> void:
 		quit(1)
 		return
 	await view()
-	await stand(level, level.landscape.portal.position.x)
+	await stand(level, level.landscape.portals[0].global_position.x)
 	await tap("hunt_interact")
 	check(not level.completed, "court altar stays sealed while keeper lives")
 
@@ -100,7 +100,7 @@ func run() -> void:
 			break
 		await shoot()
 	check(level.keeper_felled, "keeper can be defeated after seal breaks")
-	await stand(level, level.landscape.portal.position.x)
+	await stand(level, level.landscape.portals[0].global_position.x)
 	await tap("hunt_interact")
 	check(level.completed and level.end_screen.visible and Save.read().state.keeper_felled,
 		"altar shows the ending and persists boss victory")
@@ -139,14 +139,14 @@ func check_court_grounding() -> void:
 	check(tile != null and tile.get_collision_polygons_count(0) > 0,
 		"first raised court platform has tile collision")
 	var landing_y := terrain.map_to_local(landing_cell).y - terrain.tile_set.tile_size.y * 0.5
-	var shrine := level.landscape.shrine
+	var shrine := level.landscape.campfires[0]
 	var brazier: Sprite2D = shrine.get_node("Sprite")
 	var brazier_width := brazier.get_rect().size.x * brazier.scale.x
 	var brazier_base := brazier.get_rect().end.y * brazier.scale.y
 	check(brazier_width <= 86.0 and absf(brazier_base) < 4.0,
 		"court brazier is %.1f px wide and its base sits on the floor" % brazier_width)
 	await frames(24)
-	check(hunter.is_on_floor() and absf(hunter.position.y - shrine.position.y) < 0.25,
+	check(hunter.is_on_floor() and absf(hunter.position.y - shrine.global_position.y) < 0.25,
 		"hunter stands at the floor beside the brazier")
 	await tap("hunt_interact")
 	check(level.camp_menu.visible, "interact still opens the court camp")
@@ -158,7 +158,7 @@ func check_court_grounding() -> void:
 	await frames(33)
 	Input.action_release("hunt_right")
 	await frames(16)
-	check(hunter.is_on_floor() and absf(hunter.position.y - shrine.position.y) < 0.25,
+	check(hunter.is_on_floor() and absf(hunter.position.y - shrine.global_position.y) < 0.25,
 		"hunter walks along the floor without sinking")
 	await stand(level, 640.0)
 	Input.action_press("hunt_right")

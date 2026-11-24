@@ -140,7 +140,7 @@ func enter_region(region: int) -> bool:
 
 
 func camp_reload() -> bool:
-	if not verify(await walk_to(ruins.landscape.shrine.position.x, 28), "returned to the corridor camp with the lantern"):
+	if not verify(await walk_to(ruins.landscape.campfires[0].global_position.x, 28), "returned to the corridor camp with the lantern"):
 		return false
 	await tap("hunt_interact")
 	await frames(10)

@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/stone_gate.tscn" id="base"]
+
+[node name="CorridorExit" instance=ExtResource("base")]
+
+[node name="Sprite" parent="." index="0"]
+position = Vector2(12.18755, -106.29499)
+scale = Vector2(0.41833317, 0.34947324)
+centered = true
+offset = Vector2(0, -139)

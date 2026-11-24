@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/reliquary.tscn" id="base"]
+
+[node name="CorridorReliquary" instance=ExtResource("base")]
+
+[node name="Sprite" parent="." index="0"]
+position = Vector2(43.99996, -4.0000143)
+scale = Vector2(0.12617011, 0.13656928)
+centered = true
+offset = Vector2(0, -78)
