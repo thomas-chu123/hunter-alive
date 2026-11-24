@@ -3,6 +3,7 @@ extends Control
 const CampSave := preload("res://scripts/game/camp_save.gd")
 const Campaign := preload("res://scripts/game/campaign.gd")
 const Preferences := preload("res://scripts/game/game_preferences.gd")
+const Music := preload("res://scripts/music/game_music.gd")
 const GOLD := Color("#f3d8a3")
 const TEXT := Color("#e4eadc")
 
@@ -19,7 +20,7 @@ var font: SystemFont
 
 
 func _ready() -> void:
-	get_node("/root/GameMusic").play_region(-1)
+	get_node("/root/GameMusic").play_region(Music.TITLE)
 	font = SystemFont.new()
 	font.font_names = PackedStringArray(["Noto Sans CJK TC", "Microsoft JhengHei", "sans-serif"])
 

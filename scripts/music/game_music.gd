@@ -1,9 +1,13 @@
 extends Node
 
+const TITLE := 4
+const FINALE := "res://assets/audio/music/the_hunter_finale.ogg"
 const TRACKS := [
-	"res://assets/audio/music/temple.ogg",
-	"res://assets/audio/music/corridor.ogg",
-	"res://assets/audio/music/court.ogg",
+	"res://assets/audio/music/the_hunter_temple.ogg",
+	"res://assets/audio/music/the_hunter_corridor.ogg",
+	FINALE,
+	FINALE,
+	"res://assets/audio/music/the_hunter_title.ogg",
 ]
 const TRACK_VOLUME := -5.0
 const FADE_TIME := 0.95
@@ -25,7 +29,10 @@ func _ready() -> void:
 func play_region(region: int) -> void:
 	if region == current_region:
 		return
+	var previous_region := current_region
 	current_region = region
+	if region >= 0 and previous_region >= 0 and TRACKS[region] == TRACKS[previous_region]:
+		return
 	if DisplayServer.get_name() == "headless" and not OS.has_feature("movie"):
 		return
 	if fade != null:

@@ -137,7 +137,7 @@ func _ready() -> void:
 	var listener := AudioListener2D.new()
 	hunter.add_child(listener)
 	listener.make_current()
-	get_node("/root/GameMusic").play_region(-1 if region == Campaign.Region.VOLCANO else region)
+	get_node("/root/GameMusic").play_region(region)
 	camera = Camera2D.new()
 	camera.limit_left = 0
 	camera.limit_right = 3330

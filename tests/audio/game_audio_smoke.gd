@@ -35,8 +35,10 @@ func run() -> void:
 	change_scene_to_file("res://scenes/title/title.tscn")
 	await scene_changed
 	await frames(82)
-	check(music.current_region == -1 and not music.voices[0].playing and not music.voices[1].playing,
-		"returning to the title fades both music voices out")
+	var title_voice := music.voices[music.active]
+	check(music.current_region == Music.TITLE and title_voice.playing
+		and title_voice.stream.resource_path == Music.TRACKS[Music.TITLE] and not music.voices[1 - music.active].playing,
+		"returning to the title crossfades to its own track")
 	quit(1 if failures else 0)
 
 
