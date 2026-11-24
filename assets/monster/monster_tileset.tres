@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" path="res://assets/monster/copper_cicada/copper_cicada.tscn" id="copper_cicada"]
 [ext_resource type="PackedScene" path="res://assets/monster/dust_hare/dust_hare.tscn" id="dust_hare"]
 [ext_resource type="PackedScene" path="res://assets/monster/key_jackal/key_jackal.tscn" id="key_jackal"]
-[ext_resource type="PackedScene" path="res://assets/monster/lantern_crab/lantern_crab.tscn" id="lantern_crab"]
+[ext_resource type="PackedScene" uid="uid://bssdo46vyorew" path="res://assets/monster/lantern_crab/lantern_crab.tscn" id="lantern_crab"]
 [ext_resource type="PackedScene" path="res://assets/monster/lizard/lizard.tscn" id="lizard"]
 [ext_resource type="PackedScene" path="res://assets/monster/mirror_eel/mirror_eel.tscn" id="mirror_eel"]
 [ext_resource type="PackedScene" path="res://assets/monster/reed_leech/reed_leech.tscn" id="reed_leech"]
