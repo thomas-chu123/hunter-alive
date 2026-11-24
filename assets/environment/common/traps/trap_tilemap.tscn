@@ -1,0 +1,9 @@
+[gd_scene format=4]
+
+[ext_resource type="TileSet" path="res://assets/environment/common/traps/trap_tileset.tres" id="1"]
+
+[node name="Trap" type="TileMapLayer"]
+editor_description = "Paint trap scenes on the 20 px grid. Pair portals with landings on this layer."
+position = Vector2(-10, -10)
+z_index = 1
+tile_set = ExtResource("1")

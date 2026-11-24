@@ -10,6 +10,7 @@ const Armory := preload("res://scripts/game/ruin_armory.gd")
 const HunterAnimation := preload("res://scripts/character/hunter_animation.gd")
 const HunterSprites := preload("res://scripts/character/hunter_sprites.gd")
 const WeaponArt := preload("res://scripts/character/hunter_weapon_art.gd")
+const TrapArt := preload("res://scripts/trap/trap_art.gd")
 const RUN_SPEED := 250.0
 const WALK_SPEED := 115.0
 const CROUCH_SPEED := 64.0
@@ -68,6 +69,7 @@ var crouch_time := 0.0
 var rise_left := 0.0
 var landing_left := 0.0
 var hurt_left := 0.0
+var electric_hit_left := 0.0
 var attack_queued := false
 var attack_with_bow := false
 var attack_with_staff := false
@@ -83,6 +85,7 @@ var jump_grace := 0.0
 
 
 func _ready() -> void:
+	add_to_group("trap_hunter")
 	collision_layer = 0
 	collision_mask = 1
 	var shape := RectangleShape2D.new()
@@ -115,6 +118,7 @@ func _physics_process(delta: float) -> void:
 	landing_left = maxf(landing_left - delta, 0)
 	rise_left = maxf(rise_left - delta, 0)
 	hurt_left = maxf(hurt_left - delta, 0)
+	electric_hit_left = maxf(electric_hit_left - delta, 0)
 	pollen_left = maxf(pollen_left - delta, 0)
 	mud_left = maxf(mud_left - delta, 0)
 	if leech_left > 0.0:
@@ -389,6 +393,7 @@ func respawn(at: Vector2) -> void:
 	landing_left = 0.0
 	rise_left = 0.0
 	hurt_left = 0.0
+	electric_hit_left = 0.0
 	attack_left = 0.0
 	attack_buffer_left = 0.0
 	attack_queued = false
@@ -402,7 +407,20 @@ func respawn(at: Vector2) -> void:
 	wall_holding = false
 
 
+func show_electric_hit() -> void:
+	electric_hit_left = 0.34
+	queue_redraw()
+
+
 func _draw() -> void:
+	_draw_hunter()
+	if electric_hit_left > 0.0:
+		var frame := TrapArt.Frame.ARC if int(electric_hit_left * 30.0) % 2 == 0 else TrapArt.Frame.ARC_ALT
+		TrapArt.paint(self, frame, collider.position, Vector2(49, 65),
+			Color(1, 1, 1, clampf(electric_hit_left * 8.0, 0.0, 1.0)))
+
+
+func _draw_hunter() -> void:
 	if invincible_left > 0 and hurt_left <= 0 and int(invincible_left * 16) % 2 == 0:
 		return
 

@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/trap/trap_tile.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/traps/trap_atlas.png" id="2"]
+
+[sub_resource type="AtlasTexture" id="Atlas_4"]
+atlas = ExtResource("2")
+region = Rect2(4, 132, 120, 120)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Atlas_5"]
+atlas = ExtResource("2")
+region = Rect2(132, 132, 120, 120)
+filter_clip = true
+
+[node name="Lava" type="Node2D"]
+script = ExtResource("1")
+kind = 3
+direction = 1
+cycle_seconds = 4.0
+
+[node name="Preview" type="Node2D" parent="."]
+
+[node name="Frame4" type="Sprite2D" parent="Preview"]
+position = Vector2(0, -6)
+scale = Vector2(0.8166667, 0.2000000)
+texture = SubResource("Atlas_4")
+
+[node name="Frame5" type="Sprite2D" parent="Preview"]
+position = Vector2(0, -42)
+scale = Vector2(0.3583333, 0.6916667)
+texture = SubResource("Atlas_5")

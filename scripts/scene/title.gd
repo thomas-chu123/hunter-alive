@@ -66,6 +66,7 @@ func _ready() -> void:
 	rows.add_child(buttons)
 	new_game = _button(buttons, "新遊戲", _request_new)
 	continue_game = _button(buttons, "繼續", _continue)
+	_button(buttons, "陷阱試煉", _open_trap_course)
 	settings_button = _button(buttons, "設定", _open_settings)
 	_button(buttons, "離開", get_tree().quit)
 	continue_game.disabled = CampSave.read().is_empty()
@@ -148,6 +149,10 @@ func _open_settings() -> void:
 	buttons.hide()
 	settings.show()
 	volume.grab_focus()
+
+
+func _open_trap_course() -> void:
+	get_tree().change_scene_to_file("res://scenes/trap_course/trap_course.tscn")
 
 
 func _close_settings() -> void:

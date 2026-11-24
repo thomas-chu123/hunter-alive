@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/trap/trap_tile.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/traps/trap_atlas.png" id="2"]
+
+[sub_resource type="AtlasTexture" id="Atlas_2"]
+atlas = ExtResource("2")
+region = Rect2(260, 4, 120, 120)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Atlas_6"]
+atlas = ExtResource("2")
+region = Rect2(260, 132, 120, 120)
+filter_clip = true
+
+[node name="LeftFireball" type="Node2D"]
+script = ExtResource("1")
+kind = 4
+direction = 1
+cycle_seconds = 2.8
+
+[node name="Preview" type="Node2D" parent="."]
+
+[node name="Frame2" type="Sprite2D" parent="Preview"]
+position = Vector2(0, 0)
+scale = Vector2(0.4250000, 0.4083333)
+texture = SubResource("Atlas_2")
+
+[node name="Frame6" type="Sprite2D" parent="Preview"]
+position = Vector2(52, 0)
+scale = Vector2(0.3666667, 0.1666667)
+texture = SubResource("Atlas_6")

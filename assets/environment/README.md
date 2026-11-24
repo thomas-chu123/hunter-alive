@@ -8,6 +8,7 @@
 | `flooded_corridor/` | 淹沒的迴廊專用背景 |
 | `common/backdrops/` | 主選單與崩塌神殿共用的背景 |
 | `common/props/` | 營火、斷柱、蕨類、石門與石匣的圖檔、場景及四類物件 TileSet |
+| `common/traps/` | [陷阱 TileSet、TileMap、圖集與編輯方式](common/traps/README.md) |
 | `common/terrain/` | 四個關卡共用的地形 TileSet 與遊戲使用的圖集 |
 | `common/terrain/source/` | 保留供美術編修的石材、踏台原圖與舊版圖集 |
 

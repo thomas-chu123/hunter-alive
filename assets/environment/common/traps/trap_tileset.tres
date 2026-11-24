@@ -1,0 +1,46 @@
+[gd_resource type="TileSet" format=3 uid="uid://c2emmtxep60ij"]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/ceiling_spikes.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/left_wall_spikes.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/right_wall_spikes.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/pendulum.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/lava.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/left_fireball.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/right_exploding_fireball.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/poison.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/boulder.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/portal_a.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/portal_b.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/random_portal.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/random_landing.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/traps/electric.tscn" id="14"]
+
+[sub_resource type="TileSetScenesCollectionSource" id="Collection_Mechanical"]
+resource_name = "Mechanical"
+scenes/1/scene = ExtResource("1")
+scenes/2/scene = ExtResource("2")
+scenes/3/scene = ExtResource("3")
+scenes/4/scene = ExtResource("4")
+scenes/9/scene = ExtResource("9")
+
+[sub_resource type="TileSetScenesCollectionSource" id="Collection_Elemental"]
+resource_name = "Elemental"
+scenes/5/scene = ExtResource("5")
+scenes/6/scene = ExtResource("6")
+scenes/7/scene = ExtResource("7")
+scenes/8/scene = ExtResource("8")
+scenes/14/scene = ExtResource("14")
+
+[sub_resource type="TileSetScenesCollectionSource" id="Collection_Portals"]
+resource_name = "Portals"
+scenes/10/scene = ExtResource("10")
+scenes/11/scene = ExtResource("11")
+scenes/12/scene = ExtResource("12")
+scenes/13/scene = ExtResource("13")
+
+[resource]
+resource_name = "Trap"
+tile_size = Vector2i(20, 20)
+sources/0 = SubResource("Collection_Mechanical")
+sources/1 = SubResource("Collection_Elemental")
+sources/2 = SubResource("Collection_Portals")
