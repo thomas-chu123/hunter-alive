@@ -72,11 +72,11 @@ tile_data = PackedInt32Array(0, 2, 4)
 
 [sub_resource type="TileMapPattern" id="Chandelier"]
 resource_name = "Hanging chandelier"
-tile_data = PackedInt32Array(0, 3, 131072)
+tile_data = PackedInt32Array(0, 262146, 4)
 
 [sub_resource type="TileMapPattern" id="Lantern"]
 resource_name = "Wall lantern"
-tile_data = PackedInt32Array(0, 3, 65536)
+tile_data = PackedInt32Array(0, 524290, 4)
 
 [sub_resource type="TileMapPattern" id="RestraintChair"]
 resource_name = "Dungeon restraint chair"
