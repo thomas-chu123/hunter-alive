@@ -25,6 +25,9 @@ func run() -> void:
 	check_atlases()
 	var room := Node2D.new()
 	root.add_child(room)
+	var ambient := CanvasModulate.new()
+	ambient.color = Color("#535750")
+	room.add_child(ambient)
 	var background := add_layer(room, Terrain)
 	for y in range(2, 14, 3):
 		for x in range(0, 30, 3):
@@ -44,6 +47,11 @@ func run() -> void:
 	]
 	for index in fixture_cells.size():
 		paint(fixtures, fixture_cells[index], 19 + index)
+	await check_interior_lights(background, fixtures, fixture_cells[5])
+	if "--lighting-only" in OS.get_cmdline_user_args():
+		room.free()
+		quit(1 if failures else 0)
+		return
 
 	var solid := add_layer(room, Terrain)
 	for x in range(30):
@@ -114,10 +122,49 @@ func check_atlases() -> void:
 		palette.set_pattern(origin, pattern)
 		var valid: bool = pattern.resource_name == PATTERNS[index] and not palette.get_used_cells().is_empty()
 		for cell in palette.get_used_cells():
-			valid = valid and palette.get_cell_source_id(cell) == (1 if index < 9 else 2)
-			valid = valid and palette.get_cell_tile_data(cell) != null
+			if index == 13 or index == 14:
+				valid = valid and palette.get_cell_source_id(cell) == 3 \
+					and palette.get_cell_alternative_tile(cell) == (2 if index == 13 else 1)
+			else:
+				valid = valid and palette.get_cell_source_id(cell) == (1 if index < 9 else 2) \
+					and palette.get_cell_tile_data(cell) != null
 		check(valid, "%s stamps valid tiles on the Terrain layer" % PATTERNS[index])
 	palette.free()
+
+
+func check_interior_lights(background: TileMapLayer, fixtures: TileMapLayer, lantern_cell: Vector2i) -> void:
+	fixtures.update_internals()
+	var lantern := fixtures.get_node_or_null("WallLantern") as Node2D
+	var chandelier := fixtures.get_node_or_null("Chandelier") as Node2D
+	check(lantern != null and chandelier != null, "the wall lantern and chandelier patterns instantiate scene tiles")
+	if lantern == null or chandelier == null:
+		return
+	check(lantern.position == fixtures.map_to_local(lantern_cell)
+		and background.get_cell_source_id(lantern_cell) == 1, "the live lantern overlays the wall at the same grid cell")
+	for fixture in [lantern, chandelier]:
+		var light := fixture.get_node("Light") as PointLight2D
+		check(light.enabled and light.shadow_enabled and light.color.r > light.color.b
+			and light.texture.get_width() * light.texture_scale >= 340.0,
+			"%s casts warm light across the room with terrain shadows" % fixture.name)
+	var flame := lantern.get_node("Flame") as AnimatedSprite2D
+	var lamp := lantern.get_node("Light") as PointLight2D
+	var start_frame := flame.frame
+	var start_energy := lamp.energy
+	await frames(12)
+	check(flame.is_playing() and flame.frame != start_frame and not is_equal_approx(start_energy, lamp.energy),
+		"the lantern animates its flame and flickers its light")
+	check(chandelier.get_children().filter(func(node: Node) -> bool:
+		return node is AnimatedSprite2D and node.is_playing()).size() == 5,
+		"all five chandelier candles animate")
+	var copy_cell := lantern_cell + Vector2i.RIGHT * 3
+	fixtures.set_cell(copy_cell, fixtures.get_cell_source_id(lantern_cell),
+		fixtures.get_cell_atlas_coords(lantern_cell), fixtures.get_cell_alternative_tile(lantern_cell))
+	fixtures.update_internals()
+	check(fixtures.get_child_count() == 3, "copying the lantern cell adds another flame and light")
+	fixtures.erase_cell(copy_cell)
+	fixtures.update_internals()
+	await process_frame
+	check(fixtures.get_child_count() == 2, "erasing the copied cell removes its entire lamp")
 
 
 func check_climb(hunter: Hunter, foot: Vector2, label: String) -> void:

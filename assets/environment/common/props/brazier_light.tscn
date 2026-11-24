@@ -2,6 +2,8 @@
 
 [ext_resource type="Texture2D" path="res://assets/environment/common/props/iron_brazier.png" id="brazier"]
 [ext_resource type="Texture2D" path="res://assets/environment/common/props/soft_light.tres" id="light"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/lighting/flame.tscn" id="flame"]
+[ext_resource type="Script" path="res://assets/environment/common/props/lighting/fire_light.gd" id="flicker"]
 
 [sub_resource type="AtlasTexture" id="BrazierArt"]
 atlas = ExtResource("brazier")
@@ -16,10 +18,15 @@ scale = Vector2(0.044, 0.044)
 texture = SubResource("BrazierArt")
 offset = Vector2(0, -550.5)
 
+[node name="Flame" parent="." instance=ExtResource("flame")]
+position = Vector2(0, -40)
+scale = Vector2(0.23, 0.30)
+
 [node name="Light" type="PointLight2D" parent="."]
 position = Vector2(0, -35)
 color = Color(1, 0.75, 0.45, 1)
 energy = 0.85
 shadow_enabled = true
 texture = ExtResource("light")
-texture_scale = 1.15
+texture_scale = 1.40
+script = ExtResource("flicker")

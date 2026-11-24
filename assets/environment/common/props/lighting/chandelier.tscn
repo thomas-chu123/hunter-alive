@@ -1,0 +1,50 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/terrain/interior_fixtures.png" id="fixtures"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/lighting/flame.tscn" id="flame"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/soft_light.tres" id="falloff"]
+[ext_resource type="Script" path="res://assets/environment/common/props/lighting/fire_light.gd" id="flicker"]
+
+[sub_resource type="AtlasTexture" id="ChandelierArt"]
+atlas = ExtResource("fixtures")
+region = Rect2(80, 80, 60, 60)
+filter_clip = true
+
+[node name="Chandelier" type="Node2D"]
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(0, 20)
+texture = SubResource("ChandelierArt")
+
+[node name="FlameLeft" parent="." instance=ExtResource("flame")]
+position = Vector2(-23, 23)
+scale = Vector2(0.09, 0.1)
+speed_scale = 0.92
+
+[node name="FlameLeftHigh" parent="." instance=ExtResource("flame")]
+position = Vector2(-13.5, 16)
+scale = Vector2(0.09, 0.1)
+speed_scale = 1.13
+
+[node name="FlameCenter" parent="." instance=ExtResource("flame")]
+position = Vector2(0, 21)
+scale = Vector2(0.09, 0.1)
+
+[node name="FlameRightHigh" parent="." instance=ExtResource("flame")]
+position = Vector2(13.5, 16)
+scale = Vector2(0.09, 0.1)
+speed_scale = 0.86
+
+[node name="FlameRight" parent="." instance=ExtResource("flame")]
+position = Vector2(23, 23)
+scale = Vector2(0.09, 0.1)
+speed_scale = 1.05
+
+[node name="Light" type="PointLight2D" parent="."]
+position = Vector2(0, 17)
+color = Color(1, 0.8, 0.53, 1)
+energy = 1.05
+shadow_enabled = true
+texture = ExtResource("falloff")
+texture_scale = 1.55
+script = ExtResource("flicker")

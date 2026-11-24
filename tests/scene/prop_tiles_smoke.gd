@@ -148,6 +148,10 @@ func check_brazier_art() -> void:
 	check(bounds.size.y > bounds.size.x and is_zero_approx(bounds.end.y)
 		and bounds.has_point(light.position) and light.position.y < bounds.get_center().y,
 		"the narrow brazier stands at the tile origin and the light is in its fire basket")
+	var flame := brazier.get_node("Flame") as AnimatedSprite2D
+	check(flame.autoplay == "burn" and flame.sprite_frames.get_frame_count("burn") == 4
+		and light.texture.get_width() * light.texture_scale >= 350.0,
+		"the standing brazier has four flame frames and a wider point light")
 	brazier.free()
 	campfire.free()
 

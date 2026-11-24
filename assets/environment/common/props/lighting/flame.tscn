@@ -1,0 +1,54 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/lighting/flame.png" id="flame"]
+
+[sub_resource type="CanvasItemMaterial" id="Emissive"]
+light_mode = 1
+
+[sub_resource type="AtlasTexture" id="Flame1"]
+atlas = ExtResource("flame")
+region = Rect2(0, 0, 48, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Flame2"]
+atlas = ExtResource("flame")
+region = Rect2(48, 0, 48, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Flame3"]
+atlas = ExtResource("flame")
+region = Rect2(96, 0, 48, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Flame4"]
+atlas = ExtResource("flame")
+region = Rect2(144, 0, 48, 64)
+filter_clip = true
+
+[sub_resource type="SpriteFrames" id="FlameFrames"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("Flame1")
+}, {
+"duration": 1.0,
+"texture": SubResource("Flame2")
+}, {
+"duration": 1.0,
+"texture": SubResource("Flame3")
+}, {
+"duration": 1.0,
+"texture": SubResource("Flame4")
+}],
+"loop": true,
+"name": &"burn",
+"speed": 9.0
+}]
+
+[node name="Flame" type="AnimatedSprite2D"]
+texture_filter = 2
+material = SubResource("Emissive")
+sprite_frames = SubResource("FlameFrames")
+animation = &"burn"
+autoplay = "burn"
+offset = Vector2(0, -22)

@@ -3,6 +3,8 @@
 [ext_resource type="Texture2D" uid="uid://b6c6rrg5imjea" path="res://assets/environment/common/terrain/terrain_grid.png" id="1_grid"]
 [ext_resource type="Texture2D" uid="uid://beah6kxxk71mh" path="res://assets/environment/common/terrain/interior_surfaces.png" id="2_interior_surfaces"]
 [ext_resource type="Texture2D" uid="uid://brni2wvpkm1b8" path="res://assets/environment/common/terrain/interior_fixtures.png" id="3_interior_fixtures"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/lighting/wall_lantern.tscn" id="4_wall_lantern"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/lighting/chandelier.tscn" id="5_chandelier"]
 
 [sub_resource type="TileMapPattern" id="MossFloor"]
 resource_name = "Moss floor"
@@ -70,11 +72,11 @@ tile_data = PackedInt32Array(0, 2, 4)
 
 [sub_resource type="TileMapPattern" id="Chandelier"]
 resource_name = "Hanging chandelier"
-tile_data = PackedInt32Array(0, 262146, 4)
+tile_data = PackedInt32Array(0, 3, 131072)
 
 [sub_resource type="TileMapPattern" id="Lantern"]
 resource_name = "Wall lantern"
-tile_data = PackedInt32Array(0, 524290, 4)
+tile_data = PackedInt32Array(0, 3, 65536)
 
 [sub_resource type="TileMapPattern" id="RestraintChair"]
 resource_name = "Dungeon restraint chair"
@@ -806,6 +808,11 @@ texture_region_size = Vector2i(20, 20)
 8:8/0 = 0
 8:8/0/texture_origin = Vector2i(0, 20)
 
+[sub_resource type="TileSetScenesCollectionSource" id="InteriorLighting"]
+resource_name = "Interior Lighting"
+scenes/1/scene = ExtResource("4_wall_lantern")
+scenes/2/scene = ExtResource("5_chandelier")
+
 [resource]
 tile_size = Vector2i(20, 20)
 occlusion_layer_0/light_mask = 1
@@ -813,6 +820,7 @@ physics_layer_0/collision_layer = 1
 sources/0 = SubResource("Atlas_ruins")
 sources/1 = SubResource("Atlas_interior_surfaces")
 sources/2 = SubResource("Atlas_interior_fixtures")
+sources/3 = SubResource("InteriorLighting")
 pattern_0 = SubResource("MossFloor")
 pattern_1 = SubResource("SandstoneFloor")
 pattern_2 = SubResource("RootFloor")
