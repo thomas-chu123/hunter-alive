@@ -37,7 +37,7 @@ func run() -> void:
 		and ruins.gear_apply.text == "卸下　E" and ruins.destroy_item.text == "銷毀　D",
 		"hood details show the ranked name, slot, status and shortcuts")
 	var linen_index: int = ruins.gear_ids.find("linen_hood")
-	check(ruins.gear_list.get_item_text(linen_index) == "+1 營火布兜 ✓"
+	check(ruins.gear_list.get_item_text(linen_index) == "E +1 營火布兜"
 		and ruins.gear_list.get_item_tooltip(linen_index) == "+1 營火布兜"
 		and ruins.gear_slot_images["頭部"].tooltip_text == "頭部　+1 營火布兜",
 		"inventory, item tooltip and equipped slot use the same ranked name")

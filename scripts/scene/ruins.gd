@@ -1189,7 +1189,7 @@ func _rank_up() -> void:
 func _salvage_item() -> void:
 	var uid := _selected_camp_item()
 	var entry := _inventory_item(uid)
-	if not camp_menu.visible or entry.is_empty():
+	if not camp_menu.visible or entry.is_empty() or _is_equipped(entry):
 		return
 	var index := inventory.find(entry)
 	var old_armor := armor_equipped.duplicate()
@@ -1221,9 +1221,11 @@ func _selected_camp_item() -> int:
 
 func _show_camp_rank_cost() -> void:
 	var entry := _inventory_item(_selected_camp_item())
-	camp_selected_item.text = "背包沒有裝備" if entry.is_empty() else _entry_name(entry)
-	camp_salvage.disabled = entry.is_empty()
-	camp_salvage.text = "換取 %d 魂" % Progression.salvage_value(int(entry.get("rank", 0)))
+	camp_selected_item.text = "背包沒有裝備" if entry.is_empty() else _equipment_label(entry)
+	var can_salvage := not entry.is_empty() and not _is_equipped(entry)
+	camp_salvage.visible = can_salvage
+	camp_salvage.disabled = not can_salvage
+	camp_salvage.text = "換取 %d 魂" % Progression.salvage_value(int(entry.rank)) if can_salvage else ""
 	if entry.is_empty():
 		camp_rank_up.disabled = true
 		camp_rank_up.text = "背包沒有裝備"
@@ -1249,7 +1251,7 @@ func _update_camp_menu() -> void:
 	camp_rank_items.clear()
 	for entry in inventory:
 		var item_name := _entry_name(entry)
-		camp_rank_items.add_item(item_name, Equipment.ranked_icon(entry.item, int(entry.rank)))
+		camp_rank_items.add_item(_equipment_label(entry), Equipment.ranked_icon(entry.item, int(entry.rank)))
 		var index := camp_rank_items.item_count - 1
 		camp_rank_items.set_item_metadata(index, entry.uid)
 		camp_rank_items.set_item_tooltip(index, item_name)
@@ -1726,10 +1728,7 @@ func _refresh_gear(selected: int) -> void:
 		gear_uids.append(int(entry.uid))
 		var rank := int(entry.rank)
 		var item_name := _entry_name(entry)
-		var text := item_name
-		if _is_equipped(entry):
-			text += " ✓"
-		var item_index := gear_list.add_item(text, Equipment.ranked_icon(entry.item, rank))
+		var item_index := gear_list.add_item(_equipment_label(entry), Equipment.ranked_icon(entry.item, rank))
 		gear_list.set_item_tooltip(item_index, item_name)
 	if gear_uids.is_empty():
 		gear_name.text = "背包沒有裝備"
@@ -1744,6 +1743,11 @@ func _refresh_gear(selected: int) -> void:
 	gear_list.select(index)
 	gear_list.ensure_current_is_visible()
 	_show_gear(index)
+
+
+func _equipment_label(entry: Dictionary) -> String:
+	var item_name := _entry_name(entry)
+	return "E " + item_name if _is_equipped(entry) else item_name
 
 
 func _entry_name(entry: Dictionary) -> String:
