@@ -21,6 +21,17 @@ func bake() -> void:
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	root.add_child(viewport)
 	var weapons: Array = Equipment.STARTING_WEAPONS + ["ember_staff"] + Armory.WEAPONS.keys()
+	var requested := OS.get_cmdline_user_args()
+	var attack_only := requested.has("--attack-only")
+	if attack_only:
+		requested.remove_at(requested.find("--attack-only"))
+	if not requested.is_empty():
+		for weapon in requested:
+			if weapon not in weapons:
+				push_error("Unknown hunter weapon: %s" % weapon)
+				quit(1)
+				return
+		weapons = Array(requested)
 	for weapon: String in weapons:
 		var folder := Sprites.ROOT.path_join(weapon)
 		var result := DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(folder))
@@ -29,8 +40,12 @@ func bake() -> void:
 			quit(1)
 			return
 		for atlas: String in Sprites.MOTION_ATLASES:
+			var has_reaction_attack := Sprites.attack_frames(weapon) == Sprites.MOTION_FRAMES
+			# Rebake the knife's reaction sheet to clear its former four-frame attack.
+			if attack_only and not (atlas == "reaction" and (has_reaction_attack or weapon == "hunter_knife")):
+				continue
 			var actions: Array = Sprites.MOTION_ATLASES[atlas].duplicate()
-			if atlas == "reaction" and Sprites.attack_frames(weapon) == Sprites.MOTION_FRAMES:
+			if atlas == "reaction" and has_reaction_attack:
 				actions.append("attack")
 			await write_sheet(folder, weapon, atlas, actions, false, 1)
 		if Sprites.attack_frames(weapon) == Sprites.MOTION_FRAMES:
@@ -54,13 +69,21 @@ func write_sheet(folder: String, weapon: String, name: String, actions: Array, c
 		var cell := Vector2i(index % Sprites.COLUMNS, floori(float(index) / Sprites.COLUMNS))
 		var action: String = "attack" if attack else actions[cell.y]
 		var frame := index if attack else cell.x
+		var progress := float(frame) / count
 		var canvas := Node2D.new()
 		canvas.scale = Vector2.ONE * Sprites.SCALE
+		if action == "attack" and Art.MELEE_SWINGS.has(weapon):
+			var release := Art.release_point(weapon, false)
+			if frame == floori(release * count):
+				progress = release
+			canvas.skew = Art.melee_lean(progress, release)
+			if crouching:
+				canvas.scale.y *= 0.82
 		canvas.position = Vector2(cell * size) + origin
 		if action == "climb":
 			canvas.position += Vector2(10, -24) * Sprites.SCALE
 			canvas.rotation = -PI * 0.5
-		canvas.draw.connect(draw_pose.bind(canvas, weapon, action, frame, count, crouching, step))
+		canvas.draw.connect(draw_pose.bind(canvas, weapon, action, frame, progress, crouching, step))
 		viewport.add_child(canvas)
 
 	await process_frame
@@ -104,12 +127,9 @@ func straight_alpha(image: Image) -> Image:
 	return Image.create_from_data(image.get_width(), image.get_height(), false, Image.FORMAT_RGBA8, bytes)
 
 
-func draw_pose(canvas: Node2D, weapon: String, action: String, frame: int, count: int, crouching: bool, step: int) -> void:
+func draw_pose(canvas: Node2D, weapon: String, action: String, frame: int, progress: float, crouching: bool, step: int) -> void:
 	if action == "attack":
-		var progress := float(frame) / count
-		if weapon == "hunter_knife":
-			Body.draw_short_blade(canvas, frame, 1.0)
-		elif weapon == "ember_staff":
+		if weapon == "ember_staff":
 			Art.draw_ember_cast(canvas, progress, 1.0, crouching)
 		else:
 			Art.draw_attack(canvas, weapon, progress, 1.0, crouching, step)

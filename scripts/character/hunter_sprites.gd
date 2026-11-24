@@ -10,8 +10,7 @@ const ATTACK_SIZE := Vector2i(560, 352)
 const ATTACK_ORIGIN := Vector2(280, 254)
 const MOTION_FRAMES := COLUMNS
 const DYNAMIC_ATTACK_FRAMES := COLUMNS * ROWS
-# Each motion occupies one row. The starting weapons also fit their attacks
-# in the third row of reaction.png.
+# Each motion occupies one row. The hunter bow attack uses the third row of reaction.png.
 const MOTION_ATLASES := {
 	"locomotion": ["idle", "walk", "run", "retreat"],
 	"traversal": ["jump", "glide", "land", "climb"],
@@ -23,14 +22,14 @@ static var _sheets: Dictionary[String, Texture2D] = {}
 
 
 static func attack_frames(weapon: String) -> int:
-	return MOTION_FRAMES if weapon in ["hunter_knife", "hunter_bow"] else DYNAMIC_ATTACK_FRAMES
+	return MOTION_FRAMES if weapon == "hunter_bow" else DYNAMIC_ATTACK_FRAMES
 
 
 static func attack_action(weapon: String, crouching: bool, step: int) -> String:
 	var action := "attack"
 	if weapon == "fang_dagger" and step > 1:
 		action += "_%d" % step
-	if crouching and weapon not in ["hunter_knife", "hunter_bow", "thorn_bow"]:
+	if crouching and weapon not in ["hunter_bow", "thorn_bow"]:
 		action += "_crouch"
 	return action
 

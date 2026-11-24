@@ -3,12 +3,14 @@ extends SceneTree
 const Armory := preload("res://scripts/game/ruin_armory.gd")
 const Equipment := preload("res://scripts/game/ruin_equipment.gd")
 const Sprites := preload("res://scripts/character/hunter_sprites.gd")
+const Art := preload("res://scripts/character/hunter_weapon_art.gd")
 
 var checked := 0
 var failures := 0
 
 
 func _initialize() -> void:
+	check_melee_pose()
 	var weapons: Array = Equipment.STARTING_WEAPONS + ["ember_staff"] + Armory.WEAPONS.keys()
 	for weapon: String in weapons:
 		var count := Sprites.attack_frames(weapon)
@@ -30,6 +32,28 @@ func _initialize() -> void:
 		print("%s sprite set checked" % weapon)
 	print("%d sheets checked, %d failures" % [checked, failures])
 	quit(1 if failures else 0)
+
+
+func check_melee_pose() -> void:
+	for weapon: String in Art.MELEE_SWINGS:
+		var release := Art.release_point(weapon, false)
+		var ready_angle: float = Art.WEAPONS[weapon][3]
+		var strike_angle: float = Art.MELEE_SWINGS[weapon][0]
+		var ready := Art.melee_pose(0.0, release, ready_angle, strike_angle)
+		var raised := Art.melee_pose(release * 0.50, release, ready_angle, strike_angle)
+		var strike := Art.melee_pose(release, release, ready_angle, strike_angle)
+		var recovered := Art.melee_pose(1.0, release, ready_angle, strike_angle)
+		var elbow: Vector2 = raised[0]
+		var grip: Vector2 = raised[1]
+		if grip.y >= 20.0 or grip.y >= elbow.y or elbow.x >= Art.RIGHT_SHOULDER.x:
+			fail("%s does not wind up with the right elbow bent and the grip overhead" % weapon)
+		elif strike[1].x <= Art.RIGHT_SHOULDER.x or not is_equal_approx(strike[2], strike_angle):
+			fail("%s does not swing the grip forward at release" % weapon)
+		elif not recovered[0].is_equal_approx(ready[0]) or not recovered[1].is_equal_approx(ready[1]) \
+				or not is_equal_approx(recovered[2], ready[2]):
+			fail("%s does not return the grip to its ready position" % weapon)
+		else:
+			print("PASS %s right-hand windup, release and recovery" % weapon)
 
 
 func check_sheet(weapon: String, atlas: String, cell_size: Vector2i, actions: Array, frames: int) -> void:

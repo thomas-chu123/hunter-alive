@@ -33,12 +33,6 @@ const SCALE := 0.38
 const BOW_RELEASE_FRAME := 3
 # Pixel position of the grip on the release frame, measured from its left edge.
 const BOW_GRIP := Vector2(290, 61)
-# Outline of the thrust frame with the painted trail outside it. Short blades draw their own trail.
-const BLADE_POSE := [
-	Vector2(0, 0), Vector2(337, 0), Vector2(337, 57), Vector2(372, 61),
-	Vector2(378, 67), Vector2(361, 74), Vector2(338, 79), Vector2(285, 83),
-	Vector2(260, 84), Vector2(260, 109), Vector2(270, 123), Vector2(304, 187), Vector2(0, 187),
-]
 # Each stride uses the original body frame with a cut around the knife blade.
 const STRIDE_GRIPS := {
 	"walk": [Vector2(262, 98), Vector2(257, 96), Vector2(267, 102), Vector2(271, 93)],
@@ -78,14 +72,6 @@ static func draw_frame(canvas: Node2D, action: String, frame: int, facing: float
 	canvas.draw_set_transform(Vector2(0, bob), 0, Vector2(facing, 1))
 	canvas.draw_texture_rect_region(texture, Rect2(-size.x * 0.5, -size.y, size.x, size.y), source)
 	canvas.draw_set_transform(Vector2.ZERO)
-
-
-static func draw_short_blade(canvas: Node2D, frame: int, facing: float) -> void:
-	if frame == 0 or frame == FRAME_COUNT - 1:
-		draw_frame(canvas, "knife_attack", frame, facing)
-		return
-	var texture: Texture2D = FRAMES["knife_attack"]
-	_draw_body_outline(canvas, texture, 2, facing, BLADE_POSE)
 
 
 static func draw_ember_stride(canvas: Node2D, action: String, frame: int, facing: float) -> void:

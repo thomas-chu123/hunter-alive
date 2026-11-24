@@ -8,6 +8,7 @@ const CELL := 443.0
 # Grip and tip in the inventory illustration's 443-pixel reference space,
 # followed by the held length from grip to tip and the resting angle.
 const WEAPONS := {
+	"hunter_knife": [Vector2(138, 309), Vector2(365, 63), 18.0, 1.02],
 	"hunter_bow": [Vector2(195, 196), Vector2(380, 58), 25.0, -1.47],
 	"root_blade": [Vector2(108, 328), Vector2(402, 33), 40.0, -0.75],
 	"fang_dagger": [Vector2(300, 137), Vector2(120, 387), 20.0, 1.02],
@@ -26,6 +27,27 @@ const BOW_BOTTOM := Vector2(166, 383)
 const HUNTER_BOW_STRING_AXIS := Vector2(287, -315)
 const DEFAULT_RELEASE := 0.26
 const MELEE_GROUND := 175.0
+# Right arm cut from the bent-elbow windup frame. The artwork is facing right.
+const RIGHT_SHOULDER := Vector2(229, 71)
+const ARM_REST := [Vector2(213, 94), Vector2(216, 112)]
+const ARM_RAISED := [Vector2(194, 46), Vector2(200, 12)]
+const ARM_FORWARD := [Vector2(265, 74), Vector2(306, 79)]
+const ARM_FOLLOW := [Vector2(263, 92), Vector2(287, 108)]
+const SLEEVE := [Vector2(199, 60), Vector2(194, 74), Vector2(179, 74), Vector2(151, 69),
+	Vector2(152, 56), Vector2(165, 55), Vector2(175, 57), Vector2(185, 56)]
+const BRACER := [Vector2(150, 64), Vector2(152, 44), Vector2(159, 39), Vector2(171, 45),
+	Vector2(167, 52), Vector2(165, 63), Vector2(160, 68)]
+const FIST := [Vector2(156, 44), Vector2(154, 39), Vector2(157, 35), Vector2(161, 33),
+	Vector2(169, 32), Vector2(173, 38), Vector2(173, 43), Vector2(168, 47)]
+const MELEE_SWINGS := {
+	"hunter_knife": [0.24, Color("#f3dca3")],
+	"fang_dagger": [0.46, Color("#deb67c")],
+	"root_blade": [-0.19, Color("#cfaa70")],
+	"sluice_spear": [-0.04, Color("#b3dfd8")],
+	"tide_hammer": [0.84, Color("#ecc791")],
+	"gate_halberd": [0.09, Color("#f2d396")],
+}
+
 # Grip pixels and knife outlines in the original movement frames.
 const MOTION_GRIPS := {
 	"jump": [Vector2(266, 132), Vector2(275, 85), Vector2(275, 73), Vector2(276, 88)],
@@ -145,46 +167,22 @@ static func draw_attack(canvas: Node2D, weapon: String, progress: float, facing:
 	if weapon == "thorn_bow":
 		_draw_bow(canvas, 0 if progress < 0.19 else (2 if progress < release_point(weapon, true) else 3), facing)
 		return
+	if MELEE_SWINGS.has(weapon):
+		_draw_melee_swing(canvas, weapon, progress, facing, step)
+		return
+
 	var release := release_point(weapon, false)
 	var follow := progress - release
 	var recovery := smoothstep(0.13, 1.0 - release, follow)
-	var angle: float = WEAPONS[weapon][3]
-	var pose := "brace"
-	var tint := Color.TRANSPARENT
-	match weapon:
-		"sluice_spear":
-			pose = "raise" if follow < 0.0 else ("thrust" if follow < 0.24 else "brace")
-			angle = _forward_windup(progress / release, -0.30, -0.53, -0.04) if follow < 0.0 else lerpf(-0.04, -0.30, recovery)
-			tint = Color("#b3dfd8")
-		"tide_hammer":
-			pose = "raise" if follow < 0.0 else ("thrust" if follow < 0.16 else "brace")
-			angle = _forward_windup(progress / release, -1.14, -1.54, 0.84) if follow < 0.0 else lerpf(0.84, -1.14, recovery)
-			tint = Color("#ecc791")
-		"gate_halberd":
-			pose = "raise" if follow < -0.06 else ("thrust" if follow < 0.18 else "brace")
-			angle = _forward_windup(progress / release, -1.01, -1.38, 0.09) if follow < 0.0 else lerpf(0.09, -1.01, recovery)
-			tint = Color("#f2d396")
-		"root_blade":
-			pose = "raise" if follow < -0.04 else ("thrust" if follow < 0.17 else "brace")
-			angle = _forward_windup(progress / release, -0.75, -1.36, -0.19) if follow < 0.0 else lerpf(-0.19, -0.75, recovery)
-			tint = Color("#cfaa70")
-		"fang_dagger":
-			pose = "thrust" if follow >= 0.0 and follow < 0.19 else "brace"
-			var strike_angle: float = [0.46, -0.59, 0.0][clampi(step - 1, 0, 2)]
-			angle = lerpf(1.6, strike_angle, smoothstep(0.0, release, progress)) if follow < 0.0 else lerpf(strike_angle, 1.35, recovery)
-		"scribe_staff":
-			pose = "raise" if progress > 0.16 and follow < 0.0 else ("thrust" if follow >= 0.0 and follow < 0.2 else "brace")
-			angle = _forward_windup(progress / release, -1.03, -1.47, -0.18) if follow < 0.0 else lerpf(-0.18, -1.03, recovery)
+	var pose := "raise" if progress > 0.16 and follow < 0.0 else ("thrust" if follow >= 0.0 and follow < 0.2 else "brace")
+	var angle := _forward_windup(progress / release, -1.03, -1.47, -0.18) if follow < 0.0 else lerpf(-0.18, -1.03, recovery)
 	var bob := 8.0 if crouching else 0.0
 	_draw_pose(canvas, weapon, pose, angle, facing, bob)
-	if weapon == "scribe_staff":
-		var tip := _tip(pose, weapon, angle, facing, bob)
-		var charge := sin(progress * PI)
-		canvas.draw_circle(tip, 4.0 + charge * 9.0, Color(0.36, 0.78, 1.0, charge * 0.23), true, -1, true)
-		canvas.draw_arc(tip, 5.0 + charge * 7.0, progress * TAU, progress * TAU + PI * 1.45, 16,
-			Color(0.60, 0.88, 1.0, charge * 0.75), 1.0, true)
-	elif tint.a > 0 and follow >= 0.0 and follow < 0.16:
-		_draw_strike_trace(canvas, weapon, _tip(pose, weapon, angle, 1.0, bob), facing, tint, follow / 0.16)
+	var tip := _tip(pose, weapon, angle, facing, bob)
+	var charge := sin(progress * PI)
+	canvas.draw_circle(tip, 4.0 + charge * 9.0, Color(0.36, 0.78, 1.0, charge * 0.23), true, -1, true)
+	canvas.draw_arc(tip, 5.0 + charge * 7.0, progress * TAU, progress * TAU + PI * 1.45, 16,
+		Color(0.60, 0.88, 1.0, charge * 0.75), 1.0, true)
 
 
 static func _forward_windup(phase: float, ready: float, raised: float, strike: float) -> float:
@@ -192,12 +190,80 @@ static func _forward_windup(phase: float, ready: float, raised: float, strike: f
 	return lerpf(lift, strike, smoothstep(0.60, 1.0, phase))
 
 
+static func _draw_melee_swing(canvas: Node2D, weapon: String, progress: float, facing: float, step: int) -> void:
+	var release := release_point(weapon, false)
+	var angle: float = MELEE_SWINGS[weapon][0]
+	if weapon == "fang_dagger":
+		angle = [angle, -0.59, 0.0][clampi(step - 1, 0, 2)]
+	var pose := melee_pose(progress, release, float(WEAPONS[weapon][3]), angle)
+	var elbow := _local(pose[0], MELEE_GROUND)
+	var grip := _local(pose[1], MELEE_GROUND)
+	var weapon_angle: float = pose[2]
+	var shoulder := _local(RIGHT_SHOULDER, MELEE_GROUND)
+	_draw_body(canvas, "swing", facing, 0.0)
+	_draw_weapon(canvas, weapon, grip, weapon_angle, facing)
+	_draw_arm_piece(canvas, SLEEVE, Vector2(190, 65), Vector2(157, 63), shoulder, elbow, facing)
+	_draw_arm_piece(canvas, BRACER, Vector2(157, 63), Vector2(166, 41), elbow, grip, facing)
+	_draw_arm_piece(canvas, FIST, Vector2(166, 41), Vector2(170, 34), grip,
+		grip + Vector2.from_angle(weapon_angle) * 3.1, facing)
+
+	var follow := progress - release
+	if follow >= 0.0 and follow < 0.16:
+		var tip := grip + Vector2.from_angle(weapon_angle) * float(WEAPONS[weapon][2])
+		_draw_strike_trace(canvas, weapon, tip, facing, MELEE_SWINGS[weapon][1], follow / 0.16)
+
+
+static func melee_pose(progress: float, release: float, ready_angle: float, strike_angle: float) -> Array:
+	var phase := progress / release
+	var lift := smoothstep(0.0, 0.45, phase)
+	var swing := smoothstep(0.56, 1.0, phase)
+	var follow := smoothstep(release, release + 0.19, progress)
+	var recover := smoothstep(release + 0.19, 1.0, progress)
+	var elbow := _arm_joint(0, lift, swing, follow, recover)
+	var grip := _arm_joint(1, lift, swing, follow, recover)
+	var weapon_lift := smoothstep(0.0, 0.30, phase)
+	var weapon_swing := smoothstep(0.71, 1.0, phase)
+	var angle := lerpf(lerpf(ready_angle, -2.52, weapon_lift), strike_angle, weapon_swing)
+	angle = lerpf(lerpf(angle, strike_angle + 0.50, follow), ready_angle, recover)
+	return [elbow, grip, angle]
+
+
+static func melee_lean(progress: float, release: float) -> float:
+	var phase := progress / release
+	var pullback := 0.11 * smoothstep(0.0, 0.45, phase)
+	var follow := lerpf(-pullback, 0.14, smoothstep(0.56, 1.0, phase))
+	return follow * (1.0 - smoothstep(release, 1.0, progress))
+
+
+static func _arm_joint(joint: int, lift: float, swing: float, follow: float, recover: float) -> Vector2:
+	var rest: Vector2 = ARM_REST[joint]
+	var raised: Vector2 = ARM_RAISED[joint]
+	var point := rest.lerp(raised, lift).lerp(ARM_FORWARD[joint], swing)
+	return point.lerp(ARM_FOLLOW[joint], follow).lerp(rest, recover)
+
+
+static func _draw_arm_piece(canvas: Node2D, outline: Array, source_start: Vector2, source_end: Vector2,
+		start: Vector2, end: Vector2, facing: float) -> void:
+	var texture: Texture2D = HunterAnimation.FRAMES["knife_attack"]
+	var source_axis := source_end - source_start
+	var target_axis := end - start
+	var points := PackedVector2Array()
+	var uvs := PackedVector2Array()
+	for point: Vector2 in outline:
+		var offset := (point - source_start).rotated(-source_axis.angle())
+		offset.x *= target_axis.length() / source_axis.length()
+		offset.y *= HunterAnimation.SCALE
+		points.append((start + offset.rotated(target_axis.angle())) * Vector2(facing, 1.0))
+		uvs.append(point / texture.get_size())
+	canvas.draw_polygon(points, PackedColorArray([Color.WHITE]), uvs, texture)
+
+
 static func draw_portrait(canvas: Node2D, weapon: String) -> void:
 	if weapon in ["sluice_spear", "gate_halberd"]:
 		_draw_idle_weapon(canvas, weapon, -1.12, 1.0, 0.0)
 	elif weapon == "tide_hammer":
 		_draw_pose(canvas, weapon, "idle", WEAPONS[weapon][3], 1.0, 0.0)
-	elif WEAPONS.has(weapon):
+	elif WEAPONS.has(weapon) and weapon != "hunter_knife":
 		draw_held(canvas, weapon, "idle", 0, 1.0)
 	elif weapon == "ember_staff":
 		HunterAnimation.draw_ember_pose(canvas, 1.0, 0.0)
@@ -348,7 +414,7 @@ static func _draw_body(canvas: Node2D, pose: String, facing: float, bob: float) 
 			clean_bodies[pose] = _make_body(pose)
 		texture = clean_bodies[pose]
 	var size := texture.get_size() * HunterAnimation.SCALE
-	var ground := MELEE_GROUND * HunterAnimation.SCALE if pose in ["raise", "thrust"] else size.y
+	var ground := MELEE_GROUND * HunterAnimation.SCALE if pose in ["raise", "thrust", "swing"] else size.y
 	canvas.draw_set_transform(Vector2(0, bob), 0.0, Vector2(facing, 1.0))
 	canvas.draw_texture_rect(texture, Rect2(-size.x * 0.5, -ground, size.x, size.y), false)
 	canvas.draw_set_transform(Vector2.ZERO)
@@ -369,7 +435,7 @@ static func _make_body(pose: String) -> ImageTexture:
 	match pose:
 		"idle": action = "idle"
 		"brace": action = "crouch"
-		"thrust": frame = 2
+		"thrust", "swing": frame = 2
 		"bow_0", "bow_2", "bow_3":
 			action = "bow_attack"
 			frame = int(pose.get_slice("_", 1))
@@ -379,6 +445,11 @@ static func _make_body(pose: String) -> ImageTexture:
 	match pose:
 		"idle":
 			_mask(image, [Vector2(211, 116), Vector2(219, 116), Vector2(233, 137), Vector2(220, 139), Vector2(210, 123)], Vector2i(15, -8))
+		"swing":
+			# Clear the far-arm thrust and the original slash trail from the body.
+			_mask(image, [Vector2(253, 55), Vector2(CELL, 55), Vector2(CELL, 187), Vector2(288, 187),
+				Vector2(286, 112), Vector2(255, 103), Vector2(244, 90), Vector2(245, 80), Vector2(249, 70)])
+			image.fill_rect(Rect2i(0, int(MELEE_GROUND + 1), int(CELL), 11), Color.TRANSPARENT)
 		"thrust":
 			_mask(image, [Vector2(324, 0), Vector2(CELL, 0), Vector2(CELL, 124), Vector2(274, 124),
 				Vector2(267, 119), Vector2(266, 109), Vector2(260, 102), Vector2(260, 77), Vector2(325, 75)])
