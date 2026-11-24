@@ -3,6 +3,7 @@ extends CharacterBody2D
 signal felled(monster: Node2D)
 signal disarmed(monster: Node2D)
 signal launched(origin: Vector2, direction: float, attack: Dictionary)
+signal phase_changed
 
 const Bestiary := preload("res://scripts/character/ruin_bestiary.gd")
 const Art := preload("res://scripts/character/ruin_sprite_art.gd")
@@ -20,6 +21,7 @@ var target: CharacterBody2D
 var home := Vector2.ZERO
 var health := 0
 var max_health := 0
+var boss_scale := 1.0
 var level := 1
 var soul_reward: Array
 var attack_kind := ""
@@ -112,17 +114,30 @@ func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
 	armed = combat.get("starts_armed", false)
 
 
+func promote_to_boss(size_multiplier: float, level_bonus: int, health_multiplier: float) -> void:
+	boss_scale = size_multiplier
+	level += level_bonus
+	max_health = ceili(max_health * health_multiplier)
+	health = max_health
+	# Preserve the shield transition at the same fraction of the expanded health pool.
+	var phase: Dictionary = combat.get("phase", {})
+	if phase.has("hp"):
+		combat = combat.duplicate(true)
+		combat.phase.hp = ceili(float(phase.hp) * health_multiplier)
+
+
 func _ready() -> void:
 	collision_layer = 0
 	collision_mask = 1
 	var shape := RectangleShape2D.new()
 	# Keep the movement collider near the feet; combat uses the full sprite hitbox.
-	shape.size = Vector2(float(profile.collider_width), float(profile.collider_height))
+	shape.size = Vector2(float(profile.collider_width), float(profile.collider_height)) * boss_scale
 	var feet := CollisionShape2D.new()
 	feet.shape = shape
 	feet.position.y = -shape.size.y / 2.0
 	add_child(feet)
 	actor_art = Node2D.new()
+	actor_art.scale = Vector2.ONE * boss_scale
 	actor_art.show_behind_parent = true
 	actor_art.draw.connect(_draw_actor)
 	add_child(actor_art)
@@ -441,9 +456,12 @@ func _terrain_ray(from: Vector2, to: Vector2) -> Dictionary:
 
 
 func _attack_value(key: String) -> Variant:
+	var value: Variant = attack[key]
 	if not armed and attack.has("unarmed"):
-		return attack.unarmed.get(key, attack[key])
-	return attack[key]
+		value = attack.unarmed.get(key, value)
+	if key == "trigger_range" or key == "extent":
+		return float(value) * boss_scale
+	return value
 
 
 func _begin_windup(duration: float = -1.0) -> void:
@@ -532,7 +550,7 @@ func _attack_area() -> Rect2:
 		_:
 			if impact_index == 2:
 				extent += float(attack.get("second_hit_extent_bonus", 0.0))
-			var height := minf(102, float(body_hitbox().size.y) + 5)
+			var height := minf(102 * boss_scale, float(body_hitbox().size.y) + 5)
 			var x := position.x + (12.0 if facing > 0 else -extent)
 			return Rect2(x, position.y - height, extent - 12.0, height + 4.0)
 
@@ -625,12 +643,13 @@ func apply_equipment_push(direction: float, force: float) -> void:
 
 
 func body_hitbox() -> Rect2:
-	return Rect2(position - Vector2(body_size.x / 2.0, body_size.y), body_size)
+	var size := body_size * boss_scale
+	return Rect2(position - Vector2(size.x / 2.0, size.y), size)
 
 
 func arrow_hitbox(arrow_y: float) -> Rect2:
 	var upper: Dictionary = combat.get("arrow_upper_body", {})
-	if not upper.is_empty() and arrow_y < position.y - float(upper.above):
+	if not upper.is_empty() and arrow_y < position.y - float(upper.above) * boss_scale:
 		return _configured_hitbox(upper)
 	return body_hitbox()
 
@@ -641,7 +660,8 @@ func weapon_hitbox() -> Rect2:
 
 func _configured_hitbox(config: Dictionary) -> Rect2:
 	var bounds := Bestiary.rectangle(config.rect)
-	bounds.position += position + Vector2(facing * float(config.facing_offset), 0.0)
+	bounds.position = position + (bounds.position + Vector2(facing * float(config.facing_offset), 0.0)) * boss_scale
+	bounds.size *= boss_scale
 	return bounds
 
 
@@ -695,6 +715,7 @@ func receive_hit(damage: int, weapon_hit: bool, projectile: bool = false, source
 			_start_recovery(float(phase.recovery))
 		else:
 			_begin_windup(float(phase.windup))
+		phase_changed.emit()
 	elif windup > 0 and _interrupts_windup(projectile, source_direction):
 		_start_recovery(float(combat.get("windup_interrupt_recovery", attack.recovery)))
 	elif not projectile and state not in [State.STRIKE, State.STAGGER] and (
@@ -803,10 +824,10 @@ func _draw() -> void:
 	if armed and appearance.has("shield_aura"):
 		var aura: Dictionary = appearance.shield_aura
 		var color: Array = aura.color
-		draw_arc(Bestiary.vector(aura.center), float(aura.radius), 0, TAU, 48,
+		draw_arc(Bestiary.vector(aura.center) * boss_scale, float(aura.radius) * boss_scale, 0, TAU, 48,
 			Color(color[0], color[1], color[2], color[3]), 3, true)
 	_draw_attack_effect(size)
-	if absf(target.position.x - position.x) < 310.0 or health < max_health:
+	if boss_scale == 1.0 and (absf(target.position.x - position.x) < 310.0 or health < max_health):
 		var caption := "Lv.%d  %d/%d" % [level, health, max_health]
 		var typeface := ThemeDB.fallback_font
 		var caption_width := typeface.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
@@ -858,7 +879,7 @@ func _draw_attack_effect(size: Vector2) -> void:
 	var charge := 1.0 - windup / windup_duration if windup > 0.0 else 1.0
 	if mode == "ground" and ground_mark_valid and (windup > 0 or strike > 0):
 		var released := strike > 0.0 and impact_index > 0
-		Effects.ground(self, target_mark - position, float(attack.extent), element,
+		Effects.ground(self, target_mark - position, float(_attack_value("extent")), element,
 			released, _release_vfx_progress(progress) if released else charge,
 			sprites.get("ground_effect"), appearance.get("ground_effect", {}), is_heavy)
 	elif windup > 0.0 or (strike > 0.0 and _between_double_hits(progress)):

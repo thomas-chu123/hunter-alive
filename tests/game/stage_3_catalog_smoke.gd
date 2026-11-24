@@ -13,7 +13,7 @@ func _initialize() -> void:
 
 
 func run() -> void:
-	var state: Dictionary = {"player_level": 10}
+	var state: Dictionary = {"player_level": 10, "stage": 0}
 	var ordinary := {}
 	for region in range(3):
 		state["region"] = region

@@ -15,6 +15,9 @@ const Progression := preload("res://scripts/game/ruin_progression.gd")
 const Armory := preload("res://scripts/game/ruin_armory.gd")
 const Campaign := preload("res://scripts/game/campaign.gd")
 const START := Vector2(950, 526)
+const STAGE_WIDTH := 1840
+const BOSS_SIZES := [1.9, 2.4, 1.75, 2.15]
+const BOSS_HEALTH := [3.0, 8.0, 4.0, 9.0]
 const DROP_COLORS := {
 	"material": Color("#eac18c"), "lizard": Color("#a4f2d0"),
 	"spider": Color("#ed9e96"), "blade": Color("#ffda84"), "soul_currency": Color("#8de7fb"),
@@ -53,8 +56,14 @@ var armor_equipped: Dictionary = {}
 var preferred_weapons: Dictionary = {}
 var next_item_uid := 1
 @export_enum("Temple", "Flooded Corridor", "Buried Court", "Volcanic Caldera") var region := 0
+@export_range(0, 5) var stage := 0
 
 var guardian_felled := false
+var boss: Monster
+var boss_felled := false
+var boss_panel: PanelContainer
+var boss_health: ProgressBar
+var boss_caption: Label
 var unclaimed_blade_x := -1.0
 var lantern_found := false
 var keeper_felled := false
@@ -139,13 +148,12 @@ func _ready() -> void:
 	var listener := AudioListener2D.new()
 	hunter.add_child(listener)
 	listener.make_current()
-	get_node("/root/GameMusic").play_region(region)
 	camera = Camera2D.new()
 	camera.limit_left = 0
-	camera.limit_right = 3330
-	camera.limit_top = -10
+	camera.limit_right = STAGE_WIDTH if stage > 0 else 3330
+	camera.limit_top = -360 if stage > 0 else -10
 	camera.limit_bottom = 662
-	camera.position.y = -204
+	camera.position.y = -155 if stage > 0 else -204
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = 7.0
 	hunter.add_child(camera)
@@ -162,7 +170,10 @@ func _ready() -> void:
 		get_tree().remove_meta(CampSave.RESTORE_META)
 	_sync_region_gate()
 	_spawn_enemies()
+	_play_level_music()
 	_build_hud()
+	if stage > 0:
+		return
 	match region:
 		Campaign.Region.TEMPLE:
 			_notice("前世的記憶停在墜落那一刻。神殿深處也許有回家的線索。", 5.0)
@@ -193,7 +204,7 @@ func _physics_process(delta: float) -> void:
 	if hunter.position.y > 790:
 		_on_hunter_defeated()
 		return
-	hunter.shallow_water = region == Campaign.Region.CORRIDOR and hunter.position.y > 522.0 and hunter.position.x > 1580 and hunter.position.x < 2220
+	hunter.shallow_water = stage == 0 and region == Campaign.Region.CORRIDOR and hunter.position.y > 522.0 and hunter.position.x > 1580 and hunter.position.x < 2220
 	_update_arrows(delta)
 	_update_glyphs(delta)
 	_collect_drops()
@@ -230,7 +241,7 @@ func _input(event: InputEvent) -> void:
 	if completed and event.is_action_pressed("hunt_interact"):
 		# A scene change immediately detaches this node from its viewport.
 		get_viewport().set_input_as_handled()
-		if region == Campaign.Region.COURT:
+		if stage > 0 or region == Campaign.Region.COURT:
 			get_tree().change_scene_to_file(Campaign.TITLE_SCENE)
 		else:
 			_queue_region(region + 1)
@@ -238,6 +249,9 @@ func _input(event: InputEvent) -> void:
 
 func _spawn_enemies() -> void:
 	var monster_layer: TileMapLayer = $Landscape/Monster
+	monster_layer.hide()
+	if stage == Campaign.BOSS_STAGE and boss_felled:
+		return
 	# Scene tiles are normally instantiated at the end of the frame.
 	monster_layer.update_internals()
 	for marker in monster_layer.get_children(true):
@@ -246,11 +260,10 @@ func _spawn_enemies() -> void:
 			continue
 		var loot: Dictionary = Bestiary.loot.monsters.get(species, {})
 		var defeat_flag: String = loot.get("defeat_flag", "")
-		if not defeat_flag.is_empty() and bool(get(defeat_flag)):
+		if stage == 0 and not defeat_flag.is_empty() and bool(get(defeat_flag)):
 			continue
 		var spawn := to_local(marker.global_position)
 		_add_monster(species, spawn.x, spawn.y)
-	monster_layer.hide()
 
 
 func _add_monster(species: String, x: float, y: float = Landscape.FLOOR_Y) -> void:
@@ -260,6 +273,10 @@ func _add_monster(species: String, x: float, y: float = Landscape.FLOOR_Y) -> vo
 	var unarmed_if: String = combat.get("unarmed_if", "")
 	if not unarmed_if.is_empty() and bool(get(unarmed_if)):
 		monster.armed = false
+	if stage == Campaign.BOSS_STAGE:
+		monster.promote_to_boss(BOSS_SIZES[region], 5 + region * 2, BOSS_HEALTH[region])
+		boss = monster
+		boss.phase_changed.connect(_play_level_music)
 	monster.felled.connect(_on_monster_felled)
 	monster.disarmed.connect(_on_monster_disarmed)
 	monster.launched.connect(_launch_enemy_projectile)
@@ -451,19 +468,26 @@ func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector
 
 func _on_monster_felled(monster: Monster) -> void:
 	enemies.erase(monster)
+	var defeated_boss := monster == boss
+	if defeated_boss:
+		boss_felled = true
+		boss = null
+		_sync_region_gate()
+		_play_level_music()
 	var x := monster.position.x
+	var y := monster.position.y
 	var rules: Dictionary = Bestiary.loot.monsters.get(monster.species, {})
 	for rule in rules.get("before_defeat", []):
-		_apply_drop_rule(rule, x)
+		_apply_drop_rule(rule, x, 1.0, y)
 	var reward := loot_rng.randi_range(int(monster.soul_reward[0]), int(monster.soul_reward[1]))
 	var soul_currency: Dictionary = Bestiary.loot.soul_currency
-	_drop(soul_currency.item, x + float(soul_currency.offset), reward)
+	_drop(soul_currency.item, x + float(soul_currency.offset), reward, 1, false, y)
 	var rank := Progression.drop_rank(loot_rng.randf())
 	if rank > 0:
 		var item := loot_catalog[loot_rng.randi_range(0, loot_catalog.size() - 1)]
-		_drop(item, x + float(Bestiary.loot.random_equipment.offset), 1, rank, true)
+		_drop(item, x + float(Bestiary.loot.random_equipment.offset), 1, rank, true, y)
 	for rule in rules.get("defeat", []):
-		_apply_drop_rule(rule, x)
+		_apply_drop_rule(rule, x, 1.0, y)
 	var flag: String = rules.get("defeat_flag", "")
 	if not flag.is_empty():
 		set(flag, true)
@@ -472,13 +496,15 @@ func _on_monster_felled(monster: Monster) -> void:
 	if materials_override != null:
 		var material_rule: Dictionary = Bestiary.loot.material_default.duplicate()
 		material_rule.merge(materials_override, true)
-		_apply_drop_rule(material_rule, x)
+		_apply_drop_rule(material_rule, x, 1.0, y)
 	var notice: String = rules.get("defeat_notice", "")
 	if not notice.is_empty():
 		_notice(notice, float(rules.get("defeat_notice_seconds", 4.0)))
+	if defeated_boss:
+		_notice("首領已倒下，出口開啟。", 4.0)
 
 
-func _apply_drop_rule(rule: Dictionary, x: float, facing: float = 1.0) -> bool:
+func _apply_drop_rule(rule: Dictionary, x: float, facing: float = 1.0, source_y := NAN) -> bool:
 	var chance: float = rule.get("chance", 1.0)
 	if chance < 1.0 and rng.randf() >= chance:
 		return false
@@ -494,22 +520,22 @@ func _apply_drop_rule(rule: Dictionary, x: float, facing: float = 1.0) -> bool:
 			if collected_souls.has(item) or (rule.get("check_pending", false) and _has_drop(item)):
 				return false
 		"lantern":
-			return _drop_corridor_lantern(at)
+			return _drop_corridor_lantern(at, source_y)
 		"guardian_blade":
 			if hunter.stolen_blade or _has_drop(item):
 				return false
 			unclaimed_blade_x = at
-	_drop(item, at, int(rule.get("amount", 1)), int(rule.get("rank", 1)))
+	_drop(item, at, int(rule.get("amount", 1)), int(rule.get("rank", 1)), false, source_y)
 	return true
 
 
-func _drop_corridor_lantern(x: float) -> bool:
+func _drop_corridor_lantern(x: float, source_y := NAN) -> bool:
 	var rules: Dictionary = Bestiary.loot.lantern
 	if Campaign.IDS[region] != rules.region or bool(get(rules.progress_flag)) or _has_drop(rules.item):
 		return false
 	for gate in landscape.light_gates:
 		x = minf(x, to_local(gate.global_position).x + float(rules.gate_offset))
-	_drop(rules.item, x)
+	_drop(rules.item, x, 1, 1, false, source_y)
 	_notice(rules.notice, float(rules.notice_seconds))
 	return true
 
@@ -519,7 +545,7 @@ func _on_monster_disarmed(monster: Monster) -> void:
 	var notice: String = rules.get("disarm_notice", "")
 	var disarm_rules: Array = rules.get("disarm", [])
 	for rule in disarm_rules:
-		if _apply_drop_rule(rule, monster.position.x, monster.facing) and not notice.is_empty():
+		if _apply_drop_rule(rule, monster.position.x, monster.facing, monster.position.y) and not notice.is_empty():
 			if rule.get("policy", "") == "guardian_blade":
 				var weapon: String = Bestiary.loot.guardian_blade.grants
 				_notice(notice % _ranked_gear_name(weapon, 1), float(rules.get("disarm_notice_seconds", 3.0)))
@@ -536,10 +562,19 @@ func _has_drop(kind: String) -> bool:
 	return false
 
 
-func _drop(kind: String, x: float, amount: int = 1, rank: int = 1, rolled: bool = false) -> void:
+func _drop(kind: String, x: float, amount: int = 1, rank: int = 1, rolled: bool = false, source_y := NAN) -> void:
 	var bounds: Dictionary = Bestiary.loot.drop_bounds
 	var left: float = bounds.region_x_min.get(Campaign.IDS[region], bounds.default_x_min)
 	var at := Vector2(clampf(x, left, float(bounds.x_max)), Landscape.FLOOR_Y + float(bounds.y_offset))
+	if stage > 0:
+		at.x = clampf(x, 40, STAGE_WIDTH - 40)
+		if not is_nan(source_y):
+			var start := to_global(Vector2(at.x, source_y - 8.0))
+			var end := to_global(Vector2(at.x, Landscape.FLOOR_Y + 20.0))
+			var query := PhysicsRayQueryParameters2D.create(start, end, 1)
+			var floor_hit := get_world_2d().direct_space_state.intersect_ray(query)
+			if not floor_hit.is_empty():
+				at.y = to_local(floor_hit.position).y + float(bounds.y_offset)
 	drops.append({"kind": kind, "at": at, "amount": amount, "spawn": elapsed, "rank": rank, "rolled": rolled})
 
 
@@ -620,6 +655,9 @@ func _interact() -> void:
 				_grant_equipment(id)
 		_set_camp_open(true)
 	elif _near_prop(landscape.portals):
+		if stage > 0:
+			_advance_stage()
+			return
 		match region:
 			Campaign.Region.TEMPLE:
 				if guardian_felled:
@@ -705,6 +743,7 @@ func _retry() -> void:
 	for monster: Monster in enemies:
 		monster.queue_free()
 	enemies.clear()
+	boss = null
 	arrows.clear()
 	glyphs.clear()
 	hit_effects.clear()
@@ -714,6 +753,7 @@ func _retry() -> void:
 	hunter.respawn(_camp_start())
 	camera.reset_smoothing()
 	_spawn_enemies()
+	_play_level_music()
 	restarting = false
 	_notice("在營火旁醒來。這次遺失了 %d 份素材。" % lost, 3.8)
 
@@ -727,12 +767,15 @@ func _finish() -> void:
 
 
 func _camp_start() -> Vector2:
-	if region == Campaign.Region.TEMPLE or landscape.campfires.is_empty():
+	if (stage == 0 and region == Campaign.Region.TEMPLE) or landscape.campfires.is_empty():
 		return START
 	return to_local(landscape.campfires[0].global_position) + Vector2(48, -14)
 
 
 func _sync_region_gate() -> void:
+	if stage > 0:
+		landscape.portal_open = stage != Campaign.BOSS_STAGE or boss_felled
+		return
 	match region:
 		Campaign.Region.TEMPLE:
 			landscape.portal_open = guardian_felled
@@ -746,25 +789,48 @@ func _sync_region_gate() -> void:
 			landscape.portal_open = keeper_felled
 
 
-func _queue_region(destination: int) -> void:
+func _advance_stage() -> void:
+	if not landscape.portal_open:
+		_notice("擊倒首領後，出口才會開啟。", 3.0)
+	elif stage < Campaign.BOSS_STAGE:
+		_queue_region(region, stage + 1)
+	elif region < Campaign.Region.VOLCANO:
+		_queue_region(region + 1, 1)
+	elif CampSave.write(_checkpoint_state()) == OK:
+		_finish()
+	else:
+		_notice("無法保存通關進度，請重試。", 4.0)
+
+
+func _queue_region(destination: int, next_stage := 0) -> void:
 	if not transitioning:
 		transitioning = true
-		_change_region.call_deferred(destination)
+		_change_region.call_deferred(destination, next_stage)
 
 
-func _change_region(destination: int) -> void:
+func _change_region(destination: int, next_stage := 0) -> void:
 	var checkpoint := _checkpoint_state()
 	checkpoint["region"] = destination
-	var next: PackedScene = load(Campaign.scene_path(checkpoint))
+	checkpoint["stage"] = next_stage
+	checkpoint.erase("boss_felled")
+	var next := load(Campaign.scene_path(checkpoint)) as PackedScene
 	if next == null or CampSave.write(checkpoint) != OK:
 		transitioning = false
-		_notice("無法保存下一區的進度，請重試。", 4.0)
+		_notice("無法保存下一關的進度，請重試。", 4.0)
 		return
 	get_tree().set_meta(CampSave.RESTORE_META, checkpoint)
 	if get_tree().change_scene_to_packed(next) != OK:
 		get_tree().remove_meta(CampSave.RESTORE_META)
 		transitioning = false
-		_notice("無法開啟下一區，請重試。", 4.0)
+		_notice("無法開啟下一關，請重試。", 4.0)
+
+
+func _play_level_music() -> void:
+	var music := get_node("/root/GameMusic")
+	if is_instance_valid(boss):
+		music.play_boss(region, region == Campaign.Region.VOLCANO and boss.second_phase)
+	else:
+		music.play_region(region)
 
 
 func _notice(message: String, seconds: float) -> void:
@@ -895,6 +961,8 @@ func _build_hud() -> void:
 	journal.offset_top = 24
 	objective_label = _label(16, Color("#e1e9d7"))
 	journal.add_child(objective_label)
+	if stage == Campaign.BOSS_STAGE:
+		_build_boss_hud(root)
 
 	notice_label = _label(19, Color("#fff0c1"))
 	notice_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -940,12 +1008,47 @@ func _build_hud() -> void:
 	card_rows.add_child(end_story)
 	end_prompt = _label(16, Color("#b6c9bc"))
 	end_prompt.text = "E　返回開始頁面" if region == Campaign.Region.COURT else "E　進入淹沒的迴廊"
+	if stage > 0:
+		end_title.text = "四區通關"
+		end_story.text = "獵人擊敗了熔爐深處的守衛。"
+		end_prompt.text = "E　返回開始頁面"
 	end_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card_rows.add_child(end_prompt)
 	end_screen.hide()
 	_build_camp_menu(root)
 	_build_gear_menu(root)
 	_build_pause_menu(root)
+
+
+func _build_boss_hud(root: Control) -> void:
+	boss_panel = _panel(root)
+	boss_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	boss_panel.offset_left = -178
+	boss_panel.offset_right = 178
+	boss_panel.offset_top = 18
+	var rows := VBoxContainer.new()
+	boss_panel.add_child(rows)
+	boss_caption = _label(18, Color("#ffe0a1"))
+	boss_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rows.add_child(boss_caption)
+	boss_health = ProgressBar.new()
+	boss_health.custom_minimum_size.y = 20
+	boss_health.show_percentage = false
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color("#bb3730")
+	boss_health.add_theme_stylebox_override("fill", fill)
+	rows.add_child(boss_health)
+	_update_boss_hud()
+
+
+func _update_boss_hud() -> void:
+	boss_panel.visible = is_instance_valid(boss)
+	if not boss_panel.visible:
+		return
+	boss_health.max_value = boss.max_health
+	boss_health.value = boss.health
+	boss_caption.text = "%s　Lv.%d　%d / %d" % [
+		boss.design.name, boss.level, boss.health, boss.max_health]
 
 
 func _build_camp_menu(root: Control) -> void:
@@ -1100,9 +1203,11 @@ func _save_camp() -> bool:
 
 
 func _checkpoint_state() -> Dictionary:
-	cache_flags[region] = landscape.cache_open
+	cache_flags[_cache_key()] = landscape.cache_open
 	var state := {
 		"region": region,
+		"stage": stage,
+		"boss_felled": boss_felled,
 		"lantern_found": lantern_found,
 		"keeper_felled": keeper_felled,
 		"cache_flags": cache_flags,
@@ -1132,6 +1237,10 @@ func _checkpoint_state() -> Dictionary:
 	return state
 
 
+func _cache_key() -> int:
+	return region if stage <= 1 else region + stage * Campaign.IDS.size()
+
+
 func _restore_camp(state: Dictionary) -> void:
 	soul_balance = maxi(0, int(state.get("soul_balance", 0)))
 	hunter.level = clampi(int(state.get("player_level", 0)), 0, Progression.MAX_LEVEL)
@@ -1155,11 +1264,12 @@ func _restore_camp(state: Dictionary) -> void:
 	guardian_felled = state.get("guardian_felled", false)
 	lantern_found = state.get("lantern_found", false)
 	keeper_felled = state.get("keeper_felled", false)
+	boss_felled = stage == Campaign.BOSS_STAGE and state.get("boss_felled", false)
 	cache_flags = state.get("cache_flags", {Campaign.Region.TEMPLE: state.get("cache_open", false)})
-	landscape.cache_open = cache_flags.get(region, false)
+	landscape.cache_open = cache_flags.get(_cache_key(), false)
 	unclaimed_blade_x = state.get("blade_x", -1.0)
 	var blade: Dictionary = Bestiary.loot.guardian_blade
-	if Campaign.IDS[region] == blade.region and bool(get(blade.defeat_flag)) and not hunter.stolen_blade and unclaimed_blade_x >= 0.0:
+	if (stage == 0 or stage == Campaign.BOSS_STAGE) and Campaign.IDS[region] == blade.region and bool(get(blade.defeat_flag)) and not hunter.stolen_blade and unclaimed_blade_x >= 0.0:
 		_drop(blade.item, unclaimed_blade_x)
 
 
@@ -1363,6 +1473,9 @@ func _update_hud() -> void:
 		flags.append("潮火提燈")
 	status_flags.text = "    ".join(flags)
 	status_flags.visible = not flags.is_empty()
+	if stage > 0:
+		_update_stage_hud()
+		return
 	if region != Campaign.Region.TEMPLE:
 		_update_region_hud()
 		return
@@ -1384,6 +1497,28 @@ func _update_hud() -> void:
 		prompt_label.text = "E　打開補給石匣"
 	elif hunter.position.x > 677 and hunter.position.x < 805:
 		prompt_label.text = "斷橋　／　裝備蜥翼，跳起後按住 Shift 滑翔"
+	else:
+		prompt_label.text = _monster_hint()
+
+
+func _update_stage_hud() -> void:
+	var objective := "沿平台上行，尋找最上層的出口。"
+	if stage == Campaign.BOSS_STAGE:
+		_update_boss_hud()
+		objective = "前往出口。" if boss_felled else "擊倒首領以開啟出口。"
+	objective_label.text = "%s　%d / %d\n%s" % [Campaign.NAMES[region], stage, Campaign.BOSS_STAGE, objective]
+	prompt_label.text = ""
+	if _near_prop(landscape.campfires):
+		prompt_label.text = "E　打開營火與工坊選單"
+	elif _near_prop(landscape.portals):
+		if not landscape.portal_open:
+			prompt_label.text = "首領仍在，出口封鎖"
+		elif stage == Campaign.BOSS_STAGE:
+			prompt_label.text = "E　完成戰役" if region == Campaign.Region.VOLCANO else "E　前往下一區"
+		else:
+			prompt_label.text = "E　挑戰首領" if stage == Campaign.BOSS_STAGE - 1 else "E　前往下一關"
+	elif (_near_cache() and not landscape.cache_open) or not _near_treasure().is_empty():
+		prompt_label.text = "E　打開石匣"
 	else:
 		prompt_label.text = _monster_hint()
 

@@ -20,12 +20,9 @@ func run() -> void:
 		route.store_csv_line(PackedStringArray(["seconds", "region", "x", "y", "hp", "event"]))
 	if not verify(Save.read().get("state", {}).is_empty(), "isolated profile has no checkpoint"):
 		return
-	change_scene_to_file("res://scenes/title/title.tscn")
-	await scene_changed
-	await frames(20)
 	start_frame = Engine.get_physics_frames()
 	physics_frame.connect(_sample)
-	await click(current_scene.new_game)
+	change_scene_to_file("res://scenes/ruins/ruins.tscn")
 	if not await enter_region(0):
 		return
 	await tap("hunt_switch")

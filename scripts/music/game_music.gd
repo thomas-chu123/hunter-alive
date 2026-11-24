@@ -9,6 +9,14 @@ const TRACKS := [
 	FINALE,
 	"res://assets/audio/music/the_hunter_title.ogg",
 ]
+const FIRST_BOSS := 5
+const BOSS_TRACKS := [
+	"res://assets/audio/music/boss_temple.mp3",
+	"res://assets/audio/music/boss_corridor.mp3",
+	"res://assets/audio/music/boss_court.mp3",
+	"res://assets/audio/music/boss_caldera.mp3",
+	"res://assets/audio/music/boss_caldera_final.mp3",
+]
 const TRACK_VOLUME := -5.0
 const FADE_TIME := 0.95
 const SILENT_DB := -60.0
@@ -27,11 +35,28 @@ func _ready() -> void:
 
 
 func play_region(region: int) -> void:
+	_play_track(region)
+
+
+func play_boss(region: int, final_phase: bool = false) -> void:
+	var track := FIRST_BOSS + region
+	if final_phase and ResourceLoader.exists(BOSS_TRACKS[-1]):
+		track = FIRST_BOSS + BOSS_TRACKS.size() - 1
+	_play_track(track)
+
+
+func _track_path(index: int) -> String:
+	if index < 0:
+		return ""
+	return BOSS_TRACKS[index - FIRST_BOSS] if index >= FIRST_BOSS else TRACKS[index]
+
+
+func _play_track(region: int) -> void:
 	if region == current_region:
 		return
 	var previous_region := current_region
 	current_region = region
-	if region >= 0 and previous_region >= 0 and TRACKS[region] == TRACKS[previous_region]:
+	if _track_path(region) == _track_path(previous_region):
 		return
 	if DisplayServer.get_name() == "headless" and not OS.has_feature("movie"):
 		return
@@ -50,7 +75,7 @@ func play_region(region: int) -> void:
 		active = 1 - active
 		var incoming := voices[active]
 		incoming.stop()
-		var track := load(TRACKS[region]) as AudioStreamOggVorbis
+		var track := load(_track_path(region)) as AudioStream
 		track.loop = true
 		incoming.stream = track
 		incoming.volume_db = SILENT_DB

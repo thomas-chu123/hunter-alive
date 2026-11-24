@@ -26,7 +26,7 @@ func run() -> void:
 		await press(title.new_game)
 		await scene_changed
 		var ruins = current_scene
-		check(ruins.name == "Ruins", "New Game opens the ruins")
+		check(ruins.name == "Ruins" and ruins.stage == 1, "New Game opens the first temple stage")
 		ruins.materials = 7
 		ruins.collected_souls.append("lizard")
 		ruins.hunter.equipped_soul = "lizard"

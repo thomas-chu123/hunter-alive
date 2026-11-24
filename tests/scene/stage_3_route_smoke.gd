@@ -16,9 +16,7 @@ func run() -> void:
 		await check_court_grounding()
 		quit(1 if failures else 0)
 		return
-	change_scene_to_file("res://scenes/title/title.tscn")
-	await scene_changed
-	await press(current_scene.new_game)
+	change_scene_to_file(Campaign.SCENES[Campaign.Region.TEMPLE])
 	await scene_changed
 	var level = current_scene
 	check(level.region == Campaign.Region.TEMPLE, "new game starts in the temple")

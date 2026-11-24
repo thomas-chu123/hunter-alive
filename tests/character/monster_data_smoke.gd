@@ -177,7 +177,7 @@ func valid_drop_items(rules: Dictionary) -> bool:
 
 func check_checkpoint_spawns() -> void:
 	for region in range(Campaign.SCENES.size()):
-		var state := {"region": region, "guardian_felled": true, "keeper_felled": true, "lantern_found": true}
+		var state := {"region": region, "stage": 0, "guardian_felled": true, "keeper_felled": true, "lantern_found": true}
 		set_meta(Save.RESTORE_META, state)
 		change_scene_to_file(Campaign.scene_path(state))
 		await scene_changed
