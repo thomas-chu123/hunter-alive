@@ -147,7 +147,9 @@ func attack_transition() -> void:
 func check_motion_sheets(actions: Array, expected: int, frame_count: int) -> void:
 	var count := 0
 	for species: String in Bestiary.creatures:
-		var sheets := Art.load_poses(Bestiary.creatures[species].art)
+		var art: Dictionary = Bestiary.creatures[species].art
+		var cell := Vector2i(Bestiary.vector(Art.combat_frame_layout(art).frame_size))
+		var sheets := Art.load_poses(art)
 		for key: String in actions:
 			var texture: Texture2D = sheets.get(key)
 			if texture == null:
@@ -156,7 +158,7 @@ func check_motion_sheets(actions: Array, expected: int, frame_count: int) -> voi
 			var sheet := texture.get_image()
 			var seen := {}
 			for frame in range(frame_count):
-				var region := sheet.get_region(Rect2i(Vector2i(frame * 224, 0), Vector2i(224, 224)))
+				var region := sheet.get_region(Rect2i(Vector2i(frame * cell.x, 0), cell))
 				if not region.is_invisible() and is_zero_approx(region.get_pixel(0, 0).a):
 					seen[hash(region.get_data())] = true
 			check(seen.size() == frame_count, "%s/%s has %d distinct transparent drawings" % [species, key, frame_count])

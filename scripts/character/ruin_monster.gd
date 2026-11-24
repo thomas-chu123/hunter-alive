@@ -722,7 +722,9 @@ func _draw_actor() -> void:
 	var tint := Color(1.23, 1.16, 1.07) if flash > 0 else Color.WHITE
 	var pose := _attack_pose()
 	var unarmed := not armed and attack.has("unarmed")
-	var motion_facing := _sprite_facing()
+	var action_sheet: Texture2D = sprites.get("action_unarmed" if unarmed else "action")
+	# Action atlases have painted turns. Keep their combat poses full-width when turning into an attack.
+	var motion_facing := facing if action_sheet != null else _sprite_facing()
 	var size := body_size
 	var rhythm := gait_phase * TAU
 
@@ -732,7 +734,7 @@ func _draw_actor() -> void:
 	# Procedural Locomotion: Squash & Stretch with volume conservation
 	var idle_breathe := sin(age * 2.8) * 0.022 * (1.0 - gait_weight * 0.8)
 	var walk_squash := cos(rhythm * 2.0) * 0.055 * gait_weight
-	var turn_stretch := (1.0 - absf(visual_turn)) * 0.12
+	var turn_stretch := (1.0 - absf(visual_turn)) * 0.12 if action_sheet == null else 0.0
 	stretch_y = 1.0 + idle_breathe + walk_squash + turn_stretch
 
 	# Procedural Locomotion: Velocity-based Forward Lean & Stride Sway
@@ -742,10 +744,9 @@ func _draw_actor() -> void:
 	var stride_sway := cos(rhythm) * 0.045 * gait_weight
 	var lean := sprint_lean + stride_sway
 
-	var attack_sheet: Texture2D = sprites.attack_unarmed if unarmed else sprites.attack
-	var action_sheet: Texture2D = sprites.get("action_unarmed" if unarmed else "action")
-	var transition_sheet: Texture2D = sprites.get("attack_transition_unarmed" if unarmed else "attack_transition")
-	var phase := _transition_frame() if transition_sheet != null else -1
+	var attack_atlas := "attack_unarmed" if unarmed else "attack"
+	var transition_atlas := "attack_transition_unarmed" if unarmed else "attack_transition"
+	var phase := _transition_frame() if sprites.has(transition_atlas) else -1
 
 	if state == State.NOTICE:
 		stretch_y += 0.065 * sin(notice_left / float(motion_rules.notice_time) * PI)
@@ -759,8 +760,7 @@ func _draw_actor() -> void:
 	stretch_x = 1.0 / maxf(stretch_y, 0.55)
 
 	if state == State.STAGGER or (pose == AttackPose.IDLE and hit > 0.0):
-		Art.draw_motion_frame(actor_art, attack_sheet, AttackPose.RECOVERY, motion_facing, tint,
-			stretch_y, hit_lean, recoil, bob_y, stretch_x)
+		_draw_combat_frame(attack_atlas, AttackPose.RECOVERY, motion_facing, tint, hit_lean)
 	elif pose >= 0:
 		if strike > 0.0:
 			motion_facing = facing
@@ -771,10 +771,8 @@ func _draw_actor() -> void:
 		elif recovery > 0.0:
 			lean = 0.05 * clampf(recovery / maxf(recovery_duration, 0.02), 0.0, 1.0)
 		lean += hit_direction * signf(motion_facing) * squash * 0.9
-		if phase >= 0:
-			Art.draw_motion_frame(actor_art, transition_sheet, phase, motion_facing, tint, stretch_y, lean, recoil, bob_y, stretch_x)
-		else:
-			Art.draw_motion_frame(actor_art, attack_sheet, pose, motion_facing, tint, stretch_y, lean, recoil, bob_y, stretch_x)
+		_draw_combat_frame(transition_atlas if phase >= 0 else attack_atlas,
+			phase if phase >= 0 else pose, motion_facing, tint, lean)
 	elif action_sheet != null:
 		var cell := _locomotion_cell()
 		var direction := facing if is_zero_approx(visual_turn) else signf(visual_turn)
@@ -785,6 +783,11 @@ func _draw_actor() -> void:
 	else:
 		Art.draw_ground_idle(actor_art, sprites.idle, appearance, motion_facing,
 			(1.0 - stretch_y) * size.y, tint, bob_y, stretch_x)
+
+
+func _draw_combat_frame(atlas: String, frame: int, motion_facing: float, tint: Color, lean: float) -> void:
+	Art.draw_motion_frame(actor_art, sprites[atlas], frame, motion_facing, tint,
+		stretch_y, lean, recoil, bob_y, stretch_x, Art.combat_frame_layout(appearance))
 
 
 func _draw() -> void:

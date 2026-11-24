@@ -43,14 +43,15 @@ func run() -> void:
 		var attack: Dictionary = entry.attack
 		elements[attack.element] = true
 		var sprites := Art.load_poses(entry.art)
+		var cell := Vector2i(Bestiary.vector(Art.combat_frame_layout(entry.art).frame_size))
 		var sheet: Texture2D = sprites.attack
 		attack_paths[sheet.resource_path] = true
-		check(valid_poses(sheet.get_image()),
+		check(valid_poses(sheet.get_image(), cell),
 			"%s has three distinct transparent sprite frames" % id)
 		await encounter(id, false)
 		if attack.has("unarmed"):
 			var unarmed: Texture2D = sprites.attack_unarmed
-			check(valid_poses(unarmed.get_image()),
+			check(valid_poses(unarmed.get_image(), cell),
 				"%s has three distinct disarmed frames" % id)
 			await encounter(id, true)
 	check(attack_paths.size() == 21 and elements.size() == 5, "21 monster attack sheets and all five elements are used")
@@ -166,10 +167,12 @@ func affected(initial_health: int) -> bool:
 	return hunter.health < initial_health or hunter.pollen_left > 0.0 or hunter.leech_left > 0.0
 
 
-func valid_poses(sheet: Image) -> bool:
+func valid_poses(sheet: Image, size: Vector2i) -> bool:
+	if sheet.get_size() != size * Vector2i(3, 1):
+		return false
 	var frames_seen := {}
 	for pose in range(3):
-		var cell := sheet.get_region(Rect2i(Vector2i(pose * 224, 0), Vector2i(224, 224)))
+		var cell := sheet.get_region(Rect2i(Vector2i(pose * size.x, 0), size))
 		if cell.is_invisible() or cell.get_pixel(0, 0).a > 0:
 			return false
 		frames_seen[hash(cell.get_data())] = true

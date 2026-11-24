@@ -36,6 +36,23 @@ func run() -> void:
 			check(valid_locomotion(sheets.get("action_unarmed")), "%s has a complete disarmed action atlas" % id)
 		if id == "treant":
 			check_treant_locomotion_size(sheets)
+			# Sample the crown in each pose, clear of the raised weapon.
+			check_giant_combat_size(id, entry.art, sheets, "",
+				Rect2i(91, 46, 50, 64), {
+					"attack": [Rect2i(95, 71, 33, 43), Rect2i(98, 45, 47, 71), Rect2i(98, 45, 45, 71)],
+					"attack_transition": [Rect2i(92, 45, 46, 71), Rect2i(98, 43, 45, 75)],
+				})
+			check_giant_combat_size(id, entry.art, sheets, "_unarmed",
+				Rect2i(95, 45, 54, 67), {
+					"attack": [Rect2i(98, 48, 54, 70), Rect2i(94, 48, 56, 74), Rect2i(103, 49, 50, 73)],
+					"attack_transition": [Rect2i(102, 50, 49, 72), Rect2i(99, 50, 56, 82)],
+				})
+		elif id == "seal_keeper":
+			check_giant_combat_size(id, entry.art, sheets, "",
+				Rect2i(144, 58, 6, 48), {
+					"attack": [Rect2i(117, 77, 9, 48), Rect2i(115, 55, 31, 48), Rect2i(108, 58, 7, 48)],
+					"attack_transition": [Rect2i(111, 57, 12, 48), Rect2i(119, 56, 29, 48)],
+				})
 		check(Bestiary.loot.monsters.has(id) and valid_drop_items(Bestiary.loot.monsters[id]),
 			"%s has valid loot rules" % id)
 	for region in range(Campaign.SCENES.size()):
@@ -80,9 +97,7 @@ func valid_locomotion(sheet: Texture2D) -> bool:
 func check_treant_locomotion_size(sheets: Dictionary) -> void:
 	var armed: Image = sheets.action.get_image()
 	var unarmed: Image = sheets.action_unarmed.get_image()
-	var reference: Image = sheets.attack_unarmed.get_image()
-	var combat_cell := Vector2i(Bestiary.vector(Bestiary.rules.art.frame_size))
-	var recovery := reference.get_region(Rect2i(Vector2i(combat_cell.x * 2, 0), combat_cell)).get_used_rect()
+	var idle := unarmed.get_region(Rect2i(Vector2i.ZERO, Art.ACTION_CELL)).get_used_rect()
 	var grounded := int(Art.ACTION_ORIGIN.y)
 	var consistent_height := true
 	var consistent_feet := true
@@ -92,13 +107,54 @@ func check_treant_locomotion_size(sheets: Dictionary) -> void:
 			var with_blade := armed.get_region(region).get_used_rect()
 			var without_blade := unarmed.get_region(region).get_used_rect()
 			var height := grounded - with_blade.position.y
-			consistent_height = consistent_height and absi(height - recovery.size.y) <= 6
+			consistent_height = consistent_height and absi(height - idle.size.y) <= 6
 			consistent_height = consistent_height and absi(with_blade.position.y - without_blade.position.y) <= 2
 			var lift := grounded - with_blade.end.y
 			var expected_lift: int = [0, 0, 4, 6][frame] if row == Art.Locomotion.RUN else 0
 			consistent_feet = consistent_feet and lift == expected_lift and with_blade.end.y == without_blade.end.y
 	check(consistent_height, "treant stays at the same body height across gait and equipment changes")
 	check(consistent_feet, "treant shares a foot baseline with or without the blade and lifts only in the last two run frames")
+
+
+func check_giant_combat_size(id: String, appearance: Dictionary, sheets: Dictionary, suffix: String,
+		idle_head_region: Rect2i, head_regions: Dictionary) -> void:
+	var idle_image: Image = sheets["action" + suffix].get_image()
+	var idle_frame := idle_image.get_region(Rect2i(Vector2i.ZERO, Art.ACTION_CELL))
+	var idle_feet := ink_bounds(idle_frame, Rect2i(0, int(Art.ACTION_ORIGIN.y) - 8, Art.ACTION_CELL.x, 12))
+	var idle_head := ink_bounds(idle_frame, idle_head_region)
+	var idle_height := (Art.ACTION_ORIGIN.y - idle_head.position.y) * Art.ACTION_SCALE
+	var idle_width := idle_feet.size.x * Art.ACTION_SCALE
+	var layout := Art.combat_frame_layout(appearance)
+	var cell := Vector2i(Bestiary.vector(layout.frame_size))
+	var ground := int(Bestiary.vector(layout.frame_anchor).y)
+	var scale := float(Bestiary.rules.art.frame_scale)
+	var padding := Rect2i(Vector2i.ONE, cell - Vector2i(2, 2))
+	for key: String in head_regions:
+		var atlas := key + suffix
+		var image: Image = sheets[atlas].get_image()
+		var regions: Array = head_regions[key]
+		check(image.get_size() == cell * Vector2i(regions.size(), 1), "%s %s matches its frame layout" % [id, atlas])
+		for frame in range(regions.size()):
+			var pose := image.get_region(Rect2i(Vector2i(frame * cell.x, 0), cell))
+			var feet := ink_bounds(pose, Rect2i(0, ground - 8, cell.x, 12))
+			var head := ink_bounds(pose, regions[frame])
+			var height := (ground - head.position.y) * scale
+			var width := feet.size.x * scale
+			check(idle_head.has_area() and idle_feet.has_area() and head.has_area() and feet.has_area()
+				and absi(feet.end.y - ground) <= 1 and padding.encloses(pose.get_used_rect())
+				and absf(height / idle_height - 1.0) <= 0.07 and absf(width / idle_width - 1.0) <= 0.12,
+				"%s %s frame %d body %.1f px (idle %.1f), foot span %.1f px (idle %.1f), sole row %d" % [
+					id, atlas, frame, height, idle_height, width, idle_width, feet.end.y])
+
+
+func ink_bounds(pose: Image, sample: Rect2i) -> Rect2i:
+	var bounds := Rect2i()
+	for y in range(sample.position.y, sample.end.y):
+		for x in range(sample.position.x, sample.end.x):
+			if pose.get_pixel(x, y).a >= 0.10:
+				var pixel := Rect2i(Vector2i(x, y), Vector2i.ONE)
+				bounds = bounds.merge(pixel) if bounds.has_area() else pixel
+	return bounds
 
 
 func valid_drop_items(rules: Dictionary) -> bool:

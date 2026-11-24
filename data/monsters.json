@@ -199,6 +199,10 @@
         "attack_transition_unarmed": "res://assets/monster/treant/attack_transition_unarmed.png",
         "attack_unarmed": "res://assets/monster/treant/attack_unarmed.png"
       },
+      "combat_frame_layout": {
+        "frame_size": [256, 256],
+        "frame_anchor": [128, 230]
+      },
       "body_size": [
         110,
         120
@@ -417,6 +421,10 @@
         "action": "res://assets/monster/seal_keeper/action.png",
         "attack": "res://assets/monster/seal_keeper/attack.png",
         "attack_transition": "res://assets/monster/seal_keeper/attack_transition.png"
+      },
+      "combat_frame_layout": {
+        "frame_size": [256, 256],
+        "frame_anchor": [128, 230]
       },
       "body_size": [
         102,

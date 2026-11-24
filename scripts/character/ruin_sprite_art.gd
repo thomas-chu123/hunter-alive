@@ -41,12 +41,17 @@ static func draw_ground_idle(canvas: Node2D, texture: Texture2D, art: Dictionary
 	canvas.draw_set_transform(Vector2.ZERO)
 
 
+static func combat_frame_layout(appearance: Dictionary) -> Dictionary:
+	return appearance.get("combat_frame_layout", Bestiary.rules.art)
+
+
 static func draw_motion_frame(canvas: Node2D, sheet: Texture2D, frame: int, facing: float,
-		tint: Color, stretch: float, lean: float, recoil: float, offset_y: float = 0.0, stretch_x: float = 1.0) -> void:
-	var art: Dictionary = Bestiary.rules.art
-	var cell := Bestiary.vector(art.frame_size)
-	var anchor := Bestiary.vector(art.frame_anchor)
-	var scale: float = art.frame_scale
+		tint: Color, stretch: float, lean: float, recoil: float, offset_y: float = 0.0,
+		stretch_x: float = 1.0, layout: Dictionary = {}) -> void:
+	var frame_layout: Dictionary = Bestiary.rules.art if layout.is_empty() else layout
+	var cell := Bestiary.vector(frame_layout.frame_size)
+	var anchor := Bestiary.vector(frame_layout.frame_anchor)
+	var scale := float(Bestiary.rules.art.frame_scale)
 	var source := Rect2(Vector2(frame, 0) * cell, cell)
 	var dest := Rect2(-anchor * scale, cell * scale)
 	canvas.draw_set_transform(Vector2(recoil, offset_y), lean * signf(facing), Vector2(facing * stretch_x, stretch))
