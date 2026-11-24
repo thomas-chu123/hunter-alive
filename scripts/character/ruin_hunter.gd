@@ -352,11 +352,15 @@ func item_rank(id: String) -> int:
 	return int(item_ranks.get(id, 1))
 
 
-func armor_reduction() -> int:
+func armor_points() -> int:
 	var points := 0
 	for id: String in gear.values():
 		points += item_rank(id)
-	return Progression.armor_percent(points)
+	return points
+
+
+func armor_reduction() -> int:
+	return Progression.armor_percent(armor_points())
 
 
 func rest() -> void:

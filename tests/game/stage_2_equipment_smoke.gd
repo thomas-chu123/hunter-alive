@@ -31,8 +31,23 @@ func run() -> void:
 	check(ruins.gear_menu.visible and not hunter.is_physics_processing(), "I opens gear and pauses combat")
 	var portrait = ruins.gear_menu.find_child("HunterPortrait", true, false)
 	check(portrait is TextureRect and portrait.texture != null, "left panel displays the hunter")
+	var stats := ruins.gear_menu.find_child("HunterStats", true, false) as GridContainer
+	var status_panel := stats.get_parent().get_parent() as VBoxContainer
+	check(status_panel.get_child(0).text == "目前狀態" and stats.get_global_rect().position.x > portrait.get_global_rect().end.x,
+		"current status heading and stats appear to the right of the portrait")
+	check_stat(ruins, "Level", "0")
+	check_stat(ruins, "HP", "6 / 6")
+	check_stat(ruins, "MP", "4 / 4")
+	check_stat(ruins, "攻擊力", "2")
+	check_stat(ruins, "攻擊頻率", "3.45 次/秒")
+	check_stat(ruins, "護甲", "0")
+	check_stat(ruins, "防禦力", "0%")
+	check_stat(ruins, "魂", "0")
 	await equip(ruins, "linen_hood")
 	check(hunter.max_health() == 7, "hood raises maximum HP")
+	check_stat(ruins, "HP", "6 / 7")
+	check_stat(ruins, "護甲", "1")
+	check_stat(ruins, "防禦力", "3%")
 	check(ruins.gear_name.text == "+1 營火布兜" and ruins.gear_slot.text == "頭部  ·  已裝備"
 		and ruins.gear_apply.text == "卸下　E" and ruins.destroy_item.text == "銷毀　D",
 		"hood details show the ranked name, slot, status and shortcuts")
@@ -46,8 +61,11 @@ func run() -> void:
 	await show_view()
 	await equip(ruins, "linen_hood")
 	check(hunter.max_health() == 6, "removing hood restores base maximum HP")
+	check_stat(ruins, "HP", "6 / 6")
+	check_stat(ruins, "防禦力", "0%")
 	check(ruins.gear_slot_images["頭部"].texture == null, "removing hood clears the slot image")
 	await equip(ruins, "hunter_wraps")
+	check_stat(ruins, "攻擊頻率", "4.35 次/秒")
 	await show_view()
 	await key(KEY_I)
 	Input.action_press("hunt_attack")
@@ -85,6 +103,10 @@ func run() -> void:
 	await equip(ruins, "moss_vest")
 	await equip(ruins, "ember_staff")
 	check(hunter.with_staff and ruins.gear_list.item_count == 6, "loadout contains three weapons and supports staff selection")
+	check_stat(ruins, "攻擊力", "3")
+	check_stat(ruins, "攻擊頻率", "1.85 次/秒")
+	check_stat(ruins, "護甲", "2")
+	check_stat(ruins, "防禦力", "6%")
 	check(ruins.gear_slot_images["武器"].texture == ruins.gear_list.get_item_icon(ruins.gear_ids.find("ember_staff"))
 		and ruins.gear_values.text.contains("傷害 3") and ruins.gear_values.text.contains("法力 1"),
 		"staff image and damage and mana values match selection")
@@ -182,6 +204,11 @@ func run() -> void:
 	check(ruins.inventory.size() == count - 1 and not ruins.gear_ids.has("linen_hood"), "confirm destroys only the selected item")
 	await show_view()
 	quit(1 if failed else 0)
+
+
+func check_stat(ruins: Node, title: String, expected: String) -> void:
+	var actual: String = ruins.gear_stat_values[title].text
+	check(actual == expected, "current status %s = %s (expected %s)" % [title, actual, expected])
 
 
 func equip(ruins: Node, id: String) -> void:

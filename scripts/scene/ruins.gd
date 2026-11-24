@@ -117,6 +117,7 @@ var gear_menu: CenterContainer
 var gear_portrait: TextureRect
 var gear_portrait_pose: Node2D
 var gear_portrait_base: AtlasTexture
+var gear_stat_values: Dictionary[String, Label] = {}
 var gear_list: ItemList
 var gear_slot_images: Dictionary = {}
 var gear_name: Label
@@ -1815,7 +1816,6 @@ func _build_gear_menu(root: Control) -> void:
 
 func _build_gear_portrait(parent: HBoxContainer) -> void:
 	var panel := _panel(parent)
-	panel.custom_minimum_size.x = 306
 	var style: StyleBoxFlat = panel.get_theme_stylebox("panel").duplicate()
 	style.bg_color = Color("#152a29")
 	panel.add_theme_stylebox_override("panel", style)
@@ -1823,14 +1823,22 @@ func _build_gear_portrait(parent: HBoxContainer) -> void:
 	rows.add_theme_constant_override("separation", 10)
 	panel.add_child(rows)
 	var heading := _label(16, Color("#d8e4d4"))
-	heading.text = "目前裝備"
+	heading.text = "目前狀態"
 	rows.add_child(heading)
+
+	var content := HBoxContainer.new()
+	content.add_theme_constant_override("separation", 20)
+	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	rows.add_child(content)
+	var loadout := VBoxContainer.new()
+	loadout.add_theme_constant_override("separation", 10)
+	content.add_child(loadout)
 
 	var portrait_row := HBoxContainer.new()
 	portrait_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	portrait_row.add_theme_constant_override("separation", 8)
 	portrait_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	rows.add_child(portrait_row)
+	loadout.add_child(portrait_row)
 	var left := _gear_slot_column(portrait_row)
 	_add_gear_slot(left, "頭部")
 	_add_gear_slot(left, "手部")
@@ -1855,9 +1863,41 @@ func _build_gear_portrait(parent: HBoxContainer) -> void:
 	var right := _gear_slot_column(portrait_row)
 	_add_gear_slot(right, "身體")
 	_add_gear_slot(right, "腿部")
-	var weapon := _gear_slot_column(rows)
+	var weapon := _gear_slot_column(loadout)
 	weapon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_add_gear_slot(weapon, "武器")
+
+	content.add_child(VSeparator.new())
+	var stats := GridContainer.new()
+	stats.name = "HunterStats"
+	stats.columns = 2
+	stats.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	stats.add_theme_constant_override("h_separation", 12)
+	stats.add_theme_constant_override("v_separation", 8)
+	content.add_child(stats)
+	for title in ["Level", "HP", "MP", "攻擊力", "攻擊頻率", "護甲", "防禦力", "魂"]:
+		var caption := _label(14, Color("#b3c4bc"))
+		caption.text = title
+		stats.add_child(caption)
+		var value := _label(14, Color("#f2e9d2"))
+		value.custom_minimum_size.x = 76
+		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		stats.add_child(value)
+		gear_stat_values[title] = value
+	gear_stat_values["防禦力"].mouse_filter = Control.MOUSE_FILTER_PASS
+	gear_stat_values["防禦力"].tooltip_text = "護甲提供的傷害減免"
+
+
+func _refresh_gear_stats() -> void:
+	var weapon := hunter.selected_weapon()
+	gear_stat_values["Level"].text = str(hunter.level)
+	gear_stat_values["HP"].text = "%d / %d" % [hunter.health, hunter.max_health()]
+	gear_stat_values["MP"].text = "%d / %d" % [hunter.mana, Hunter.MAX_MANA]
+	gear_stat_values["攻擊力"].text = str(hunter.weapon_damage(weapon))
+	gear_stat_values["攻擊頻率"].text = "%.2f 次/秒" % (1.0 / hunter.weapon_period(weapon))
+	gear_stat_values["護甲"].text = str(hunter.armor_points())
+	gear_stat_values["防禦力"].text = "%d%%" % hunter.armor_reduction()
+	gear_stat_values["魂"].text = str(soul_balance)
 
 
 func _layout_gear_portrait() -> void:
@@ -1917,6 +1957,7 @@ func _set_gear_open(open: bool) -> void:
 
 
 func _refresh_gear(selected: int) -> void:
+	_refresh_gear_stats()
 	var default_portrait := hunter.selected_weapon() == "hunter_knife"
 	gear_portrait.texture = gear_portrait_base if default_portrait else null
 	gear_portrait_pose.visible = not default_portrait
