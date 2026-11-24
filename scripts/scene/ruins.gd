@@ -21,9 +21,13 @@ const START := Vector2(950, 526)
 const STAGE_WIDTH := 1840
 const BOSS_SIZES := [1.9, 2.4, 1.75, 2.15]
 const BOSS_HEALTH := [3.0, 8.0, 4.0, 9.0]
+const DROP_ATLAS := preload("res://assets/items/misc/world_drops.png")
+const DROP_ATLAS_CELL := 40
+const DROP_SPRITES := {"soul_currency": 0, "material": 1, "lizard": 2, "spider": 3, "fang_material": 4}
 const DROP_COLORS := {
 	"material": Color("#eac18c"), "lizard": Color("#a4f2d0"),
 	"spider": Color("#ed9e96"), "blade": Color("#ffda84"), "soul_currency": Color("#8de7fb"),
+	"fang_material": Color("#eac18c"),
 }
 const PICKUP_DURATION := 1.3
 const PICKUP_FONT_SIZE := 19
@@ -917,19 +921,24 @@ func _draw() -> void:
 	for drop: Dictionary in drops:
 		var at: Vector2 = drop.at + Vector2(0, sin(elapsed * 4.8 + float(drop.at.x)) * 5.0)
 		var color: Color = DROP_COLORS.get(drop.kind, Color("#dfb9ff"))
+		var atlas_cell: int = DROP_SPRITES.get(drop.kind, -1)
+		if atlas_cell >= 0:
+			draw_texture_rect(SOFT_LIGHT, Rect2(at - Vector2(15, 15), Vector2(30, 30)),
+				false, Color(color, 0.24))
+			draw_texture_rect_region(DROP_ATLAS, Rect2(at - Vector2(11, 11), Vector2(22, 22)),
+				Rect2(atlas_cell * DROP_ATLAS_CELL, 0, DROP_ATLAS_CELL, DROP_ATLAS_CELL))
+			continue
 		draw_circle(at, 15, Color(color, 0.16))
 		if drop.kind == "lantern":
 			var lantern: Dictionary = Bestiary.loot.lantern
 			draw_texture_rect_region(lantern_icon,
 				Rect2(at - Vector2(10, 14), Vector2(20, 28)), Bestiary.rectangle(lantern.icon_region))
 		elif drop.kind == "blade":
-			draw_line(at - Vector2(10, -7), at + Vector2(12, -8), color, 4, true)
+			draw_texture_rect(Equipment.icon(Bestiary.loot.guardian_blade.grants),
+				Rect2(at - Vector2(13, 13), Vector2(26, 26)), false)
 		elif not Equipment.item(drop.kind).is_empty():
 			draw_texture_rect(Equipment.ranked_icon(drop.kind, int(drop.rank)),
 				Rect2(at - Vector2(13, 13), Vector2(26, 26)), false)
-		else:
-			draw_colored_polygon(PackedVector2Array([at + Vector2(0, -10), at + Vector2(7, 0),
-				at + Vector2(0, 10), at + Vector2(-7, 0)]), color)
 	for index in range(pickup_feedback.size() - 1, -1, -1):
 		var popup := pickup_feedback[index]
 		var age := elapsed - float(popup.spawn)

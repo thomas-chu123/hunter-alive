@@ -10,6 +10,7 @@ func _initialize() -> void:
 
 
 func run() -> void:
+	check_drop_art()
 	change_scene_to_file("res://scenes/ruins/ruins.tscn")
 	await scene_changed
 	var level: Ruins = current_scene
@@ -103,6 +104,22 @@ func run() -> void:
 	Input.action_release("hunt_left")
 	await frames(18)
 	quit(1 if failed else 0)
+
+
+func check_drop_art() -> void:
+	var atlas := Ruins.DROP_ATLAS.get_image()
+	var cell := Ruins.DROP_ATLAS_CELL
+	var kinds := ["soul_currency", "material", "lizard", "spider", "fang_material"]
+	check(atlas.get_size() == Vector2i(kinds.size() * cell, cell),
+		"the world drop atlas contains five sprite slots")
+	var sprites := {}
+	for kind in kinds:
+		var index: int = Ruins.DROP_SPRITES.get(kind, -1)
+		var region := atlas.get_region(Rect2i(index * cell, 0, cell, cell))
+		check(index >= 0 and index < kinds.size() and region.get_used_rect().has_area()
+			and region.get_pixel(0, 0).a == 0.0, kind + " uses visible art with a transparent background")
+		sprites[hash(region.get_data())] = true
+	check(sprites.size() == kinds.size(), "each world drop has a distinct silhouette")
 
 
 func select_gear(level: Ruins, id: String) -> void:
