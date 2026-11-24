@@ -35,6 +35,7 @@ var enemies: Array[Monster] = []
 var drops: Array[Dictionary] = []
 var pickup_feedback: Array[Dictionary] = []
 var arrows: Array[Dictionary] = []
+var enemy_projectile_layer: Node2D
 var glyphs: Array[Dictionary] = []
 var fang_target: Monster
 var fang_hits := 0
@@ -152,6 +153,10 @@ func _ready() -> void:
 	hit_effects = HitEffects.new()
 	hit_effects.camera = camera
 	add_child(hit_effects)
+	enemy_projectile_layer = Node2D.new()
+	enemy_projectile_layer.z_index = 2
+	enemy_projectile_layer.draw.connect(_draw_enemy_projectiles)
+	add_child(enemy_projectile_layer)
 	if get_tree().has_meta(CampSave.RESTORE_META):
 		_restore_camp(get_tree().get_meta(CampSave.RESTORE_META))
 		get_tree().remove_meta(CampSave.RESTORE_META)
@@ -178,6 +183,7 @@ func _process(delta: float) -> void:
 		chest.visible = not obtained_equipment.has(chest.equipment_id)
 	if not completed:
 		_update_hud()
+	enemy_projectile_layer.queue_redraw()
 	queue_redraw()
 
 
@@ -310,7 +316,10 @@ func _launch_enemy_projectile(origin: Vector2, direction: float, attack: Diction
 	var speed := float(attack.speed)
 	arrows.append({"at": origin, "direction": direction, "damage": int(attack.damage),
 		"left": (float(attack.trigger_range) + float(Bestiary.rules.combat.projectile_range_padding)) / speed, "hostile": attack.kind,
-		"speed": speed, "radius": float(attack.extent), "element": attack.element})
+		"speed": speed, "radius": float(attack.extent), "element": attack.element, "origin_x": origin.x})
+	var tint := EnemyEffects.element_color(attack.element)
+	hit_effects.trigger_starburst(origin, 26.0, tint.lightened(0.4), 0.17)
+	hit_effects.trigger_shockwave(origin, 29.0, tint, 0.22, 3.0)
 
 
 func _update_glyphs(delta: float) -> void:
@@ -365,6 +374,13 @@ func _update_arrows(delta: float) -> void:
 		if hit or not wall.is_empty() or arrow.left <= 0:
 			if spell and not hit and not wall.is_empty():
 				hit_effects.fire_impact(to)
+			if not hostile.is_empty() and (hit or not wall.is_empty()):
+				var point := to
+				if hit:
+					point.x = clampf(hunter.position.x, minf(from.x, to.x), maxf(from.x, to.x))
+				var tint := EnemyEffects.element_color(arrow.element)
+				hit_effects.trigger_starburst(point, 29.0 + float(arrow.radius), tint.lightened(0.35), 0.21)
+				hit_effects.trigger_shockwave(point, 42.0 + float(arrow.radius), tint, 0.30, 4.5)
 			arrows.remove_at(index)
 		else:
 			arrow.at = to
@@ -754,6 +770,14 @@ func _resize_backdrop() -> void:
 	background.scale = backdrop_scale * (cover / editor_cover)
 
 
+func _draw_enemy_projectiles() -> void:
+	for projectile: Dictionary in arrows:
+		if projectile.has("hostile"):
+			var distance := absf(projectile.at.x - float(projectile.origin_x))
+			EnemyEffects.bolt(enemy_projectile_layer, projectile.at, projectile.direction, projectile.element,
+				projectile.hostile, projectile.radius, distance, elapsed)
+
+
 func _draw() -> void:
 	for glyph in glyphs:
 		var center: Vector2 = glyph.at - Vector2(0, 9)
@@ -778,7 +802,6 @@ func _draw() -> void:
 			draw_circle(at + heading * 3.5, 3.5, Color("#fff5c0"), true, -1, true)
 			continue
 		if projectile.has("hostile"):
-			EnemyEffects.bolt(self, at, projectile.direction, projectile.element, projectile.hostile, projectile.radius)
 			continue
 		var thorn: bool = projectile.weapon == "thorn_bow"
 		draw_line(at - Vector2(projectile.direction * 26, 0), at,

@@ -851,22 +851,35 @@ func _draw_attack_effect(size: Vector2) -> void:
 	var element: String = attack.element
 	var key: String = sound.attack if armed else sound.get("unarmed_attack", sound.attack)
 	var is_heavy: bool = key == "heavy" or int(attack.get("damage", 1)) >= 2 or attack_kind in ["ram", "slam", "crush", "hammer"] or mode == "ground"
+	var progress := _strike_progress() if strike > 0.0 else 0.0
+	var charge := 1.0 - windup / windup_duration if windup > 0.0 else 1.0
 	if mode == "ground" and ground_mark_valid and (windup > 0 or strike > 0):
+		var released := strike > 0.0 and impact_index > 0
 		Effects.ground(self, target_mark - position, float(attack.extent), element,
-			strike > 0, _strike_progress() if strike > 0 else age,
+			released, _release_vfx_progress(progress) if released else charge,
 			sprites.get("ground_effect"), appearance.get("ground_effect", {}), is_heavy)
-	elif windup > 0:
+	elif windup > 0.0 or (strike > 0.0 and _between_double_hits(progress)):
 		var point := Vector2(facing * size.x * 0.28, -size.y * 0.67)
-		if armed:
+		if mode == "bolt":
+			point = Vector2(facing * float(attack.outlet[0]), float(attack.outlet[1]))
+		elif armed:
 			point = weapon_hitbox().get_center() - position
-		Effects.charge(self, point, element, age, is_heavy)
-	elif strike > 0 and _attack_pose() == AttackPose.RELEASE:
-		var progress := _strike_progress()
+		if windup <= 0.0:
+			charge = inverse_lerp(float(combat_rules.double_windup_at), float(combat_rules.strike_moments[1]), progress)
+		Effects.charge(self, point, element, charge, is_heavy or mode == "bolt")
+	elif strike > 0 and impact_index > 0:
+		var release := _release_vfx_progress(progress)
 		if mode == "melee":
 			var reach := _attack_area().size.x + 12.0
-			Effects.sweep(self, size.y * 0.46, reach, facing, element, progress, is_heavy, attack_kind)
+			Effects.sweep(self, size.y * 0.46, reach, facing, element, release, is_heavy, attack_kind)
 		elif mode == "pollen":
-			Effects.pollen(self, progress)
+			Effects.pollen(self, float(attack.extent), release)
+
+
+func _release_vfx_progress(progress: float) -> float:
+	var start := float(combat_rules.strike_moments[impact_index - 1])
+	var end := float(combat_rules.double_windup_at) if impact_index == 1 and int(attack.get("hits", 1)) == 2 else 1.0
+	return clampf(inverse_lerp(start, end, progress), 0.0, 1.0)
 
 
 func _update_hover(delta: float) -> void:
