@@ -485,6 +485,9 @@ func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector
 			monster.apply_equipment_push(direction, float(push.force))
 		elif hunter.gear.get("手部") == "hardroot_bracers" and not hunter.is_on_floor():
 			monster.apply_equipment_push(direction, 85.0)
+	if result == Monster.HitResult.BLOCKED:
+		hit_effects.guard_impact(point, direction)
+		return
 	if weapon == "ember_staff":
 		hit_effects.fire_impact(point)
 		return
@@ -493,12 +496,10 @@ func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector
 	if effective_step == 0:
 		hit_effects.impact(point, direction, weapon_hit)
 		return
-	var blocked := result == Monster.HitResult.BLOCKED
-	hit_effects.blade_impact(point, direction, effective_step, blocked, result == Monster.HitResult.DISARMED)
-	if not blocked:
-		hunter.blade_recoil = -direction * (52.0 if effective_step == 3 else 34.0)
-		if not monster.is_queued_for_deletion():
-			monster.flash_blade_hit()
+	hit_effects.blade_impact(point, direction, effective_step, result == Monster.HitResult.DISARMED)
+	hunter.blade_recoil = -direction * (52.0 if effective_step == 3 else 34.0)
+	if not monster.is_queued_for_deletion():
+		monster.flash_blade_hit()
 
 
 func _on_monster_felled(monster: Monster) -> void:

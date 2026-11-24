@@ -50,7 +50,7 @@ func run() -> void:
 	# Test 2: Test Heavy Blade Impact (Step 3 Finisher / Ultimate move)
 	print("--- Testing Finisher Impact VFX & Screen Shake ---")
 	var hit_point = hunter.position + Vector2(40, -25)
-	hit_effects.blade_impact(hit_point, 1.0, 3, false, false)
+	hit_effects.blade_impact(hit_point, 1.0, 3, false)
 
 	# Peak camera shake is immediately initialized on hit
 	var initial_shake = camera.offset.length()

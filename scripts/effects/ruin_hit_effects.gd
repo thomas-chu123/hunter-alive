@@ -1,6 +1,7 @@
 extends Node2D
 
 const WeaponAudio := preload("res://scripts/sound/hunter_weapon_audio.gd")
+const GUARD_TINT := Color("#b9d7eb")
 const DURATION := 0.23
 const SLASH_DURATION := 0.16
 const SPARK_DURATION := 0.24
@@ -31,6 +32,7 @@ var hitstop: Tween
 var time_scale_before_hit := 1.0
 var hit_voice: AudioStreamPlayer
 var disarm_voice: AudioStreamPlayer
+var guard_voice: AudioStreamPlayer
 var swing_voice: AudioStreamPlayer
 var finisher_voice: AudioStreamPlayer
 var weapon_voices := {}
@@ -63,6 +65,7 @@ func _ready() -> void:
 
 	hit_voice = _make_voice(_make_sound(false))
 	disarm_voice = _make_voice(_make_sound(true))
+	guard_voice = _make_voice(disarm_voice.stream)
 	swing_voice = _make_voice(_make_blade_sound(false))
 	finisher_voice = _make_voice(_make_blade_sound(true))
 	fire_voice = _make_voice(_make_projectile_sound(true))
@@ -84,7 +87,7 @@ func _exit_tree() -> void:
 
 
 func _stop_audio() -> void:
-	for voice: AudioStreamPlayer in [hit_voice, disarm_voice, swing_voice, finisher_voice, fire_voice, bow_voice]:
+	for voice: AudioStreamPlayer in [hit_voice, disarm_voice, guard_voice, swing_voice, finisher_voice, fire_voice, bow_voice]:
 		if is_instance_valid(voice):
 			voice.stop()
 	for voice: AudioStreamPlayer in weapon_voices.values():
@@ -186,14 +189,37 @@ func swing(point: Vector2, direction: float, reach: float, step: int, weapon: St
 	slash_layer.queue_redraw()
 
 
-func blade_impact(point: Vector2, direction: float, step: int, blocked: bool, disarmed: bool) -> void:
-	var heavy := (step == 3 or disarmed) and not blocked
+func guard_impact(point: Vector2, direction: float) -> void:
+	_impact_sparks(point, direction, GUARD_TINT, false)
+	trigger_shockwave(point, 32.0, GUARD_TINT, 0.20, 2.5)
+	_play(guard_voice)
+
+
+func blade_impact(point: Vector2, direction: float, step: int, disarmed: bool) -> void:
+	var heavy := step == 3 or disarmed
 	var tint := Color("#ffca72")
-	if blocked or disarmed:
-		tint = Color("#b9d7eb")
+	if disarmed:
+		tint = GUARD_TINT
 	elif heavy:
 		tint = Color("#ff8833")
+	_impact_sparks(point, direction, tint, heavy)
 
+	if heavy:
+		trigger_shockwave(point, 62.0, Color(1.0, 0.65, 0.28), 0.28, 4.5)
+		trigger_shockwave(point, 38.0, Color(1.0, 0.95, 0.80), 0.19, 3.0)
+		trigger_starburst(point, 52.0, Color(1.0, 0.88, 0.45), 0.24)
+		trigger_slash_scar(point, direction, 85.0, Color(1.0, 0.72, 0.30), 0.30)
+		trigger_screen_flash(Color(1.0, 0.88, 0.60, 0.28), 0.11)
+	else:
+		trigger_shockwave(point, 32.0, Color(1.0, 0.85, 0.45), 0.18, 2.5)
+		trigger_starburst(point, 24.0, Color(1.0, 0.92, 0.65), 0.16)
+
+	var voice := disarm_voice if disarmed else (finisher_voice if heavy else hit_voice)
+	_play(voice, -1.0 if heavy else 0.0)
+	_punctuate_hit(direction, heavy, 12.0 if heavy else 5.2)
+
+
+func _impact_sparks(point: Vector2, direction: float, tint: Color, heavy: bool) -> void:
 	var rays: Array[Vector2] = []
 	var center := randf_range(-0.13, 0.13) - 0.15
 	var ray_count := 20 if heavy else 10
@@ -202,29 +228,7 @@ func blade_impact(point: Vector2, direction: float, step: int, blocked: bool, di
 		var length := randf_range(220.0, 480.0) if heavy else randf_range(160.0, 310.0)
 		rays.append(Vector2(cos(angle) * direction, sin(angle)) * length)
 	sparks.append({"point": point, "rays": rays, "tint": tint, "age": 0.0, "heavy": heavy})
-
-	# Ultimate-grade hit effects: Shockwaves, Starbursts, Slash Scars, Screen Flash
-	if not blocked:
-		if heavy:
-			trigger_shockwave(point, 62.0, Color(1.0, 0.65, 0.28), 0.28, 4.5)
-			trigger_shockwave(point, 38.0, Color(1.0, 0.95, 0.80), 0.19, 3.0)
-			trigger_starburst(point, 52.0, Color(1.0, 0.88, 0.45), 0.24)
-			trigger_slash_scar(point, direction, 85.0, Color(1.0, 0.72, 0.30), 0.30)
-			trigger_screen_flash(Color(1.0, 0.88, 0.60, 0.28), 0.11)
-		else:
-			trigger_shockwave(point, 32.0, Color(1.0, 0.85, 0.45), 0.18, 2.5)
-			trigger_starburst(point, 24.0, Color(1.0, 0.92, 0.65), 0.16)
-
-	var voice := finisher_voice if heavy else hit_voice
-	if blocked or disarmed:
-		voice = disarm_voice
-	_play(voice, -1.0 if heavy else (-4.0 if blocked else 0.0))
 	queue_redraw()
-	additive_layer.queue_redraw()
-
-	if not blocked:
-		var amplitude := 12.0 if heavy else 5.2
-		_punctuate_hit(direction, heavy, amplitude)
 
 
 func _play(voice: AudioStreamPlayer, gain: float = 0.0) -> void:
