@@ -24,7 +24,8 @@ func run_checks() -> void:
 	var species: Array[String] = []
 	for monster in ruins.enemies:
 		species.append(monster.species)
-	check(species.slice(0, 5) == ["spider", "lizard", "spider", "treant", "bell_moth"], "ruins retain the five prototype encounters")
+	check(species.count("spider") == 2 and "lizard" in species and "treant" in species and "bell_moth" in species,
+		"ruins retain the five prototype encounters")
 	if failures > 0:
 		quit(1)
 		return
@@ -34,8 +35,8 @@ func run_checks() -> void:
 	check(not ruins.completed, "gate stays closed until guardian is defeated")
 
 	# Arrange combat states directly. The bridge below uses real input and physics.
-	var lizard = ruins.enemies[1]
-	var guardian = ruins.enemies[3]
+	var lizard = ruins.enemies[species.find("lizard")]
+	var guardian = ruins.enemies[species.find("treant")]
 	lizard.receive_hit(lizard.health, false)
 	for drop: Dictionary in ruins.drops:
 		if drop.kind == "lizard":

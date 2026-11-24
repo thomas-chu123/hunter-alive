@@ -1,7 +1,7 @@
-[gd_resource type="TileSet" format=3]
+[gd_resource type="TileSet" format=3 uid="uid://ce1prgcgc64nt"]
 
-[ext_resource type="PackedScene" path="res://assets/environment/common/props/broken_column.tscn" id="4"]
-[ext_resource type="PackedScene" path="res://assets/environment/common/props/fern.tscn" id="5"]
+[ext_resource type="PackedScene" uid="uid://b4otpp2rbxdn2" path="res://assets/environment/common/props/broken_column.tscn" id="4"]
+[ext_resource type="PackedScene" uid="uid://cm1kk7hhqf0wm" path="res://assets/environment/common/props/fern.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/ruins_column_short.tscn" id="12"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/ruins_column_medium.tscn" id="13"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/ruins_column_tall.tscn" id="14"]

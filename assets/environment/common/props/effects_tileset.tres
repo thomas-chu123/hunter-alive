@@ -1,4 +1,4 @@
-[gd_resource type="TileSet" format=3]
+[gd_resource type="TileSet" format=3 uid="uid://bshhj2w51v1x7"]
 
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/lava/lava_pool_180.tscn" id="31"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/lava/lava_pool_240.tscn" id="32"]

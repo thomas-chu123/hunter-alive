@@ -237,10 +237,20 @@ func _input(event: InputEvent) -> void:
 
 
 func _spawn_enemies() -> void:
-	for encounter in Bestiary.encounters.get(Campaign.IDS[region], []):
-		var skip_if: String = encounter.get("skip_if", "")
-		if skip_if.is_empty() or not bool(get(skip_if)):
-			_add_monster(encounter.species, float(encounter.x), float(encounter.get("y", Landscape.FLOOR_Y)))
+	var monster_layer: TileMapLayer = $Landscape/Monster
+	# Scene tiles are normally instantiated at the end of the frame.
+	monster_layer.update_internals()
+	for marker in monster_layer.get_children(true):
+		var species: String = marker.get_meta("monster_species", "")
+		if not Bestiary.creatures.has(species):
+			continue
+		var loot: Dictionary = Bestiary.loot.monsters.get(species, {})
+		var defeat_flag: String = loot.get("defeat_flag", "")
+		if not defeat_flag.is_empty() and bool(get(defeat_flag)):
+			continue
+		var spawn := to_local(marker.global_position)
+		_add_monster(species, spawn.x, spawn.y)
+	monster_layer.hide()
 
 
 func _add_monster(species: String, x: float, y: float = Landscape.FLOOR_Y) -> void:
@@ -1379,15 +1389,12 @@ func _update_hud() -> void:
 
 
 func _monster_hint() -> String:
-	for encounter in Bestiary.encounters.get(Campaign.IDS[region], []):
-		var hint: Dictionary = encounter.get("hint", {})
+	for monster in enemies:
+		var hint: Dictionary = monster.design.get("encounter_hint", {})
 		if hint.is_empty() or owned_equipment.has(hint.get("unless_owned", "")):
 			continue
-		var flag: String = hint.get("unless_flag", "")
-		if not flag.is_empty() and bool(get(flag)):
-			continue
-		if hunter.position.x > float(hint.get("from_x", -INF)) and (
-				absf(hunter.position.x - float(encounter.x)) < float(hint.get("radius", INF))):
+		var distance := hunter.position.x - monster.home.x
+		if distance > float(hint.get("from_offset", -INF)) and absf(distance) < float(hint.get("radius", INF)):
 			return hint.text
 	return ""
 

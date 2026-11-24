@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://kjce33kmau7e"]
+
+[ext_resource type="Texture2D" uid="uid://dw70trrnbsqns" path="res://assets/monster/spider/idle.png" id="idle"]
+
+[node name="Spider" type="Sprite2D" unique_id=998689708]
+scale = Vector2(0.3, 0.3)
+texture = ExtResource("idle")
+centered = false
+offset = Vector2(-163, -224)
+flip_h = true
+metadata/monster_species = "spider"

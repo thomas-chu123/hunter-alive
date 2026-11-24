@@ -7,6 +7,15 @@ const Monster := preload("res://scripts/character/ruin_monster.gd")
 const Art := preload("res://scripts/character/ruin_sprite_art.gd")
 const Ruins := preload("res://scripts/scene/ruins.gd")
 const Save := preload("res://scripts/game/camp_save.gd")
+const SPAWNS := [
+	{240: "dust_hare", 1320: "spider", 1580: "shale_beetle", 1880: "lizard",
+		2240: "spider", 2340: "bell_moth", 2840: "treant"},
+	{680: "reed_leech", 1180: "lantern_crab", 1600: "mirror_eel", 1780: "root_mole",
+		2200: "silt_ray", 2640: "sluice_snail", 2940: "tide_salamander"},
+	{700: "thorn_archer", 1020: "shield_heron", 1320: "key_jackal", 1600: "ash_scribe",
+		1960: "shard_warden", 2260: "copper_cicada", 2560: "burial_ram", 2860: "seal_keeper"},
+	{},
+]
 
 var failures := 0
 
@@ -59,15 +68,14 @@ func run() -> void:
 		change_scene_to_file(Campaign.SCENES[region])
 		await scene_changed
 		var level := current_scene as Ruins
-		var expected: Array = Bestiary.encounters.get(Campaign.IDS[region], [])
-		check(level.region == region and level.enemies.size() == expected.size(),
+		var expected_spawns: Dictionary = SPAWNS[region].duplicate()
+		check(level.region == region and level.enemies.size() == expected_spawns.size(),
 			"%s spawns its configured roster" % Campaign.IDS[region])
-		for index in range(mini(level.enemies.size(), expected.size())):
-			var monster := level.enemies[index]
-			var encounter: Dictionary = expected[index]
+		for monster in level.enemies:
 			all_species[monster.species] = true
-			check(monster.species == encounter.species and is_equal_approx(monster.home.x, float(encounter.x)),
+			check(monster.species == expected_spawns.get(int(monster.home.x), "") and monster.home.y == 540.0,
 				"%s has its configured spawn position" % monster.species)
+			expected_spawns.erase(int(monster.home.x))
 	check(all_species.size() == Bestiary.creatures.size(), "no monster data is missing an encounter")
 	await check_checkpoint_spawns()
 	quit(1 if failures else 0)
@@ -174,11 +182,8 @@ func check_checkpoint_spawns() -> void:
 		change_scene_to_file(Campaign.scene_path(state))
 		await scene_changed
 		var level := current_scene as Ruins
-		for encounter in Bestiary.encounters.get(Campaign.IDS[region], []):
-			var flag: String = encounter.get("skip_if", "")
-			if not state.get(flag, false):
-				continue
-			var species: String = encounter.species
+		if region in [Campaign.Region.TEMPLE, Campaign.Region.COURT]:
+			var species := "treant" if region == Campaign.Region.TEMPLE else "seal_keeper"
 			check(not level.enemies.any(func(monster: Monster) -> bool: return monster.species == species),
 				"%s stays defeated when this checkpoint is restored" % species)
 		if region == Campaign.Region.CORRIDOR:

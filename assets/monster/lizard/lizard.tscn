@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/monster/lizard/action.png" id="idle"]
+
+[node name="Lizard" type="Sprite2D"]
+texture = ExtResource("idle")
+offset = Vector2(0, -86)
+scale = Vector2(0.8, 0.8)
+flip_h = true
+hframes = 4
+vframes = 4
+metadata/monster_species = "lizard"

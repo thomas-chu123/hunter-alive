@@ -140,6 +140,10 @@
   },
   "treant": {
     "name": "埋根樹靈",
+    "encounter_hint": {
+      "from_offset": -280,
+      "text": "樹靈舉起木刃時，攻擊握刃處的亮點可以繳械"
+    },
     "health": 20,
     "motion": {
       "speed": 96.0,
@@ -224,6 +228,11 @@
   },
   "bell_moth": {
     "name": "石鐘蛾",
+    "encounter_hint": {
+      "radius": 175,
+      "unless_owned": "scaleveil_hood",
+      "text": "石鐘蛾腹部發光時，向上攻擊可打斷落粉。"
+    },
     "health": 6,
     "motion": {
       "speed": 0,

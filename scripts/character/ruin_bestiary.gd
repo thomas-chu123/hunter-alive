@@ -3,7 +3,6 @@ extends RefCounted
 const DATA_DIR := "res://data"
 
 static var creatures: Dictionary = _read_table("monsters")
-static var encounters: Dictionary = _read_table("monster_encounters")
 static var loot: Dictionary = _read_table("monster_loot")
 static var rules: Dictionary = _read_table("monster_rules")
 

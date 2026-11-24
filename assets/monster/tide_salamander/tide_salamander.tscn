@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/monster/tide_salamander/action.png" id="idle"]
+
+[node name="TideSalamander" type="Sprite2D"]
+texture = ExtResource("idle")
+offset = Vector2(0, -86)
+scale = Vector2(0.8, 0.8)
+flip_h = true
+hframes = 4
+vframes = 4
+metadata/monster_species = "tide_salamander"

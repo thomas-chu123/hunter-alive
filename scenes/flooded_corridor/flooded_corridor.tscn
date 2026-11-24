@@ -8,6 +8,7 @@
 [ext_resource type="TileSet" path="res://assets/environment/common/props/background_props_tileset.tres" id="background_props_tileset"]
 [ext_resource type="TileSet" path="res://assets/environment/common/props/obstacle_props_tileset.tres" id="obstacle_props_tileset"]
 [ext_resource type="TileSet" path="res://assets/environment/common/props/effects_tileset.tres" id="effects_tileset"]
+[ext_resource type="TileSet" path="res://assets/monster/monster_tileset.tres" id="monster_tileset"]
 
 [sub_resource type="Gradient" id="DarknessGradient"]
 offsets = PackedFloat32Array(0, 0.18, 0.83, 1)
@@ -72,3 +73,9 @@ tile_set = ExtResource("obstacle_props_tileset")
 z_index = 1
 color = Color(0.14, 0.53, 0.51, 0.22)
 polygon = PackedVector2Array(1580, 524, 2220, 524, 2220, 561, 1580, 561)
+
+[node name="Monster" type="TileMapLayer" parent="Landscape"]
+editor_description = "Paint monster spawn points. Place ground monsters on the floor grid line."
+position = Vector2(-10, -10)
+tile_map_data = PackedByteArray("AAA7ABsAAAAAAAAABQAiABsAAAAAAAAACwBQABsAAAAAAAAACQBZABsAAAAAAAAACgBuABsAAAAAAAAADACEABsAAAAAAAAADQCTABsAAAAAAAAADgA=")
+tile_set = ExtResource("monster_tileset")

@@ -8,6 +8,7 @@
 [ext_resource type="TileSet" path="res://assets/environment/common/props/obstacle_props_tileset.tres" id="obstacle_props_tileset"]
 [ext_resource type="TileSet" path="res://assets/environment/common/props/effects_tileset.tres" id="effects_tileset"]
 [ext_resource type="TileSet" uid="uid://con8hl5nkiqgu" path="res://assets/environment/common/terrain/terrain_tileset.tres" id="terrain_tileset"]
+[ext_resource type="TileSet" path="res://assets/monster/monster_tileset.tres" id="monster_tileset"]
 
 [node name="Ruins" type="Node2D" unique_id=813475917]
 script = ExtResource("1_ruins")
@@ -60,3 +61,9 @@ editor_description = "Paint, move or copy scene props with the TileMap editor."
 position = Vector2(-10, -10)
 tile_map_data = PackedByteArray("AAB5ABIAAAAAAAAABQAPABwAAAAAAAAABQAlABwAAAAAAAAABQBFABwAAAAAAAAABQBTABwAAAAAAAAABQBjABwAAAAAAAAABQB7ABwAAAAAAAAABQCLABwAAAAAAAAABQCgABwAAAAAAAAABQAGABsAAAAAAAAAAwByABEAAAAAAAAAAgBgABUAAgAAAAAAFQBLABYAAgAAAAAAFAAtABsAAAAAAAAAAQA=")
 tile_set = ExtResource("props_tileset")
+
+[node name="Monster" type="TileMapLayer" parent="Landscape"]
+editor_description = "Paint monster spawn points. Place ground monsters on the floor grid line."
+position = Vector2(-10, -10)
+tile_map_data = PackedByteArray("AABCABsAAAAAAAAAAQBeABsAAAAAAAAAAgBwABsAAAAAAAAAAQCOABsAAAAAAAAAAwB1ABsAAAAAAAAABABPABsAAAAAAAAABwAMABsAAAAAAAAACAA=")
+tile_set = ExtResource("monster_tileset")

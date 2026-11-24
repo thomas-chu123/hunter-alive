@@ -1,4 +1,4 @@
-[gd_resource type="TileSet" format=3]
+[gd_resource type="TileSet" format=3 uid="uid://bgh267bawv3nr"]
 
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/light_gate.tscn" id="15"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/impact_column.tscn" id="16"]

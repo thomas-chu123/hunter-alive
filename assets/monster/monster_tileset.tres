@@ -1,0 +1,52 @@
+[gd_resource type="TileSet" format=3 uid="uid://c3tfllb30e4ed"]
+
+[ext_resource type="PackedScene" path="res://assets/monster/ash_scribe/ash_scribe.tscn" id="ash_scribe"]
+[ext_resource type="PackedScene" path="res://assets/monster/bell_moth/bell_moth.tscn" id="bell_moth"]
+[ext_resource type="PackedScene" path="res://assets/monster/burial_ram/burial_ram.tscn" id="burial_ram"]
+[ext_resource type="PackedScene" path="res://assets/monster/copper_cicada/copper_cicada.tscn" id="copper_cicada"]
+[ext_resource type="PackedScene" path="res://assets/monster/dust_hare/dust_hare.tscn" id="dust_hare"]
+[ext_resource type="PackedScene" path="res://assets/monster/key_jackal/key_jackal.tscn" id="key_jackal"]
+[ext_resource type="PackedScene" path="res://assets/monster/lantern_crab/lantern_crab.tscn" id="lantern_crab"]
+[ext_resource type="PackedScene" path="res://assets/monster/lizard/lizard.tscn" id="lizard"]
+[ext_resource type="PackedScene" path="res://assets/monster/mirror_eel/mirror_eel.tscn" id="mirror_eel"]
+[ext_resource type="PackedScene" path="res://assets/monster/reed_leech/reed_leech.tscn" id="reed_leech"]
+[ext_resource type="PackedScene" path="res://assets/monster/root_mole/root_mole.tscn" id="root_mole"]
+[ext_resource type="PackedScene" path="res://assets/monster/seal_keeper/seal_keeper.tscn" id="seal_keeper"]
+[ext_resource type="PackedScene" path="res://assets/monster/shale_beetle/shale_beetle.tscn" id="shale_beetle"]
+[ext_resource type="PackedScene" path="res://assets/monster/shard_warden/shard_warden.tscn" id="shard_warden"]
+[ext_resource type="PackedScene" path="res://assets/monster/shield_heron/shield_heron.tscn" id="shield_heron"]
+[ext_resource type="PackedScene" path="res://assets/monster/silt_ray/silt_ray.tscn" id="silt_ray"]
+[ext_resource type="PackedScene" path="res://assets/monster/sluice_snail/sluice_snail.tscn" id="sluice_snail"]
+[ext_resource type="PackedScene" uid="uid://kjce33kmau7e" path="res://assets/monster/spider/spider.tscn" id="spider"]
+[ext_resource type="PackedScene" path="res://assets/monster/thorn_archer/thorn_archer.tscn" id="thorn_archer"]
+[ext_resource type="PackedScene" path="res://assets/monster/tide_salamander/tide_salamander.tscn" id="tide_salamander"]
+[ext_resource type="PackedScene" path="res://assets/monster/treant/treant.tscn" id="treant"]
+
+[sub_resource type="TileSetScenesCollectionSource" id="MonsterScenes"]
+resource_name = "Monster"
+scenes/1/scene = ExtResource("spider")
+scenes/2/scene = ExtResource("lizard")
+scenes/3/scene = ExtResource("treant")
+scenes/4/scene = ExtResource("bell_moth")
+scenes/5/scene = ExtResource("lantern_crab")
+scenes/6/scene = ExtResource("seal_keeper")
+scenes/7/scene = ExtResource("shale_beetle")
+scenes/8/scene = ExtResource("dust_hare")
+scenes/9/scene = ExtResource("mirror_eel")
+scenes/10/scene = ExtResource("root_mole")
+scenes/11/scene = ExtResource("reed_leech")
+scenes/12/scene = ExtResource("silt_ray")
+scenes/13/scene = ExtResource("sluice_snail")
+scenes/14/scene = ExtResource("tide_salamander")
+scenes/15/scene = ExtResource("thorn_archer")
+scenes/16/scene = ExtResource("shield_heron")
+scenes/17/scene = ExtResource("key_jackal")
+scenes/18/scene = ExtResource("ash_scribe")
+scenes/19/scene = ExtResource("shard_warden")
+scenes/20/scene = ExtResource("copper_cicada")
+scenes/21/scene = ExtResource("burial_ram")
+
+[resource]
+resource_name = "Monster"
+tile_size = Vector2i(20, 20)
+sources/0 = SubResource("MonsterScenes")
