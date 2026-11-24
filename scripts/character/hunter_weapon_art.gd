@@ -2,6 +2,7 @@ extends RefCounted
 
 const HunterAnimation := preload("res://scripts/character/hunter_animation.gd")
 const Equipment := preload("res://scripts/game/ruin_equipment.gd")
+const FORWARD_RAISE := preload("res://assets/characters/hunter/_source/forward_raise.png")
 const CELL := 443.0
 
 # Grip and tip in the inventory illustration's 443-pixel reference space,
@@ -152,20 +153,20 @@ static func draw_attack(canvas: Node2D, weapon: String, progress: float, facing:
 	var tint := Color.TRANSPARENT
 	match weapon:
 		"sluice_spear":
-			pose = "thrust" if follow >= 0.0 and follow < 0.24 else "brace"
-			angle = -0.04 + 0.21 * (1.0 - smoothstep(0.0, release, progress)) - 0.28 * recovery
+			pose = "raise" if follow < 0.0 else ("thrust" if follow < 0.24 else "brace")
+			angle = _forward_windup(progress / release, -0.30, -0.53, -0.04) if follow < 0.0 else lerpf(-0.04, -0.30, recovery)
 			tint = Color("#b3dfd8")
 		"tide_hammer":
 			pose = "raise" if follow < 0.0 else ("thrust" if follow < 0.16 else "brace")
-			angle = lerpf(-2.52, -1.76, smoothstep(0.0, release, progress)) if follow < 0.0 else lerpf(0.84, -1.38, recovery)
+			angle = _forward_windup(progress / release, -1.14, -1.54, 0.84) if follow < 0.0 else lerpf(0.84, -1.14, recovery)
 			tint = Color("#ecc791")
 		"gate_halberd":
 			pose = "raise" if follow < -0.06 else ("thrust" if follow < 0.18 else "brace")
-			angle = lerpf(-2.42, -0.48, smoothstep(0.0, release, progress)) if follow < 0.0 else lerpf(0.09, 0.68, recovery)
+			angle = _forward_windup(progress / release, -1.01, -1.38, 0.09) if follow < 0.0 else lerpf(0.09, -1.01, recovery)
 			tint = Color("#f2d396")
 		"root_blade":
 			pose = "raise" if follow < -0.04 else ("thrust" if follow < 0.17 else "brace")
-			angle = lerpf(-2.03, -0.55, smoothstep(0.0, release, progress)) if follow < 0.0 else lerpf(-0.19, 0.76, recovery)
+			angle = _forward_windup(progress / release, -0.75, -1.36, -0.19) if follow < 0.0 else lerpf(-0.19, -0.75, recovery)
 			tint = Color("#cfaa70")
 		"fang_dagger":
 			pose = "thrust" if follow >= 0.0 and follow < 0.19 else "brace"
@@ -173,7 +174,7 @@ static func draw_attack(canvas: Node2D, weapon: String, progress: float, facing:
 			angle = lerpf(1.6, strike_angle, smoothstep(0.0, release, progress)) if follow < 0.0 else lerpf(strike_angle, 1.35, recovery)
 		"scribe_staff":
 			pose = "raise" if progress > 0.16 and follow < 0.0 else ("thrust" if follow >= 0.0 and follow < 0.2 else "brace")
-			angle = lerpf(-1.56, -1.93, smoothstep(0.0, release, progress)) if follow < 0.0 else lerpf(-0.18, -1.45, recovery)
+			angle = _forward_windup(progress / release, -1.03, -1.47, -0.18) if follow < 0.0 else lerpf(-0.18, -1.03, recovery)
 	var bob := 8.0 if crouching else 0.0
 	_draw_pose(canvas, weapon, pose, angle, facing, bob)
 	if weapon == "scribe_staff":
@@ -184,6 +185,11 @@ static func draw_attack(canvas: Node2D, weapon: String, progress: float, facing:
 			Color(0.60, 0.88, 1.0, charge * 0.75), 1.0, true)
 	elif tint.a > 0 and follow >= 0.0 and follow < 0.16:
 		_draw_strike_trace(canvas, weapon, _tip(pose, weapon, angle, 1.0, bob), facing, tint, follow / 0.16)
+
+
+static func _forward_windup(phase: float, ready: float, raised: float, strike: float) -> float:
+	var lift := lerpf(ready, raised, smoothstep(0.0, 0.60, phase))
+	return lerpf(lift, strike, smoothstep(0.60, 1.0, phase))
 
 
 static func draw_portrait(canvas: Node2D, weapon: String) -> void:
@@ -325,7 +331,7 @@ static func _weapon_texture(weapon: String) -> Texture2D:
 
 static func _grip(pose: String) -> Vector2:
 	match pose:
-		"raise": return _local(Vector2(165, 40), MELEE_GROUND)
+		"raise": return _local(Vector2(295, 50), MELEE_GROUND)
 		"thrust": return _local(Vector2(317, 67), MELEE_GROUND)
 		"brace": return _local(Vector2(266, 98), 174)
 		_: return _local(Vector2(209, 114), 182)
@@ -336,9 +342,11 @@ static func _local(point: Vector2, height: float) -> Vector2:
 
 
 static func _draw_body(canvas: Node2D, pose: String, facing: float, bob: float) -> void:
-	if not clean_bodies.has(pose):
-		clean_bodies[pose] = _make_body(pose)
-	var texture: Texture2D = clean_bodies[pose]
+	var texture: Texture2D = FORWARD_RAISE
+	if pose != "raise":
+		if not clean_bodies.has(pose):
+			clean_bodies[pose] = _make_body(pose)
+		texture = clean_bodies[pose]
 	var size := texture.get_size() * HunterAnimation.SCALE
 	var ground := MELEE_GROUND * HunterAnimation.SCALE if pose in ["raise", "thrust"] else size.y
 	canvas.draw_set_transform(Vector2(0, bob), 0.0, Vector2(facing, 1.0))
@@ -371,8 +379,6 @@ static func _make_body(pose: String) -> ImageTexture:
 	match pose:
 		"idle":
 			_mask(image, [Vector2(211, 116), Vector2(219, 116), Vector2(233, 137), Vector2(220, 139), Vector2(210, 123)], Vector2i(15, -8))
-		"raise":
-			_mask(image, [Vector2(168, 32), Vector2(194, 14), Vector2(207, 16), Vector2(184, 45), Vector2(174, 50), Vector2(171, 43)])
 		"thrust":
 			_mask(image, [Vector2(324, 0), Vector2(CELL, 0), Vector2(CELL, 124), Vector2(274, 124),
 				Vector2(267, 119), Vector2(266, 109), Vector2(260, 102), Vector2(260, 77), Vector2(325, 75)])

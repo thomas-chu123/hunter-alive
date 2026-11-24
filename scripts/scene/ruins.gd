@@ -14,7 +14,6 @@ const Bestiary := preload("res://scripts/character/ruin_bestiary.gd")
 const Progression := preload("res://scripts/game/ruin_progression.gd")
 const Armory := preload("res://scripts/game/ruin_armory.gd")
 const Campaign := preload("res://scripts/game/campaign.gd")
-const MonsterArt := preload("res://scripts/character/ruin_sprite_art.gd")
 const START := Vector2(950, 526)
 const DROP_COLORS := {
 	"material": Color("#eac18c"), "lizard": Color("#a4f2d0"),
@@ -22,6 +21,8 @@ const DROP_COLORS := {
 }
 const PICKUP_DURATION := 1.3
 const PICKUP_FONT_SIZE := 19
+
+static var lantern_icon := load(Bestiary.loot.lantern.icon_texture) as Texture2D
 
 var hunter: Hunter
 var hit_effects: HitEffects
@@ -789,7 +790,7 @@ func _draw() -> void:
 		draw_circle(at, 15, Color(color, 0.16))
 		if drop.kind == "lantern":
 			var lantern: Dictionary = Bestiary.loot.lantern
-			draw_texture_rect_region(MonsterArt.poses[lantern.icon_species].idle,
+			draw_texture_rect_region(lantern_icon,
 				Rect2(at - Vector2(10, 14), Vector2(20, 28)), Bestiary.rectangle(lantern.icon_region))
 		elif drop.kind == "blade":
 			draw_line(at - Vector2(10, -7), at + Vector2(12, -8), color, 4, true)

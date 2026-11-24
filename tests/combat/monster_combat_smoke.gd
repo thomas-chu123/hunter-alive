@@ -42,13 +42,14 @@ func run() -> void:
 		var entry: Dictionary = Bestiary.creatures[id]
 		var attack: Dictionary = entry.attack
 		elements[attack.element] = true
-		var sheet: Texture2D = Art.poses[id].attack
+		var sprites := Art.load_poses(entry.art)
+		var sheet: Texture2D = sprites.attack
 		attack_paths[sheet.resource_path] = true
 		check(valid_poses(sheet.get_image()),
 			"%s has three distinct transparent sprite frames" % id)
 		await encounter(id, false)
 		if attack.has("unarmed"):
-			var unarmed: Texture2D = Art.poses[id].attack_unarmed
+			var unarmed: Texture2D = sprites.attack_unarmed
 			check(valid_poses(unarmed.get_image()),
 				"%s has three distinct disarmed frames" % id)
 			await encounter(id, true)

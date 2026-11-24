@@ -125,17 +125,13 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/lizard/idle.png",
-        "attack": "res://assets/monster/lizard/attack.png",
-        "walk": "res://assets/monster/lizard/walk.png"
+        "action": "res://assets/monster/lizard/action.png",
+        "attack": "res://assets/monster/lizard/attack.png"
       },
-      "kind": "ground",
       "body_size": [
         92,
         70
-      ],
-      "anchor": 158,
-      "scale": 0.33
+      ]
     },
     "soul": {
       "name": "蜥翼",
@@ -196,23 +192,17 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/treant/idle.png",
-        "idle_unarmed": "res://assets/monster/treant/idle_unarmed.png",
+        "action": "res://assets/monster/treant/action.png",
+        "action_unarmed": "res://assets/monster/treant/action_unarmed.png",
         "attack": "res://assets/monster/treant/attack.png",
         "attack_transition": "res://assets/monster/treant/attack_transition.png",
         "attack_transition_unarmed": "res://assets/monster/treant/attack_transition_unarmed.png",
-        "attack_unarmed": "res://assets/monster/treant/attack_unarmed.png",
-        "walk": "res://assets/monster/treant/walk.png",
-        "walk_unarmed": "res://assets/monster/treant/walk_unarmed.png"
+        "attack_unarmed": "res://assets/monster/treant/attack_unarmed.png"
       },
-      "kind": "ground",
       "body_size": [
         110,
         120
-      ],
-      "anchor": 121,
-      "scale": 0.46,
-      "unarmed_anchor": 145
+      ]
     },
     "combat": {
       "starts_armed": true,
@@ -282,37 +272,15 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/bell_moth/idle.png",
+        "action": "res://assets/monster/bell_moth/action.png",
         "attack": "res://assets/monster/bell_moth/attack.png"
       },
-      "kind": "hover",
       "body_size": [
         64,
         49
       ],
-      "cell": 627,
-      "scale": 0.126,
       "y_offset": -22,
-      "abdomen": [
-        [
-          305,
-          365
-        ],
-        [
-          307,
-          372
-        ],
-        [
-          334,
-          383
-        ],
-        [
-          298,
-          373
-        ]
-      ],
-      "flap_rate": 19,
-      "flap_amplitude": 0.08
+      "flap_rate": 19
     },
     "combat": {
       "windup_interrupt": "projectile"
@@ -371,44 +339,15 @@
     ],
     "art": {
       "poses": {
+        "action": "res://assets/monster/lantern_crab/action.png",
+        "action_unarmed": "res://assets/monster/lantern_crab/action_unarmed.png",
         "attack": "res://assets/monster/lantern_crab/attack.png",
         "attack_transition": "res://assets/monster/lantern_crab/attack_transition.png",
-        "attack_unarmed": "res://assets/monster/lantern_crab/attack_unarmed.png",
-        "walk": "res://assets/monster/lantern_crab/walk.png",
-        "walk_unarmed": "res://assets/monster/lantern_crab/walk_unarmed.png",
-        "idle": "res://assets/monster/lantern_crab/idle.png"
+        "attack_unarmed": "res://assets/monster/lantern_crab/attack_unarmed.png"
       },
-      "kind": "guard",
       "body_size": [
         97,
         60
-      ],
-      "scale": 0.085,
-      "anchor": [
-        836,
-        814
-      ],
-      "armed_regions": [
-        [
-          130,
-          28,
-          1490,
-          790
-        ]
-      ],
-      "unarmed_regions": [
-        [
-          130,
-          28,
-          1230,
-          790
-        ],
-        [
-          1360,
-          28,
-          260,
-          386
-        ]
       ]
     },
     "combat": {
@@ -475,20 +414,13 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/seal_keeper/idle.png",
+        "action": "res://assets/monster/seal_keeper/action.png",
         "attack": "res://assets/monster/seal_keeper/attack.png",
-        "attack_transition": "res://assets/monster/seal_keeper/attack_transition.png",
-        "walk": "res://assets/monster/seal_keeper/walk.png"
+        "attack_transition": "res://assets/monster/seal_keeper/attack_transition.png"
       },
-      "kind": "guard",
       "body_size": [
         102,
         136
-      ],
-      "scale": 0.128,
-      "anchor": [
-        594,
-        1307
       ],
       "shield_aura": {
         "center": [
@@ -567,7 +499,7 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/shale_beetle/idle.tres",
+        "action": "res://assets/monster/shale_beetle/action.png",
         "attack": "res://assets/monster/shale_beetle/attack.png"
       }
     },
@@ -623,7 +555,7 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/dust_hare/idle.tres",
+        "action": "res://assets/monster/dust_hare/action.png",
         "attack": "res://assets/monster/dust_hare/attack.png"
       }
     }
@@ -676,7 +608,7 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/mirror_eel/idle.tres",
+        "action": "res://assets/monster/mirror_eel/action.png",
         "attack": "res://assets/monster/mirror_eel/attack.png"
       }
     }
@@ -724,7 +656,7 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/root_mole/idle.tres",
+        "action": "res://assets/monster/root_mole/action.png",
         "attack": "res://assets/monster/root_mole/attack.png"
       }
     },
@@ -776,7 +708,7 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/reed_leech/idle.tres",
+        "action": "res://assets/monster/reed_leech/action.png",
         "attack": "res://assets/monster/reed_leech/attack.png"
       }
     }
@@ -826,7 +758,7 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/silt_ray/idle.tres",
+        "action": "res://assets/monster/silt_ray/action.png",
         "attack": "res://assets/monster/silt_ray/attack.png"
       }
     }
@@ -879,7 +811,7 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/sluice_snail/idle.tres",
+        "action": "res://assets/monster/sluice_snail/action.png",
         "attack": "res://assets/monster/sluice_snail/attack.png"
       }
     },
@@ -939,7 +871,7 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/tide_salamander/idle.tres",
+        "action": "res://assets/monster/tide_salamander/action.png",
         "attack": "res://assets/monster/tide_salamander/attack.png"
       }
     },
@@ -1003,11 +935,11 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/thorn_archer/idle.tres",
+        "action": "res://assets/monster/thorn_archer/action.png",
+        "action_unarmed": "res://assets/monster/thorn_archer/action_unarmed.png",
         "attack": "res://assets/monster/thorn_archer/attack.png",
         "attack_unarmed": "res://assets/monster/thorn_archer/attack_unarmed.png"
-      },
-      "unarmed_idle_from_recovery": true
+      }
     },
     "combat": {
       "starts_armed": true,
@@ -1073,11 +1005,11 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/shield_heron/idle.tres",
+        "action": "res://assets/monster/shield_heron/action.png",
+        "action_unarmed": "res://assets/monster/shield_heron/action_unarmed.png",
         "attack": "res://assets/monster/shield_heron/attack.png",
         "attack_unarmed": "res://assets/monster/shield_heron/attack_unarmed.png"
-      },
-      "unarmed_idle_from_recovery": true
+      }
     },
     "combat": {
       "starts_armed": true,
@@ -1138,7 +1070,7 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/key_jackal/idle.tres",
+        "action": "res://assets/monster/key_jackal/action.png",
         "attack": "res://assets/monster/key_jackal/attack.png"
       }
     }
@@ -1187,7 +1119,7 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/ash_scribe/idle.tres",
+        "action": "res://assets/monster/ash_scribe/action.png",
         "attack": "res://assets/monster/ash_scribe/attack.png"
       },
       "ground_effect": {
@@ -1257,9 +1189,8 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/shard_warden/idle.tres",
-        "attack": "res://assets/monster/shard_warden/attack.png",
-        "walk": "res://assets/monster/shard_warden/walk.png"
+        "action": "res://assets/monster/shard_warden/action.png",
+        "attack": "res://assets/monster/shard_warden/attack.png"
       }
     },
     "combat": {
@@ -1312,7 +1243,7 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/copper_cicada/idle.tres",
+        "action": "res://assets/monster/copper_cicada/action.png",
         "attack": "res://assets/monster/copper_cicada/attack.png"
       }
     }
@@ -1361,7 +1292,7 @@
     ],
     "art": {
       "poses": {
-        "idle": "res://assets/monster/burial_ram/idle.tres",
+        "action": "res://assets/monster/burial_ram/action.png",
         "attack": "res://assets/monster/burial_ram/attack.png"
       }
     }

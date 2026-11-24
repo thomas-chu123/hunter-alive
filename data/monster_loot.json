@@ -22,7 +22,7 @@
     "gate_offset": -50,
     "notice": "提燈落在地上。靠近拾取，用它打開暗水道。",
     "notice_seconds": 4,
-    "icon_species": "lantern_crab",
+    "icon_texture": "res://assets/monster/lantern_crab/idle.png",
     "icon_region": [
       1366,
       423,

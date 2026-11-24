@@ -130,8 +130,6 @@ func _physics_process(delta: float) -> void:
 	invincible_left = maxf(invincible_left - delta, 0)
 	jump_grace = 0.08 if is_on_floor() else maxf(jump_grace - delta, 0)
 	var direction := Input.get_axis("hunt_left", "hunt_right")
-	if direction != 0:
-		facing = signf(direction)
 
 	wall_holding = (
 		equipped_soul == "spider" and Input.is_action_pressed("hunt_soul")
@@ -156,6 +154,14 @@ func _physics_process(delta: float) -> void:
 	if gliding:
 		velocity.y = minf(velocity.y, 49.3 if gear.get("身體") == "wing_cape" else 58.0)
 
+	var on_ground := grounded and not wall_holding and velocity.y >= 0.0
+	if direction != 0 and (not on_ground or attack_left <= 0.0):
+		facing = signf(direction)
+	if Input.is_action_just_pressed("hunt_switch") and not unlocked_weapons.is_empty():
+		var slot := unlocked_weapons.find(selected_weapon())
+		select_weapon(unlocked_weapons[(slot + 1) % unlocked_weapons.size()])
+	_start_requested_attack()
+
 	var speed := WALK_SPEED if walking else RUN_SPEED
 	if gliding:
 		speed = GLIDE_SPEED
@@ -169,7 +175,11 @@ func _physics_process(delta: float) -> void:
 	if shallow_water:
 		speed *= 1.20 if gear.get("腿部") == "eel_greaves" else 1.0
 		current_force = -16.0 if gear.get("腿部") == "sluice_boots" else -32.0
-	velocity.x = move_toward(velocity.x, direction * speed + current_force, 2100.0 * delta)
+	if on_ground and attack_left > 0.0:
+		# Ground attack sprites are planted. Keep impact recoil separate from steering.
+		velocity.x = 0.0
+	else:
+		velocity.x = move_toward(velocity.x, direction * speed + current_force, 2100.0 * delta)
 	velocity.x += blade_recoil
 	var fall_speed := velocity.y
 	move_and_slide()
@@ -179,9 +189,11 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor() and not grounded and fall_speed > 245.0:
 		landing_left = LAND_DURATION * (0.5 if gear.get("腿部") == "cliff_boots" else 1.0)
 	animation_time += delta
-	if Input.is_action_just_pressed("hunt_switch") and not unlocked_weapons.is_empty():
-		var slot := unlocked_weapons.find(selected_weapon())
-		select_weapon(unlocked_weapons[(slot + 1) % unlocked_weapons.size()])
+	_release_attack()
+	queue_redraw()
+
+
+func _start_requested_attack() -> void:
 	var wants_attack := attack_buffer_left > 0 or Input.is_action_pressed("hunt_attack")
 	if wants_attack and attack_left <= 0 and hurt_left <= 0 and (not with_staff or mana >= STAFF_MANA_COST):
 		attack_buffer_left = 0.0
@@ -191,6 +203,9 @@ func _physics_process(delta: float) -> void:
 		attack_duration = weapon_period(attack_weapon)
 		attack_left = attack_duration
 		attack_queued = true
+
+
+func _release_attack() -> void:
 	var hit_at := attack_duration * (1.0 - WeaponArt.release_point(attack_weapon, attack_with_bow))
 	if attack_queued and attack_left <= hit_at:
 		attack_queued = false
@@ -209,7 +224,6 @@ func _physics_process(delta: float) -> void:
 				blade_chain_left = BLADE_CHAIN_WINDOW
 				blade_chain_weapon = attack_weapon
 			attacked.emit(position + origin, facing, attack_with_bow, damage, attack_weapon)
-	queue_redraw()
 
 
 func _can_grip_wall(direction: float) -> bool:

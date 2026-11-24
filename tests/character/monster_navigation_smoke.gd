@@ -3,6 +3,7 @@ extends SceneTree
 const Monster := preload("res://scripts/character/ruin_monster.gd")
 const Ruins := preload("res://scripts/scene/ruins.gd")
 const Art := preload("res://scripts/character/ruin_sprite_art.gd")
+const Bestiary := preload("res://scripts/character/ruin_bestiary.gd")
 
 var level: Ruins
 var caption: Label
@@ -34,8 +35,8 @@ func run() -> void:
 	caption.add_theme_font_size_override("font_size", 24)
 	caption.add_theme_constant_override("outline_size", 7)
 	overlay.add_child(caption)
-	check_motion_sheets("walk", "walk_unarmed", 8, 4)
-	check_motion_sheets("attack_transition", "attack_transition_unarmed", 4, 2)
+	check_motion_sheets(["walk"], 1, 4)
+	check_motion_sheets(["attack_transition", "attack_transition_unarmed"], 4, 2)
 	await low_ceiling("treant")
 	await low_ceiling("seal_keeper")
 	await scout_jumps()
@@ -130,9 +131,9 @@ func attack_transition() -> void:
 	var base_poses := {}
 	for frame in range(230):
 		await physics_frame
-		var stride := float(monster.animation.stride)
-		if monster.walking:
-			gait[floori(fposmod(monster.gait_distance, stride) / stride * 4.0)] = true
+		var locomotion := monster._locomotion_cell()
+		if locomotion.y == Art.Locomotion.WALK:
+			gait[locomotion.x] = true
 		if monster._attack_pose() >= 0:
 			base_poses[monster._attack_pose()] = true
 			var between := monster._transition_frame()
@@ -143,11 +144,12 @@ func attack_transition() -> void:
 	remove(monster)
 
 
-func check_motion_sheets(action: String, disarmed_action: String, expected: int, frame_count: int) -> void:
+func check_motion_sheets(actions: Array, expected: int, frame_count: int) -> void:
 	var count := 0
-	for species: String in Art.poses:
-		for key in [action, disarmed_action]:
-			var texture: Texture2D = Art.poses[species].get(key)
+	for species: String in Bestiary.creatures:
+		var sheets := Art.load_poses(Bestiary.creatures[species].art)
+		for key: String in actions:
+			var texture: Texture2D = sheets.get(key)
 			if texture == null:
 				continue
 			count += 1
@@ -158,7 +160,7 @@ func check_motion_sheets(action: String, disarmed_action: String, expected: int,
 				if not region.is_invisible() and is_zero_approx(region.get_pixel(0, 0).a):
 					seen[hash(region.get_data())] = true
 			check(seen.size() == frame_count, "%s/%s has %d distinct transparent drawings" % [species, key, frame_count])
-	check(count == expected, "%s has %d sheets" % [action, expected])
+	check(count == expected, "%s has %d sheets" % [actions[0], expected])
 
 
 func spawn(id: String, x: float) -> Monster:

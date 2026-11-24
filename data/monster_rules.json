@@ -47,11 +47,6 @@
       112,
       197
     ],
-    "frame_scale": 0.8,
-    "bestiary_size": [
-      103,
-      103
-    ],
-    "bestiary_anchor_y": 0.88
+    "frame_scale": 0.8
   }
 }

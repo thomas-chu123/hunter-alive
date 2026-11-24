@@ -10,6 +10,7 @@ const EnemyAudio := preload("res://scripts/sound/ruin_enemy_audio.gd")
 const Effects := preload("res://scripts/effects/ruin_enemy_effects.gd")
 const Hunter := preload("res://scripts/character/ruin_hunter.gd")
 const HIT_FLASH := preload("res://scripts/effects/ruin_hit_flash.gdshader")
+const PATROL_SPEED := 45.0
 enum State { PATROL, NOTICE, CHASE, WINDUP, STRIKE, RECOVER, RETURN, STAGGER }
 enum AttackPose { IDLE = -1, ANTICIPATION, RELEASE, RECOVERY }
 enum HitResult { BLOCKED, DAMAGED, DISARMED }
@@ -26,6 +27,7 @@ var attack: Dictionary
 var design: Dictionary
 var combat: Dictionary
 var appearance: Dictionary
+var sprites: Dictionary
 var motion_rules: Dictionary = Bestiary.rules.motion
 var combat_rules: Dictionary = Bestiary.rules.combat
 var hover: Dictionary
@@ -62,6 +64,7 @@ var barrier_x := 0.0
 var patrol_center := 0.0
 var requested_speed := 0.0
 var gait_distance := 0.0
+var gait_phase := 0.0
 var visual_turn := -1.0
 var gait_weight := 0.0
 var windup_duration := 0.0
@@ -93,6 +96,7 @@ func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
 	design = Bestiary.creatures[species]
 	combat = design.get("combat", {})
 	appearance = design.art
+	sprites = Art.load_poses(appearance)
 	body_size = Bestiary.vector(appearance.get("body_size", Bestiary.rules.art.body_size))
 	animation = design.get("animation", {})
 	sound = design.sound
@@ -151,8 +155,12 @@ func _physics_process(delta: float) -> void:
 	reacquire_left = maxf(reacquire_left - delta, 0)
 	recoil = move_toward(recoil, 0.0, delta * 38.0)
 	if not hover.is_empty():
+		var previous_x := position.x
 		_update_hover(delta)
 		if state != State.STAGGER and _attack_pose() == AttackPose.IDLE:
+			var travel_x := position.x - previous_x
+			if absf(travel_x) > delta * 12.0:
+				facing = signf(travel_x)
 			_step_sound(delta, float(sound.flap_period))
 		_update_motion_art(delta, 0.0)
 		queue_redraw()
@@ -210,8 +218,7 @@ func _physics_process(delta: float) -> void:
 			foot_dust.remove_at(idx)
 
 	var before := position
-	var stride_val := float(animation.get("stride", 68.0))
-	var rhythm_step := gait_distance * TAU / stride_val
+	var rhythm_step := gait_phase * TAU
 	var stride_pulse := 1.0 + cos(rhythm_step) * 0.10 * gait_weight
 	velocity.x = move_toward(velocity.x, requested_speed * stride_pulse, float(profile.acceleration) * delta)
 	var budget := float(profile.leash)
@@ -260,7 +267,7 @@ func _patrol() -> void:
 	if (position.x - patrol_center) * patrol_dir >= radius or not _can_walk(patrol_dir):
 		patrol_dir = -patrol_dir
 	if (position.x - patrol_center) * patrol_dir < radius and _can_walk(patrol_dir):
-		_move(patrol_dir * 45.0)
+		_move(patrol_dir * PATROL_SPEED)
 
 
 func _chase(offset: Vector2) -> void:
@@ -382,6 +389,7 @@ func _update_motion_art(delta: float, travel: float) -> void:
 	gait_weight = move_toward(gait_weight, 1.0 if walking else 0.0, delta * 8.0)
 	if walking:
 		gait_distance += travel
+		gait_phase = fposmod(gait_phase + travel / _gait_stride(), 1.0)
 	var turning_rate := 21.0 if state in [State.WINDUP, State.STRIKE] else 13.0
 	visual_turn = move_toward(visual_turn, facing, turning_rate * delta)
 
@@ -392,6 +400,35 @@ func _sprite_facing() -> float:
 		s = facing
 	var mag := clampf(pow(absf(visual_turn), 0.72), 0.08, 1.0)
 	return s * mag
+
+
+func _locomotion_cell() -> Vector2i:
+	var count := Art.ACTION_COLUMNS
+	var turn := 1.0 - absf(visual_turn)
+	if turn > 0.08:
+		return Vector2i(mini(floori(turn * count), count - 1), Art.Locomotion.TURN)
+	if not hover.is_empty():
+		var flap := age * float(appearance.flap_rate) / TAU
+		var dashing := absf(cos(age * float(hover.horizontal_rate))) > 0.72
+		return Vector2i(floori(flap * count) % count, Art.Locomotion.RUN if dashing else Art.Locomotion.WALK)
+	if not walking:
+		if not is_on_floor() and absf(velocity.x) > 20.0:
+			return Vector2i(2, Art.Locomotion.RUN)
+		return Vector2i(floori(age * 3.0) % count, Art.Locomotion.IDLE)
+
+	var frame := floori(gait_phase * count)
+	return Vector2i(frame, Art.Locomotion.RUN if _running_gait() else Art.Locomotion.WALK)
+
+
+func _running_gait() -> bool:
+	var desired := absf(requested_speed)
+	return state in [State.CHASE, State.RETURN] and desired > PATROL_SPEED and absf(velocity.x) > minf(52.0, desired * 0.7)
+
+
+func _gait_stride() -> float:
+	var stride := float(animation.get("stride", 68.0))
+	var running := sprites.has("action") and _running_gait()
+	return stride * 1.24 if running else stride
 
 
 func _clear_to_target() -> bool:
@@ -687,8 +724,7 @@ func _draw_actor() -> void:
 	var unarmed := not armed and attack.has("unarmed")
 	var motion_facing := _sprite_facing()
 	var size := body_size
-	var stride := float(animation.get("stride", 68.0))
-	var rhythm := gait_distance * TAU / stride
+	var rhythm := gait_phase * TAU
 
 	# Procedural Locomotion: Vertical Bobbing & Bounce
 	bob_y = -absf(sin(rhythm)) * 5.2 * gait_weight
@@ -706,10 +742,9 @@ func _draw_actor() -> void:
 	var stride_sway := cos(rhythm) * 0.045 * gait_weight
 	var lean := sprint_lean + stride_sway
 
-	var sheets: Dictionary = Art.poses[species]
-	var attack_sheet: Texture2D = sheets.attack_unarmed if unarmed else sheets.attack
-	var walk_sheet: Texture2D = sheets.get("walk_unarmed" if unarmed else "walk")
-	var transition_sheet: Texture2D = sheets.get("attack_transition_unarmed" if unarmed else "attack_transition")
+	var attack_sheet: Texture2D = sprites.attack_unarmed if unarmed else sprites.attack
+	var action_sheet: Texture2D = sprites.get("action_unarmed" if unarmed else "action")
+	var transition_sheet: Texture2D = sprites.get("attack_transition_unarmed" if unarmed else "attack_transition")
 	var phase := _transition_frame() if transition_sheet != null else -1
 
 	if state == State.NOTICE:
@@ -740,25 +775,16 @@ func _draw_actor() -> void:
 			Art.draw_motion_frame(actor_art, transition_sheet, phase, motion_facing, tint, stretch_y, lean, recoil, bob_y, stretch_x)
 		else:
 			Art.draw_motion_frame(actor_art, attack_sheet, pose, motion_facing, tint, stretch_y, lean, recoil, bob_y, stretch_x)
-	elif walk_sheet != null and gait_weight > 0.24:
-		Art.draw_motion_frame(actor_art, walk_sheet, floori(fposmod(gait_distance, stride) / stride * 4.0),
+	elif action_sheet != null:
+		var cell := _locomotion_cell()
+		var direction := facing if is_zero_approx(visual_turn) else signf(visual_turn)
+		Art.draw_locomotion(actor_art, action_sheet, cell, direction, tint, float(appearance.get("y_offset", 0.0)))
+	elif gait_weight > 0.24:
+		Art.draw_motion_frame(actor_art, sprites.walk, floori(gait_phase * 4.0),
 			motion_facing, tint, stretch_y, lean, recoil, bob_y, stretch_x)
 	else:
-		match appearance.get("kind", "bestiary"):
-			"hover":
-				var flap := 1.0 + sin(age * float(appearance.flap_rate)) * float(appearance.flap_amplitude)
-				Art.draw_hover_idle(actor_art, species, 0, motion_facing, flap, tint, bob_y)
-			"guard":
-				Art.draw_guard_idle(actor_art, species, motion_facing, armed, lean, tint, bob_y, stretch_y, stretch_x)
-			"ground":
-				Art.draw_ground_idle(actor_art, species, unarmed, motion_facing, (1.0 - stretch_y) * size.y, tint, bob_y, stretch_x)
-				actor_art.draw_set_transform(Vector2.ZERO)
-			_:
-				if unarmed and appearance.get("unarmed_idle_from_recovery", false):
-					Art.draw_motion_frame(actor_art, attack_sheet, AttackPose.RECOVERY, motion_facing,
-						tint, stretch_y, lean, recoil, bob_y, stretch_x)
-				else:
-					Art.draw_bestiary_idle(actor_art, species, motion_facing, lean, tint, stretch_y, recoil, bob_y, stretch_x)
+		Art.draw_ground_idle(actor_art, sprites.idle, appearance, motion_facing,
+			(1.0 - stretch_y) * size.y, tint, bob_y, stretch_x)
 
 
 func _draw() -> void:
@@ -828,7 +854,7 @@ func _draw_attack_effect(size: Vector2) -> void:
 	if mode == "ground" and ground_mark_valid and (windup > 0 or strike > 0):
 		Effects.ground(self, target_mark - position, float(attack.extent), element,
 			strike > 0, _strike_progress() if strike > 0 else age,
-			Art.poses[species].get("ground_effect"), appearance.get("ground_effect", {}), is_heavy)
+			sprites.get("ground_effect"), appearance.get("ground_effect", {}), is_heavy)
 	elif windup > 0:
 		var point := Vector2(facing * size.x * 0.28, -size.y * 0.67)
 		if armed:

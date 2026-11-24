@@ -6,8 +6,6 @@ const Body := preload("res://scripts/character/hunter_animation.gd")
 const Equipment := preload("res://scripts/game/ruin_equipment.gd")
 const Sprites := preload("res://scripts/character/hunter_sprites.gd")
 
-const MOTIONS := ["idle", "walk", "run", "jump", "glide", "land", "crouch", "hurt", "retreat", "climb"]
-
 var viewport: SubViewport
 var failures := 0
 
@@ -30,25 +28,32 @@ func bake() -> void:
 			push_error("Cannot create sprite folder: %s" % folder)
 			quit(1)
 			return
-		for action: String in MOTIONS:
-			await write_sheet(folder, weapon, action, Sprites.MOTION_FRAMES, false, 1)
+		for atlas: String in Sprites.MOTION_ATLASES:
+			var actions: Array = Sprites.MOTION_ATLASES[atlas].duplicate()
+			if atlas == "reaction" and Sprites.attack_frames(weapon) == Sprites.MOTION_FRAMES:
+				actions.append("attack")
+			await write_sheet(folder, weapon, atlas, actions, false, 1)
+		if Sprites.attack_frames(weapon) == Sprites.MOTION_FRAMES:
+			continue
 		var steps := 3 if weapon == "fang_dagger" else 1
 		for step in range(1, steps + 1):
-			var count := Sprites.attack_frames(weapon)
-			await write_sheet(folder, weapon, "attack", count, false, step)
+			await write_sheet(folder, weapon, Sprites.attack_action(weapon, false, step), [], false, step)
 			if Sprites.attack_action(weapon, true, step) != Sprites.attack_action(weapon, false, step):
-				await write_sheet(folder, weapon, "attack", count, true, step)
+				await write_sheet(folder, weapon, Sprites.attack_action(weapon, true, step), [], true, step)
 	quit(1 if failures else 0)
 
 
-func write_sheet(folder: String, weapon: String, action: String, count: int, crouching: bool, step: int) -> void:
-	var attack := action == "attack"
-	var size := Sprites.ATTACK_SIZE if attack else Sprites.motion_size(action)
+func write_sheet(folder: String, weapon: String, name: String, actions: Array, crouching: bool, step: int) -> void:
+	var attack := actions.is_empty()
+	var count := Sprites.attack_frames(weapon) if attack else Sprites.MOTION_FRAMES
+	var size := Sprites.ATTACK_SIZE if attack else Sprites.MOTION_SIZE
 	var origin := Sprites.ATTACK_ORIGIN if attack else Sprites.MOTION_ORIGIN
-	var rows := ceili(float(count) / Sprites.COLUMNS)
-	viewport.size = Vector2i(size.x * Sprites.COLUMNS, size.y * rows)
-	for frame in range(count):
-		var cell := Vector2i(frame % Sprites.COLUMNS, floori(float(frame) / Sprites.COLUMNS))
+	var used_cells := count if attack else count * actions.size()
+	viewport.size = size * Vector2i(Sprites.COLUMNS, Sprites.ROWS)
+	for index in range(used_cells):
+		var cell := Vector2i(index % Sprites.COLUMNS, floori(float(index) / Sprites.COLUMNS))
+		var action: String = "attack" if attack else actions[cell.y]
+		var frame := index if attack else cell.x
 		var canvas := Node2D.new()
 		canvas.scale = Vector2.ONE * Sprites.SCALE
 		canvas.position = Vector2(cell * size) + origin
@@ -61,16 +66,15 @@ func write_sheet(folder: String, weapon: String, action: String, count: int, cro
 	await process_frame
 	await RenderingServer.frame_post_draw
 	var image := viewport.get_texture().get_image()
-	var name := Sprites.attack_action(weapon, crouching, step) if attack else action
 	var path := folder.path_join(name + ".png")
-	if image == null or image.is_empty() or not cells_have_padding(image, size, count):
+	if image == null or image.is_empty() or not cells_have_padding(image, size, used_cells):
 		push_error("Empty or clipped sprite frame in %s" % path)
 		failures += 1
 	elif straight_alpha(image).save_png(ProjectSettings.globalize_path(path)) != OK:
 		push_error("Cannot write %s" % path)
 		failures += 1
 	else:
-		print("PASS %s (%d frames)" % [path, count])
+		print("PASS %s (%d frames)" % [path, used_cells])
 	for child in viewport.get_children():
 		viewport.remove_child(child)
 		child.queue_free()

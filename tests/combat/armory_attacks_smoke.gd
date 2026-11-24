@@ -28,6 +28,10 @@ func run() -> void:
 	level.enemies.clear()
 	level.notice_left = 0.0
 	var args := OS.get_cmdline_user_args()
+	if "--attack-footing" in args:
+		await check_attack_footing()
+		quit(1 if failed else 0)
+		return
 	if "--opening-bow" in args or "--thorn-bow" in args:
 		await check_bow_movement("thorn_bow" if "--thorn-bow" in args else "hunter_bow")
 		quit(1 if failed else 0)
@@ -84,6 +88,47 @@ func run() -> void:
 	check(target.health == 12 - hunter.weapon_damage("sluice_spear"), "spear damages an enemy beyond short-knife reach")
 	await frames(12)
 	quit(1 if failed else 0)
+
+
+func check_attack_footing() -> void:
+	var hunter := level.hunter
+	level._grant_equipment("root_blade")
+	level._grant_equipment("ember_staff")
+	for weapon in ["root_blade", "hunter_bow", "ember_staff", "hunter_knife"]:
+		hunter.respawn(Vector2(1255.0, 539.0))
+		hunter.select_weapon(weapon)
+		Input.action_press("hunt_right")
+		await frames(10)
+		check(hunter.is_on_floor() and hunter.velocity.x > 0.0, "running before attack: " + weapon)
+		var planted_x := hunter.position.x
+		Input.action_press("hunt_attack")
+		await frames(1)
+		Input.action_release("hunt_attack")
+		check(hunter.attack_left > 0.0 and is_equal_approx(hunter.position.x, planted_x),
+			"plants immediately when attacking: " + weapon)
+		Input.action_release("hunt_right")
+		Input.action_press("hunt_left")
+		var duration_frames := ceili(hunter.attack_duration * Engine.physics_ticks_per_second)
+		await frames(duration_frames - 2)
+		check(hunter.attack_left > 0.0 and is_equal_approx(hunter.position.x, planted_x) and hunter.facing > 0.0,
+			"keeps footing and direction through the swing: " + weapon)
+		await frames(6)
+		Input.action_release("hunt_left")
+		check(hunter.attack_left <= 0.0 and hunter.position.x < planted_x and hunter.facing < 0.0,
+			"resumes steering after the swing: " + weapon)
+
+	hunter.respawn(Vector2(1255.0, 539.0))
+	await frames(4)
+	var jump_origin := hunter.position
+	Input.action_press("hunt_right")
+	Input.action_press("hunt_jump")
+	Input.action_press("hunt_attack")
+	await frames(4)
+	Input.action_release("hunt_right")
+	Input.action_release("hunt_jump")
+	Input.action_release("hunt_attack")
+	check(hunter.attack_left > 0.0 and not hunter.is_on_floor() and hunter.position.x > jump_origin.x
+		and hunter.position.y < jump_origin.y, "can steer during an airborne attack")
 
 
 func check_bow_movement(weapon: String) -> void:
