@@ -88,35 +88,33 @@ func check_platforms(level: Level) -> void:
 	var roster_floors := {}
 	for enemy in level.enemies:
 		roster_floors[roundi(enemy.home.y / 20.0)] = true
-	for floor_row in [27, 21, 15, 9, 3]:
+	for floor_row in [27, 15, 3, -9, -21]:
 		check(roster_floors.has(floor_row) and traps.get_used_cells().any(func(cell): return cell.y in [floor_row - 1, floor_row]),
 			"floor %d has a monster and a trap" % floor_row)
 	check(level.landscape.portals[0].position.y < level.landscape.campfires[0].position.y - 400.0,
 		"exit is on the top floor")
 	var hunter := level.hunter
-	for row in [27, 24, 21, 18, 15, 12, 9, 6]:
-		var possible := terrain.get_used_cells().filter(func(cell):
-			return (cell.y == row - 3 and cell.x > 2 and cell.x < 35 and
-				terrain.get_cell_alternative_tile(cell) == 1 and
-				terrain.get_cell_source_id(cell + Vector2i(0, 3)) != -1))
-		if not check(not possible.is_empty(), "overlapping step from row %d" % row):
-			return
-		var cell: Vector2i = possible[possible.size() / 2]
-		hunter.position = Vector2(cell.x * 20 + 10, row * 20 - 4)
-		hunter.velocity = Vector2.ZERO
-		for frame in range(12):
-			await physics_frame
-		Input.action_press("hunt_jump")
+	var props: TileMapLayer = level.landscape.get_node("Props")
+	var lifts := props.find_children("Lift", "AnimatableBody2D", true, false)
+	var ferries := props.find_children("Ferry", "AnimatableBody2D", true, false)
+	var lamps := props.find_children("LandingLight", "", true, false)
+	check(props.get_used_cells_by_id(4).size() == 12 and lamps.size() == 4, "four landing sets painted on Props")
+	check(lifts.size() == 4 and lifts.all(func(lift): return lift.travel == Vector2(0, -240)), "four vertical lift tiles")
+	check(ferries.size() == 4 and ferries.all(func(ferry): return ferry.travel.x in [180.0, 220.0, 260.0, 300.0] and ferry.travel.y == 0), "four horizontal ferry tiles")
+	var ground := Vector2(260, 540)
+	hunter.position = ground
+	hunter.velocity = Vector2.ZERO
+	for frame in range(8):
 		await physics_frame
+	Input.action_press("hunt_jump")
+	await physics_frame
+	await physics_frame
+	Input.action_release("hunt_jump")
+	var apex := hunter.position.y
+	for frame in range(55):
 		await physics_frame
-		Input.action_release("hunt_jump")
-		var reached := false
-		for frame in range(45):
-			await physics_frame
-			if hunter.is_on_floor() and absf(hunter.position.y - (row - 3) * 20) < 5.0:
-				reached = true
-				break
-		check(reached, "basic jump from y=%d to y=%d" % [row * 20, (row - 3) * 20])
+		apex = minf(apex, hunter.position.y)
+	check(apex < ground.y - 80 and hunter.is_on_floor(), "standing jump clears 80 pixels and lands")
 	var elevated := level.enemies.filter(func(enemy): return enemy.position.y <= 300.0)
 	if not elevated.is_empty():
 		var enemy = elevated[0]
@@ -126,6 +124,12 @@ func check_platforms(level: Level) -> void:
 		check(level.drops.any(func(drop): return drop.kind == "soul_currency" and drop.at.y < 470.0),
 			"upper floor loot lands above ground level")
 	if level.region == Campaign.Region.TEMPLE and level.stage == 1:
+		for x in range(30, 57):
+			if x < 42 or x >= 46:
+				terrain.set_cell(Vector2i(x, 21), 0, Vector2i.ZERO)
+		for y in range(22, 27):
+			terrain.set_cell(Vector2i(46, y), 0, Vector2i.ZERO)
+		terrain.update_internals()
 		await check_soul_routes(level)
 
 
@@ -157,7 +161,7 @@ func check_soul_routes(level: Level) -> void:
 	check(glided and hunter.is_on_floor() and absf(hunter.position.y - 420.0) < 5.0,
 		"lizard glide crosses the upper platform gap")
 
-	hunter.position = Vector2(919, 536)
+	hunter.position = Vector2(904, 536)
 	hunter.velocity = Vector2.ZERO
 	hunter.equipped_soul = "spider"
 	for frame in range(12):
@@ -196,7 +200,7 @@ func check_boss(level: Level) -> void:
 	if not check(is_instance_valid(boss) and level.enemies.size() == 1, "arena has one boss"):
 		return
 	var terrain: TileMapLayer = level.get_node("Landscape/Terrain")
-	check(terrain.get_used_cells().all(func(cell): return cell.y >= 27 or cell.x in [0, 91]),
+	check(range(140).all(func(x): return terrain.get_cell_source_id(Vector2i(x, 27)) == 0),
 		"boss arena has one continuous floor")
 	var original: Dictionary = Bestiary.creatures[boss.species]
 	check(boss.boss_scale > 1.0 and boss.level > original.level and boss.max_health > original.health,

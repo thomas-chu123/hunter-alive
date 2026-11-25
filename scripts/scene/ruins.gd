@@ -18,7 +18,7 @@ const FloorVisibility := preload("res://scripts/scene/ruin_floor_visibility.gd")
 const SOFT_LIGHT := preload("res://assets/environment/common/props/soft_light.tres")
 const AMBIENT_LIGHT := Color(0.30, 0.33, 0.38)
 const START := Vector2(950, 526)
-const STAGE_WIDTH := 1840
+const STAGE_WIDTH := 2800
 const BOSS_SIZES := [1.9, 2.4, 1.75, 2.15]
 const BOSS_HEALTH := [3.0, 8.0, 4.0, 9.0]
 const DROP_ATLAS := preload("res://assets/items/misc/world_drops.png")
@@ -162,7 +162,7 @@ func _ready() -> void:
 	camera = Camera2D.new()
 	camera.limit_left = 0
 	camera.limit_right = level_width
-	camera.limit_top = -360 if stage > 0 else -10
+	camera.limit_top = -760 if stage > 0 else -240
 	camera.limit_bottom = 662
 	camera.position.y = -155 if stage > 0 else -204
 	camera.position_smoothing_enabled = true

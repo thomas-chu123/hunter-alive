@@ -18,5 +18,5 @@ position = Vector2(0, -60)
 texture = ExtResource("1_art")
 
 [node name="ClimbBounds" type="CollisionShape2D" parent="." unique_id=787106144]
-position = Vector2(409, 274)
+position = Vector2(0, -63)
 shape = SubResource("ClimbBounds")

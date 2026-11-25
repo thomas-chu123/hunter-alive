@@ -10,7 +10,7 @@ const TILESETS := {
 	"ObstacleProps": preload("res://assets/environment/common/props/obstacle_props_tileset.tres"),
 	"Traps": preload("res://assets/environment/common/traps/trap_tileset.tres"),
 }
-const PROP_COUNTS := [22, 15, 15, 13]
+const PROP_COUNTS := [30, 23, 23, 23]
 const CHEST_COUNTS := [2, 5, 4, 0]
 
 var failures := 0
@@ -23,6 +23,7 @@ func _initialize() -> void:
 
 func run() -> void:
 	check_tile_sources()
+	await check_landing_tiles()
 	check_brazier_art()
 	check_seeded_braziers()
 	for region in Campaign.SCENES.size():
@@ -63,9 +64,30 @@ func run() -> void:
 	quit(1 if failures else 0)
 
 
+func check_landing_tiles() -> void:
+	var layer := TileMapLayer.new()
+	layer.tile_set = TILESETS["Props"]
+	root.add_child(layer)
+	var source := layer.tile_set.get_source(4) as TileSetScenesCollectionSource
+	for index in source.get_scene_tiles_count():
+		layer.set_cell(Vector2i(index, 0), 4, Vector2i.ZERO, source.get_scene_tile_id(index))
+	layer.update_internals()
+	var cells := layer.get_used_cells()
+	layer.set_pattern(Vector2i(0, 3), layer.get_pattern(cells))
+	layer.update_internals()
+	check(layer.get_child_count() == 2 * cells.size(), "copying landing tiles instantiates all seven props a second time")
+	for cell in cells:
+		layer.erase_cell(cell)
+	layer.update_internals()
+	await process_frame
+	check(layer.get_child_count() == cells.size() and layer.get_used_cells().all(func(cell): return cell.y == 3),
+		"erasing original landing tiles preserves the painted copies")
+	layer.free()
+
+
 func check_tile_sources() -> void:
 	var sources := {
-		"Props": {0: ["Props", 12], 1: ["Weapons", 3], 2: ["Armor", 8], 3: ["Traversal", 4]},
+		"Props": {0: ["Props", 12], 1: ["Weapons", 3], 2: ["Armor", 8], 3: ["Traversal", 6], 4: ["Landings", 7]},
 		"BackgroundProps": {0: ["BackgroundProps", 8]},
 		"ObstacleProps": {0: ["ObstacleProps", 3]},
 		"Traps": {0: ["Mechanical", 5], 1: ["Elemental", 5], 2: ["Portals", 4], 3: ["Environment Effects", 3]},
@@ -210,26 +232,26 @@ func check_floor_visibility(level: Ruins) -> void:
 	if level.stage == Campaign.BOSS_STAGE:
 		check(visibility == null, "%s leaves the single-floor arena open" % path)
 		return
-	check(visibility != null and visibility.visible_band(500.0) == Vector2(420.0, 560.0)
-		and visibility.visible_band(459.0) == Vector2(420.0, 560.0),
+	check(visibility != null and visibility.visible_band(500.0) == Vector2(300.0, 560.0)
+		and visibility.visible_band(459.0) == Vector2(300.0, 560.0),
 		"%s shows the ground floor and its short steps without exposing the floor above" % path)
 	if visibility == null:
 		return
-	check(visibility.visible_band(410.0) == Vector2(300.0, 440.0)
-		and visibility.visible_band(40.0) == Vector2(-INF, 80.0),
+	check(visibility.visible_band(290.0) == Vector2(60.0, 320.0)
+		and visibility.visible_band(-430.0) == Vector2(-INF, -400.0),
 		"%s changes floors across the slab and leaves the top floor open above" % path)
 	check(visibility.layer > 0 and visibility.layer < (level.health_hearts.get_canvas_layer_node() as CanvasLayer).layer,
 		"%s draws the darkness above the world and below the HUD" % path)
 	var upper_mask := visibility.get_child(0) as ColorRect
 	var lower_mask := visibility.get_child(1) as ColorRect
-	for foot_y in [540.0, 420.0]:
+	for foot_y in [540.0, 300.0]:
 		level.hunter.position.y = foot_y
 		level.camera.reset_smoothing()
 		level.camera.force_update_scroll()
 		visibility._process(0.0)
 		var canvas := root.get_canvas_transform()
 		var view_size := root.get_visible_rect().size
-		var ceiling_y := clampf((canvas * Vector2(0, foot_y - 120.0)).y, 0.0, view_size.y)
+		var ceiling_y := clampf((canvas * Vector2(0, foot_y - 240.0)).y, 0.0, view_size.y)
 		var floor_y := clampf((canvas * Vector2(0, foot_y + 20.0)).y, 0.0, view_size.y)
 		check(upper_mask.size.is_equal_approx(Vector2(view_size.x, ceiling_y))
 			and is_equal_approx(lower_mask.position.y, floor_y)
@@ -247,10 +269,12 @@ func check_lava_tiles(level: Ruins) -> void:
 	var original := Vector2i(15, 27)
 	var target := original + Vector2i(5, -4)
 	var focus := layer.to_global(layer.map_to_local(original)) + Vector2(90, 0)
-	check(layer.get_used_cells().size() == 4, "volcano places all four lava pools")
+	check(layer.get_used_cells_by_id(3).size() == 4, "volcano places all four lava pools")
 	var pool_widths := {Vector2(300, 540): 180, Vector2(1200, 540): 280,
 		Vector2(2000, 540): 240, Vector2(2800, 540): 280}
 	for instance: Node2D in layer.get_children():
+		if not instance.has_node("Pool"):
+			continue
 		var pool := instance.get_node("Pool") as Polygon2D
 		check(pool_widths.get(instance.global_position) == roundi(pool.polygon[1].x)
 			and instance.has_node("Glow"), "lava pool and glow retain their placement and width at %s" % instance.global_position)
@@ -268,7 +292,7 @@ func check_lava_tiles(level: Ruins) -> void:
 	layer.erase_cell(target)
 	layer.update_internals()
 	await process_frame
-	check(layer.get_child_count() == 4, "erasing the copied lava cell removes both visuals")
+	check(layer.get_child_count() == 6, "erasing the copied lava cell removes both visuals")
 
 
 func check_weapon_chest(level: Ruins) -> void:

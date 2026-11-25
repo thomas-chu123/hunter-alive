@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://p0wk3o4bh8a8"]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/floating_slab.tscn" id="prop"]
+
+[node name="Lift240" type="Node2D" unique_id=1820268252]
+
+[node name="Lift" parent="." unique_id=1401264650 instance=ExtResource("prop")]
+position = Vector2(0, 8)
+travel = Vector2(0, -240)

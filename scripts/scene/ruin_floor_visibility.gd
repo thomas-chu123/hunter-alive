@@ -18,12 +18,12 @@ func _init(terrain: TileMapLayer, hunter: Node2D, level_width: float, ground_y: 
 	var tiles_per_row := {}
 	for cell in terrain.get_used_cells():
 		var tile := terrain.get_cell_tile_data(cell)
-		if tile != null and tile.get_collision_polygons_count(0) > 0 and tile.is_collision_polygon_one_way(0, 0):
+		if tile != null and tile.get_collision_polygons_count(0) > 0 and terrain.get_cell_source_id(cell + Vector2i.UP) < 0:
 			tiles_per_row[cell.y] = tiles_per_row.get(cell.y, 0) + 1
 
-	# The broad one-way rows are full floors. Short ledges between them are steps.
+	# The broad exposed rows are full floors. Short ledges between them are steps.
 	for row: int in tiles_per_row:
-		if tiles_per_row[row] * tile_size.x > level_width * 0.5:
+		if terrain.to_global(terrain.map_to_local(Vector2i(0, row))).y < ground_y and tiles_per_row[row] * tile_size.x > level_width * 0.5:
 			var center := terrain.map_to_local(Vector2i(0, row))
 			_floor_surfaces.append(terrain.to_global(center - Vector2(0, _slab_height / 2.0)).y)
 	_floor_surfaces.append(ground_y)

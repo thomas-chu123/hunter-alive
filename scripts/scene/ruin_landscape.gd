@@ -67,9 +67,10 @@ func place_braziers(level_width: float, random: RandomNumberGenerator) -> void:
 		var band := floori(foot.x / band_width)
 		bands[band].append(foot)
 
+	var existing := props.get_used_cells_by_id(0, Vector2i.ZERO, BRAZIER_TILE_ID)
 	var last_x := -INF
 	for band in bands:
-		var candidates := band.filter(func(at: Vector2) -> bool: return at.x >= last_x + BRAZIER_MIN_GAP)
+		var candidates := band.filter(func(at: Vector2) -> bool: return at.x >= last_x + BRAZIER_MIN_GAP and existing.all(func(cell): return absf(at.x - props.position.x - props.map_to_local(cell).x) >= BRAZIER_MIN_GAP))
 		if candidates.is_empty():
 			continue
 		var foot: Vector2 = candidates[random.randi_range(0, candidates.size() - 1)]

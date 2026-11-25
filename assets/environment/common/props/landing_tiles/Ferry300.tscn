@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/floating_slab.tscn" id="prop"]
+
+[node name="Ferry300" type="Node2D"]
+
+[node name="Ferry" parent="." instance=ExtResource("prop")]
+position = Vector2(10, 12)
+travel = Vector2(300, 0)

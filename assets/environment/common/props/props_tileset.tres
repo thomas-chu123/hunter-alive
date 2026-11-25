@@ -24,7 +24,16 @@
 [ext_resource type="PackedScene" path="res://assets/items/armor/chests/cinder_greaves.tscn" id="29"]
 [ext_resource type="PackedScene" path="res://assets/items/weapon/chests/gate_halberd.tscn" id="30"]
 [ext_resource type="PackedScene" uid="uid://knp3vegc5sl1" path="res://assets/environment/common/props/traversal/climbing_rope.tscn" id="climbing_rope"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/landing_tiles/Ferry180.tscn" id="Ferry180"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/landing_tiles/Ferry220.tscn" id="Ferry220"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/landing_tiles/Ferry260.tscn" id="Ferry260"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/landing_tiles/Ferry260High.tscn" id="Ferry260High"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/landing_tiles/Ferry300.tscn" id="Ferry300"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/floating_slab.tscn" id="floating_slab"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/iron_ladder.tscn" id="iron_ladder"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/landing_tiles/LandingLamp.tscn" id="LandingLamp"]
+[ext_resource type="PackedScene" uid="uid://p0wk3o4bh8a8" path="res://assets/environment/common/props/landing_tiles/Lift240.tscn" id="Lift240"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/stone_ferry.tscn" id="stone_ferry"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/wooden_ladder.tscn" id="wooden_ladder"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/wooden_stairs.tscn" id="wooden_stairs"]
 
@@ -66,6 +75,18 @@ scenes/1/scene = ExtResource("wooden_stairs")
 scenes/2/scene = ExtResource("climbing_rope")
 scenes/3/scene = ExtResource("wooden_ladder")
 scenes/4/scene = ExtResource("iron_ladder")
+scenes/5/scene = ExtResource("floating_slab")
+scenes/6/scene = ExtResource("stone_ferry")
+
+[sub_resource type="TileSetScenesCollectionSource" id="Landings"]
+resource_name = "Landings"
+scenes/1/scene = ExtResource("Lift240")
+scenes/2/scene = ExtResource("Ferry220")
+scenes/3/scene = ExtResource("LandingLamp")
+scenes/4/scene = ExtResource("Ferry260High")
+scenes/5/scene = ExtResource("Ferry300")
+scenes/6/scene = ExtResource("Ferry180")
+scenes/7/scene = ExtResource("Ferry260")
 
 [resource]
 resource_name = "Props"
@@ -74,3 +95,4 @@ sources/0 = SubResource("Collection0")
 sources/1 = SubResource("Collection1")
 sources/2 = SubResource("Collection2")
 sources/3 = SubResource("Traversal")
+sources/4 = SubResource("Landings")
