@@ -84,6 +84,7 @@ var collider: CollisionShape2D
 var animation_time := 0.0
 var wall_holding := false
 var prop_climbing := false
+var at_climb_top := false
 var climb_jump_lock := false
 var jump_grace := 0.0
 
@@ -143,7 +144,7 @@ func _physics_process(delta: float) -> void:
 	var climb_prop: ClimbableProp
 	if not jumped and not climb_jump_lock and hurt_left <= 0.0 and attack_left <= 0.0 and is_zero_approx(direction):
 		if was_prop_climbing or not is_zero_approx(vertical):
-			climb_prop = _nearby_climb_prop(vertical)
+			climb_prop = _nearby_climb_prop(-1.0 if is_zero_approx(vertical) else vertical)
 	_update_crouch(climb_prop == null and grounded and Input.is_action_pressed("hunt_crouch"))
 	prop_climbing = climb_prop != null and not crouching
 	crouch_time = crouch_time + delta if crouching else 0.0
@@ -210,6 +211,7 @@ func _physics_process(delta: float) -> void:
 	velocity.x += blade_recoil
 	var fall_speed := velocity.y
 	move_and_slide()
+	at_climb_top = prop_climbing and global_position.y <= climb_prop.climb_limit(-1.0) + 0.01
 	if not is_on_wall():
 		velocity.x -= blade_recoil
 	blade_recoil = move_toward(blade_recoil, 0.0, 1250.0 * delta)
@@ -329,6 +331,7 @@ func hurt(source_x: float, damage: int = 1, effect: String = "") -> void:
 		return
 	health = maxi(0, health - damage)
 	prop_climbing = false
+	at_climb_top = false
 	damaged.emit(source_x, damage, effect)
 	if health == 0:
 		defeated.emit()
@@ -461,6 +464,7 @@ func respawn(at: Vector2) -> void:
 	gliding = false
 	wall_holding = false
 	prop_climbing = false
+	at_climb_top = false
 	climb_jump_lock = false
 
 
@@ -482,7 +486,7 @@ func _draw_hunter() -> void:
 		return
 
 	var weapon := selected_weapon()
-	if (wall_holding or prop_climbing) and hurt_left <= 0.0:
+	if (wall_holding or (prop_climbing and not at_climb_top)) and hurt_left <= 0.0:
 		var climb_frame := int(animation_time * 12.0) % HunterAnimation.FRAME_COUNT
 		if prop_climbing and is_zero_approx(velocity.y):
 			climb_frame = 0
@@ -510,7 +514,7 @@ func _draw_hunter() -> void:
 	elif gliding:
 		action = "glide"
 		frame = int(animation_time * 9) % HunterAnimation.FRAME_COUNT
-	elif not is_on_floor():
+	elif not is_on_floor() and not at_climb_top:
 		action = "jump"
 		if velocity.y < -385:
 			frame = 0

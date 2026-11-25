@@ -252,20 +252,21 @@ func check_climb(hunter: Hunter, foot: Vector2, label: String) -> void:
 	await frames(3)
 	Input.action_press("hunt_climb_up")
 	await frames(33)
+	check(hunter.prop_climbing and not hunter.at_climb_top, "%s uses climbing pose mid-ascent" % label)
 	if not proof.is_empty():
 		await capture("02-" + label.replace(" ", "-") + "-ascending")
 	await frames(67)
-	check(hunter.prop_climbing and absf(hunter.position.y - (foot.y - 128)) < 2.0,
-		"%s climbs and stops at the upper end, y=%.1f" % [label, hunter.position.y])
+	check(hunter.at_climb_top and absf(hunter.position.y - (foot.y - 128)) < 2.0,
+		"%s switches to standing at the upper end, y=%.1f" % [label, hunter.position.y])
 	Input.action_release("hunt_climb_up")
 	if not proof.is_empty():
 		await capture("03-" + label.replace(" ", "-") + "-top")
 	var top := hunter.position.y
 	await frames(12)
-	check(hunter.prop_climbing and is_equal_approx(hunter.position.y, top), "%s holds position at neutral input" % label)
+	check(hunter.at_climb_top and is_equal_approx(hunter.position.y, top), "%s holds position at neutral input" % label)
 	Input.action_press("hunt_crouch")
 	await frames(30)
-	check(hunter.prop_climbing and hunter.position.y > top + 40, "%s climbs back down, y=%.1f" % [label, hunter.position.y])
+	check(hunter.prop_climbing and not hunter.at_climb_top and hunter.position.y > top + 40, "%s climbs back down, y=%.1f" % [label, hunter.position.y])
 	if not proof.is_empty():
 		await capture("04-" + label.replace(" ", "-") + "-descending")
 	Input.action_release("hunt_crouch")
@@ -312,7 +313,7 @@ func check_stacked_rope(hunter: Hunter, traversal: TileMapLayer) -> void:
 	Input.action_press("hunt_climb_up")
 	await frames(150)
 	Input.action_release("hunt_climb_up")
-	check(hunter.prop_climbing and absf(hunter.position.y - 32.0) < 2.0,
+	check(hunter.at_climb_top and absf(hunter.position.y - 32.0) < 2.0,
 		"two rope tiles connect on ascent, y=%.1f" % hunter.position.y)
 	Input.action_press("hunt_crouch")
 	await frames(150)

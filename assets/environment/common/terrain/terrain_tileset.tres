@@ -1,11 +1,11 @@
 [gd_resource type="TileSet" format=3 uid="uid://con8hl5nkiqgu"]
 
 [ext_resource type="Texture2D" uid="uid://b6c6rrg5imjea" path="res://assets/environment/common/terrain/terrain_grid.png" id="1_grid"]
-[ext_resource type="TileSetAtlasSource" path="res://assets/environment/common/terrain/biome_caves_atlas.tres" id="Biome_caves"]
-[ext_resource type="TileSetAtlasSource" path="res://assets/environment/common/terrain/biome_constructed_atlas.tres" id="Biome_constructed"]
-[ext_resource type="TileSetAtlasSource" path="res://assets/environment/common/terrain/biome_extreme_atlas.tres" id="Biome_extreme"]
-[ext_resource type="TileSetAtlasSource" path="res://assets/environment/common/terrain/biome_fantasy_atlas.tres" id="Biome_fantasy"]
-[ext_resource type="TileSetAtlasSource" path="res://assets/environment/common/terrain/biome_natural_atlas.tres" id="Biome_natural"]
+[ext_resource type="TileSetAtlasSource" uid="uid://c6kkqddcqpwcl" path="res://assets/environment/common/terrain/biome_caves_atlas.tres" id="Biome_caves"]
+[ext_resource type="TileSetAtlasSource" uid="uid://cgpnxy6tbn07i" path="res://assets/environment/common/terrain/biome_constructed_atlas.tres" id="Biome_constructed"]
+[ext_resource type="TileSetAtlasSource" uid="uid://b46rey4j2jyfx" path="res://assets/environment/common/terrain/biome_extreme_atlas.tres" id="Biome_extreme"]
+[ext_resource type="TileSetAtlasSource" uid="uid://y130o6ff7of5" path="res://assets/environment/common/terrain/biome_fantasy_atlas.tres" id="Biome_fantasy"]
+[ext_resource type="TileSetAtlasSource" uid="uid://cjrewjd2w2w75" path="res://assets/environment/common/terrain/biome_natural_atlas.tres" id="Biome_natural"]
 [ext_resource type="TileSetAtlasSource" uid="uid://bonhn20jufyb" path="res://assets/environment/common/terrain/natural_rock_atlas.tres" id="NaturalRockTerrain"]
 
 [sub_resource type="TileMapPattern" id="MossFloor"]
