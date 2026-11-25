@@ -4,7 +4,7 @@
 
 [node name="BurialRam" type="Sprite2D"]
 texture = ExtResource("idle")
-offset = Vector2(0, -86)
+offset = Vector2(2, -37)
 scale = Vector2(0.8, 0.8)
 flip_h = true
 hframes = 4

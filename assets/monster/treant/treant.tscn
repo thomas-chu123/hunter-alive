@@ -4,7 +4,7 @@
 
 [node name="Treant" type="Sprite2D"]
 texture = ExtResource("idle")
-offset = Vector2(0, -86)
+offset = Vector2(3.5, -13)
 scale = Vector2(0.8, 0.8)
 flip_h = true
 hframes = 4

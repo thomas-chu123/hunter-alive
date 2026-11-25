@@ -148,6 +148,8 @@ func check_atlases() -> void:
 			decorative = decorative and tile.get_collision_polygons_count(0) == 0
 			decorative = decorative and tile.get_occluder_polygons_count(0) == 0
 			decorative = decorative and not region.is_invisible()
+			if source_id == 2:
+				check(centered_art(region, -Vector2(tile.texture_origin)), "fixture %s centers on its cell" % coords)
 		check(decorative, "interior source %d has visible art with no collision or shadow polygons" % source_id)
 	var palette := TileMapLayer.new()
 	for index in PATTERNS.size():
@@ -205,10 +207,14 @@ func check_furniture(palette: TileMapLayer) -> void:
 			var used := art.get_used_rect()
 			valid = used.has_area() and used != Rect2i(Vector2i.ZERO, rect.size) \
 				and tile.get_collision_polygons_count(0) == 0
-			var offset := (rect.size.y - Fixtures.tile_size.y) / 2
-			valid = valid and tile.texture_origin.y == (offset if index == 23 else -offset)
+			valid = valid and centered_art(art, -Vector2(tile.texture_origin))
 		seen[key] = true
 		check(valid, "%s stamps one distinct furniture tile in its category" % pattern.resource_name)
+
+
+func centered_art(image: Image, offset: Vector2) -> bool:
+	var center := Rect2(image.get_used_rect()).get_center() - Vector2(image.get_size()) * 0.5 + offset
+	return center.abs().x <= 0.5 and center.abs().y <= 0.5
 
 
 func check_interior_lights(background: TileMapLayer, fixtures: TileMapLayer, lantern_cell: Vector2i) -> void:
@@ -221,6 +227,8 @@ func check_interior_lights(background: TileMapLayer, fixtures: TileMapLayer, lan
 	check(lantern.position == fixtures.map_to_local(lantern_cell)
 		and background.get_cell_source_id(lantern_cell) == 1, "the live lantern overlays the wall at the same grid cell")
 	for fixture in [lantern, chandelier]:
+		var sprite := fixture.get_node("Sprite") as Sprite2D
+		check(centered_art(sprite.texture.get_image(), sprite.position), "%s centers on its cell" % fixture.name)
 		var light := fixture.get_node("Light") as PointLight2D
 		check(light.enabled and light.shadow_enabled and light.color.r > light.color.b
 			and light.texture.get_width() * light.texture_scale >= 340.0,

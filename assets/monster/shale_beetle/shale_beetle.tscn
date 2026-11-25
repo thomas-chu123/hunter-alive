@@ -4,7 +4,7 @@
 
 [node name="ShaleBeetle" type="Sprite2D"]
 texture = ExtResource("idle")
-offset = Vector2(0, -86)
+offset = Vector2(0.5, -50.5)
 scale = Vector2(0.8, 0.8)
 flip_h = true
 hframes = 4

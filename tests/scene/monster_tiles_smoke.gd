@@ -22,6 +22,12 @@ func run() -> void:
 		var marker := source.get_scene_tile_scene(tile_id).instantiate() as Sprite2D
 		species_by_tile[tile_id] = marker.get_meta("monster_species")
 		check(marker.texture != null and marker.visible, "%s has a visible editor sprite" % species_by_tile[tile_id])
+		var frame_size := Vector2i(marker.get_rect().size)
+		var frame := marker.texture.get_image().get_region(Rect2i(marker.frame_coords * frame_size, frame_size))
+		if marker.flip_h:
+			frame.flip_x()
+		var center := marker.get_rect().position + Rect2(frame.get_used_rect()).get_center()
+		check(center.is_zero_approx(), "%s visible center matches the painted cell" % species_by_tile[tile_id])
 		marker.free()
 	var roster: Array = species_by_tile.values()
 	roster.sort()

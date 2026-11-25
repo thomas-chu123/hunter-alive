@@ -5,7 +5,7 @@
 [node name="LanternCrab" type="Sprite2D" unique_id=460729861]
 scale = Vector2(0.8, 0.8)
 texture = ExtResource("idle")
-offset = Vector2(0, -86)
+offset = Vector2(4, -43)
 flip_h = true
 hframes = 4
 vframes = 4

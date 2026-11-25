@@ -13,15 +13,15 @@ filter_clip = true
 [node name="WallLantern" type="Node2D"]
 
 [node name="Sprite" type="Sprite2D" parent="."]
-position = Vector2(0, 10)
+position = Vector2(0, 0)
 texture = SubResource("LanternArt")
 
 [node name="Flame" parent="." instance=ExtResource("flame")]
-position = Vector2(-4.5, 17)
+position = Vector2(-4.5, 7)
 scale = Vector2(0.11, 0.14)
 
 [node name="Light" type="PointLight2D" parent="."]
-position = Vector2(-4.5, 12)
+position = Vector2(-4.5, 2)
 color = Color(1, 0.76, 0.48, 1)
 energy = 0.95
 shadow_enabled = true
