@@ -39,6 +39,8 @@ func run() -> void:
 	check_motion_sheets(["attack_transition", "attack_transition_unarmed"], 4, 2)
 	await low_ceiling("treant")
 	await low_ceiling("seal_keeper")
+	await check_target_memory()
+	await check_hover_commitment()
 	await scout_jumps()
 	await stays_in_territory()
 	await attack_transition()
@@ -75,6 +77,33 @@ func low_ceiling(id: String) -> void:
 		"%s can react again from the accessible side" % id)
 	await frames(22)
 	remove(monster, obstacle)
+
+
+func check_target_memory() -> void:
+	place_hunter(990)
+	var monster := spawn("spider", 800)
+	await frames(6)
+	var remembered: Vector2 = monster.perception.get_var(&"last_seen", Vector2.ZERO)
+	var wall := block(Vector2(900, 500), Vector2(24, 160))
+	place_hunter(1010)
+	await frames(6)
+	check(absf(remembered.x - 990.0) < 1.0 and monster.perception.get_var(&"last_seen") == remembered,
+		"ground hunter remembers the visible position when its prey moves behind cover")
+	remove(monster, wall)
+	await frames(2)
+
+
+func check_hover_commitment() -> void:
+	place_hunter(700)
+	var monster := spawn("bell_moth", 800)
+	monster._begin_windup(0.4)
+	await frames(2)
+	var origin := monster.position.x
+	await frames(12)
+	check(monster.windup > 0.0 and is_equal_approx(origin, monster.position.x),
+		"hovering attacker holds its horizontal position throughout anticipation")
+	remove(monster)
+	await frames(2)
 
 
 func scout_jumps() -> void:

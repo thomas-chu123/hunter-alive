@@ -57,6 +57,8 @@ var can_hit := false
 var profile: Dictionary
 var state := State.PATROL
 var jump_delay := 0.0
+var perception := Blackboard.new()
+var hover_patrol_time := 0.0
 var lost_sight := 0.0
 var blocked_time := 0.0
 var notice_left := 0.0
@@ -184,9 +186,11 @@ func _physics_process(delta: float) -> void:
 	velocity.y = minf(velocity.y + float(motion_rules.gravity) * delta, float(motion_rules.fall_speed))
 	var offset := target.position - position
 	var target_in_sight := absf(offset.x) <= float(profile.sight) and absf(offset.y) <= float(motion_rules.chase_height) and _clear_to_target()
+	if target_in_sight:
+		perception.set_var(&"last_seen", target.position)
 	lost_sight = 0.0 if target_in_sight else lost_sight + delta
 	requested_speed = 0.0
-	if state in [State.NOTICE, State.CHASE] and (not _inside_leash(target.position) or not _inside_leash(position)):
+	if state in [State.NOTICE, State.CHASE] and ((target_in_sight and not _inside_leash(target.position)) or not _inside_leash(position)):
 		_begin_return()
 	match state:
 		State.PATROL:
@@ -203,8 +207,15 @@ func _physics_process(delta: float) -> void:
 		State.CHASE:
 			if lost_sight > float(motion_rules.lost_sight_time):
 				_begin_return()
-			else:
+			elif target_in_sight:
 				_chase(offset)
+			else:
+				var last_seen: Vector2 = perception.get_var(&"last_seen", position)
+				var remaining := last_seen - position
+				if absf(remaining.x) > 8.0:
+					_navigate(signf(remaining.x), float(profile.speed), remaining.y < -35.0)
+				else:
+					_begin_return()
 		State.WINDUP:
 			windup = maxf(0, windup - delta)
 			if windup <= 0:
@@ -290,7 +301,7 @@ func _chase(offset: Vector2) -> void:
 		facing = signf(offset.x)
 	var reach := float(_attack_value("trigger_range"))
 	var height := 82.0 if _attack_value("mode") == "bolt" else 64.0
-	if is_on_floor() and absf(offset.x) <= reach and absf(offset.y) <= height and _clear_to_target():
+	if is_on_floor() and absf(offset.x) <= reach and absf(offset.y) <= height:
 		_begin_windup()
 	else:
 		_navigate(facing, float(profile.speed), offset.y < -35.0 and absf(offset.x) < 175.0)
@@ -424,7 +435,7 @@ func _locomotion_cell() -> Vector2i:
 		return Vector2i(mini(floori(turn * count), count - 1), Art.Locomotion.TURN)
 	if not hover.is_empty():
 		var flap := age * float(appearance.flap_rate) / TAU
-		var dashing := absf(cos(age * float(hover.horizontal_rate))) > 0.72
+		var dashing := absf(cos(hover_patrol_time * float(hover.horizontal_rate))) > 0.72
 		return Vector2i(floori(flap * count) % count, Art.Locomotion.RUN if dashing else Art.Locomotion.WALK)
 	if not walking:
 		if not is_on_floor() and absf(velocity.x) > 20.0:
@@ -906,7 +917,9 @@ func _release_vfx_progress(progress: float) -> float:
 
 
 func _update_hover(delta: float) -> void:
-	var base := home + Vector2(sin(age * float(hover.horizontal_rate)) * float(profile.patrol_radius),
+	if windup <= 0.0 and strike <= 0.0:
+		hover_patrol_time += delta
+	var base := home + Vector2(sin(hover_patrol_time * float(hover.horizontal_rate)) * float(profile.patrol_radius),
 		-float(hover.height) + sin(age * float(hover.bob_rate)) * float(hover.bob_height))
 	if state == State.STAGGER:
 		_update_stagger(delta, _inside_leash(target.position))
@@ -928,7 +941,7 @@ func _update_hover(delta: float) -> void:
 			_start_recovery(float(attack.recovery))
 	elif recovery > 0:
 		recovery = maxf(0, recovery - delta)
-	elif _inside_leash(target.position) and absf(offset.x) < float(attack.trigger_range) and absf(offset.y) < float(hover.attack_height) and _clear_to_target():
+	elif _inside_leash(target.position) and absf(offset.x) < float(_attack_value("trigger_range")) and absf(offset.y) < float(hover.attack_height) and _clear_to_target():
 		if absf(offset.x) > 8.0:
 			facing = signf(offset.x)
 		_begin_windup()
