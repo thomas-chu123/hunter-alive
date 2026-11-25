@@ -1,5 +1,6 @@
 extends Node2D
 
+signal boulder_rolled(center: Vector2, radius: float)
 signal sound_played(cue: StringName)
 
 const Hunter := preload("res://scripts/character/ruin_hunter.gd")
@@ -200,6 +201,7 @@ func _update_boulder(delta: float) -> void:
 	var wall := _boulder.move_and_collide(Vector2(direction * 177.0 * delta, 0))
 	_sound.position = _boulder.position
 	_hurt_circle(_boulder.position, BOULDER_RADIUS)
+	boulder_rolled.emit(_boulder.global_position, BOULDER_RADIUS)
 	if wall or _projectile_age >= 2.2:
 		_stop_boulder()
 
@@ -383,6 +385,9 @@ func _draw_launcher() -> void:
 		Color("#a4c987") if kind == Kind.POISON else Color.WHITE)
 	if kind == Kind.POISON and _cloud_opacity() > 0.0:
 		Art.paint(self, Frame.POISON, _cloud_center(), _cloud_size(), Color(1, 1, 1, _cloud_opacity()), direction == 1)
+	elif kind == Kind.BOULDER and _next_cycle - _time <= 0.85 and not is_instance_valid(_boulder):
+		var pulse := 0.5 + 0.5 * sin(_time * 22.0)
+		draw_arc(Vector2.ZERO, 18, 0, TAU, 24, Color(1.0, 0.70, 0.32, 0.55 + 0.45 * pulse), 3.0)
 	elif is_instance_valid(_boulder):
 		draw_set_transform(_boulder.position, direction * _projectile_age * 177.0 / BOULDER_RADIUS)
 		Art.paint(self, Frame.BOULDER, Vector2.ZERO, Vector2.ONE * BOULDER_RADIUS * 2)

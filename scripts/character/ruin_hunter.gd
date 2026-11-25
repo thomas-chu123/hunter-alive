@@ -313,6 +313,8 @@ func _update_crouch(requested: bool, force_stand: bool = false) -> void:
 func hurt(source_x: float, damage: int = 1, effect: String = "") -> void:
 	if invincible_left > 0 or health <= 0:
 		return
+	if effect == "poison" and gear.get("頭部") == "sealed_cap":
+		return
 	if vest_ready and gear.get("身體") in ["moss_vest", "earthen_armor"]:
 		vest_ready = false
 		invincible_left = 0.45
