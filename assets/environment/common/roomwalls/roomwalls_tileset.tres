@@ -1,0 +1,102 @@
+[gd_resource type="TileSet" format=3 uid="uid://tkuwdxeet7uv"]
+
+[ext_resource type="Texture2D" uid="uid://btt6gpw5he5ec" path="res://assets/environment/common/roomwalls/dungeon_horror.png" id="dungeon_horror"]
+[ext_resource type="Texture2D" uid="uid://81o6yxltygqd" path="res://assets/environment/common/roomwalls/forest_caves.png" id="forest_caves"]
+[ext_resource type="Texture2D" uid="uid://iqlaqfvc8qfp" path="res://assets/environment/common/roomwalls/industrial_scifi.png" id="industrial_scifi"]
+[ext_resource type="Texture2D" uid="uid://cqx38do6v32ai" path="res://assets/environment/common/roomwalls/magical_terrain.png" id="magical_terrain"]
+[ext_resource type="Texture2D" uid="uid://b2i6mf42oes11" path="res://assets/environment/common/roomwalls/town_architecture.png" id="town_architecture"]
+
+[sub_resource type="TileSetAtlasSource" id="Atlas_town_architecture"]
+resource_name = "城鎮與建築"
+texture = ExtResource("town_architecture")
+texture_region_size = Vector2i(400, 400)
+0:0/0 = 0
+0:0/0/custom_data_0 = "01 木板牆"
+1:0/0 = 0
+1:0/0/custom_data_0 = "02 原木牆"
+2:0/0 = 0
+2:0/0/custom_data_0 = "03 紅磚牆"
+0:1/0 = 0
+0:1/0/custom_data_0 = "04 石磚牆"
+1:1/0 = 0
+1:1/0/custom_data_0 = "05 中世紀木骨牆"
+2:1/0 = 0
+2:1/0/custom_data_0 = "06 竹編牆"
+
+[sub_resource type="TileSetAtlasSource" id="Atlas_dungeon_horror"]
+resource_name = "地下城與恐怖"
+texture = ExtResource("dungeon_horror")
+texture_region_size = Vector2i(400, 400)
+0:0/0 = 0
+0:0/0/custom_data_0 = "07 骷髏牆"
+1:0/0 = 0
+1:0/0/custom_data_0 = "08 白骨堆疊牆"
+2:0/0 = 0
+2:0/0/custom_data_0 = "09 地牢石牆"
+0:1/0 = 0
+0:1/0/custom_data_0 = "10 龜裂石牆"
+1:1/0 = 0
+1:1/0/custom_data_0 = "11 青苔石牆"
+2:1/0 = 0
+2:1/0/custom_data_0 = "12 詛咒符文牆"
+
+[sub_resource type="TileSetAtlasSource" id="Atlas_forest_caves"]
+resource_name = "森林與自然洞穴"
+texture = ExtResource("forest_caves")
+texture_region_size = Vector2i(400, 400)
+0:0/0 = 0
+0:0/0/custom_data_0 = "13 岩石洞穴牆"
+1:0/0 = 0
+1:0/0/custom_data_0 = "14 地下泥土牆"
+2:0/0 = 0
+2:0/0/custom_data_0 = "15 樹根牆"
+0:1/0 = 0
+0:1/0/custom_data_0 = "16 藤蔓植物牆"
+1:1/0 = 0
+1:1/0/custom_data_0 = "17 巨樹樹皮牆"
+2:1/0 = 0
+2:1/0/custom_data_0 = "18 蘑菇菌絲牆"
+
+[sub_resource type="TileSetAtlasSource" id="Atlas_magical_terrain"]
+resource_name = "特殊地形與魔法"
+texture = ExtResource("magical_terrain")
+texture_region_size = Vector2i(400, 400)
+0:0/0 = 0
+0:0/0/custom_data_0 = "19 冰晶牆"
+1:0/0 = 0
+1:0/0/custom_data_0 = "20 熔岩岩石牆"
+2:0/0 = 0
+2:0/0/custom_data_0 = "21 水晶礦石牆"
+0:1/0 = 0
+0:1/0/custom_data_0 = "22 古代砂岩牆"
+1:1/0 = 0
+1:1/0/custom_data_0 = "23 黃金神殿牆"
+2:1/0 = 0
+2:1/0/custom_data_0 = "24 魔法能量牆"
+
+[sub_resource type="TileSetAtlasSource" id="Atlas_industrial_scifi"]
+resource_name = "工業、機械與科幻"
+texture = ExtResource("industrial_scifi")
+texture_region_size = Vector2i(400, 400)
+0:0/0 = 0
+0:0/0/custom_data_0 = "25 鉚釘鋼板牆"
+1:0/0 = 0
+1:0/0/custom_data_0 = "26 生鏽鐵牆"
+2:0/0 = 0
+2:0/0/custom_data_0 = "27 蒸汽管線牆"
+0:1/0 = 0
+0:1/0/custom_data_0 = "28 機械齒輪牆"
+1:1/0 = 0
+1:1/0/custom_data_0 = "29 科幻金屬牆"
+2:1/0 = 0
+2:1/0/custom_data_0 = "30 電子電路牆"
+
+[resource]
+tile_size = Vector2i(400, 400)
+custom_data_layer_0/name = "wall_name"
+custom_data_layer_0/type = 4
+sources/0 = SubResource("Atlas_town_architecture")
+sources/1 = SubResource("Atlas_dungeon_horror")
+sources/2 = SubResource("Atlas_forest_caves")
+sources/3 = SubResource("Atlas_magical_terrain")
+sources/4 = SubResource("Atlas_industrial_scifi")

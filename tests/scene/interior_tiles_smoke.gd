@@ -123,7 +123,7 @@ func check_atlases() -> void:
 	check(Terrain.tile_size == Vector2i(20, 20) and Props.tile_size == Terrain.tile_size,
 		"Terrain and Props use the shared 20 px grid")
 	check(Terrain.get_source_count() == 1 and Terrain.has_source(0)
-		and Surfaces.get_source_count() == 1 and Surfaces.has_source(1)
+		and Surfaces.get_source_count() == 6 and Surfaces.has_source(1)
 		and Fixtures.get_source_count() == 2 and Fixtures.has_source(2) and Fixtures.has_source(3),
 		"terrain, walls and fixtures expose only their assigned sources")
 	for source_id in [1, 2]:
@@ -159,6 +159,18 @@ func check_atlases() -> void:
 				valid = valid and palette.get_cell_source_id(cell) == (1 if index < 9 else 2) \
 					and palette.get_cell_tile_data(cell) != null
 		check(valid, "%s stamps valid tiles on its assigned layer" % PATTERNS[index])
+	palette.tile_set = Surfaces
+	for index in range(30):
+		var pattern := Surfaces.get_pattern(9 + index)
+		palette.clear()
+		palette.set_pattern(Vector2i.ZERO, pattern)
+		var valid := pattern.resource_name.begins_with("%02d " % (index + 1)) and palette.get_used_cells().size() == 9
+		for cell in palette.get_used_cells():
+			var atlas_origin := Vector2i(index % 3, (index % 6) / 3) * 3
+			valid = valid and palette.get_cell_source_id(cell) == 2 + index / 6 \
+				and palette.get_cell_atlas_coords(cell) == atlas_origin + cell \
+				and palette.get_cell_tile_data(cell) != null
+		check(valid, "%s stamps nine wall cells" % pattern.resource_name)
 	palette.free()
 
 

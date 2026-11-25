@@ -1,6 +1,11 @@
-[gd_resource type="TileSet" format=3]
+[gd_resource type="TileSet" format=3 uid="uid://cwaer0rocx11j"]
 
 [ext_resource type="Texture2D" uid="uid://beah6kxxk71mh" path="res://assets/environment/common/terrain/interior_surfaces.png" id="2_interior_surfaces"]
+[ext_resource type="Texture2D" uid="uid://csjsm7xahtd8m" path="res://assets/environment/common/roomwalls/dungeon_horror_grid.png" id="dungeon_horror"]
+[ext_resource type="Texture2D" uid="uid://cbo28i74ie0yk" path="res://assets/environment/common/roomwalls/forest_caves_grid.png" id="forest_caves"]
+[ext_resource type="Texture2D" uid="uid://b1dr7fn035fmf" path="res://assets/environment/common/roomwalls/industrial_scifi_grid.png" id="industrial_scifi"]
+[ext_resource type="Texture2D" uid="uid://bxsasr1d7kvg8" path="res://assets/environment/common/roomwalls/magical_terrain_grid.png" id="magical_terrain"]
+[ext_resource type="Texture2D" uid="uid://bd8qv220u1ps6" path="res://assets/environment/common/roomwalls/town_architecture_grid.png" id="town_architecture"]
 
 [sub_resource type="TileMapPattern" id="StoneWall"]
 resource_name = "Interior stone wall"
@@ -10,13 +15,129 @@ tile_data = PackedInt32Array(0, 1, 0, 1, 65537, 0, 2, 131073, 0, 65536, 1, 1, 65
 resource_name = "Interior plank wall"
 tile_data = PackedInt32Array(0, 196609, 0, 1, 262145, 0, 2, 327681, 0, 65536, 196609, 1, 65537, 262145, 1, 65538, 327681, 1, 131072, 196609, 2, 131073, 262145, 2, 131074, 327681, 2)
 
+[sub_resource type="TileMapPattern" id="Wall2"]
+resource_name = "02 原木牆"
+tile_data = PackedInt32Array(0, 196610, 0, 1, 262146, 0, 2, 327682, 0, 65536, 196610, 1, 65537, 262146, 1, 65538, 327682, 1, 131072, 196610, 2, 131073, 262146, 2, 131074, 327682, 2)
+
+[sub_resource type="TileMapPattern" id="Wall3"]
+resource_name = "03 紅磚牆"
+tile_data = PackedInt32Array(0, 393218, 0, 1, 458754, 0, 2, 524290, 0, 65536, 393218, 1, 65537, 458754, 1, 65538, 524290, 1, 131072, 393218, 2, 131073, 458754, 2, 131074, 524290, 2)
+
+[sub_resource type="TileMapPattern" id="Wall4"]
+resource_name = "04 石磚牆"
+tile_data = PackedInt32Array(0, 2, 3, 1, 65538, 3, 2, 131074, 3, 65536, 2, 4, 65537, 65538, 4, 65538, 131074, 4, 131072, 2, 5, 131073, 65538, 5, 131074, 131074, 5)
+
+[sub_resource type="TileMapPattern" id="Wall5"]
+resource_name = "05 中世紀木骨牆"
+tile_data = PackedInt32Array(0, 196610, 3, 1, 262146, 3, 2, 327682, 3, 65536, 196610, 4, 65537, 262146, 4, 65538, 327682, 4, 131072, 196610, 5, 131073, 262146, 5, 131074, 327682, 5)
+
+[sub_resource type="TileMapPattern" id="Wall6"]
+resource_name = "06 竹編牆"
+tile_data = PackedInt32Array(0, 393218, 3, 1, 458754, 3, 2, 524290, 3, 65536, 393218, 4, 65537, 458754, 4, 65538, 524290, 4, 131072, 393218, 5, 131073, 458754, 5, 131074, 524290, 5)
+
+[sub_resource type="TileMapPattern" id="Wall7"]
+resource_name = "07 骷髏牆"
+tile_data = PackedInt32Array(0, 3, 0, 1, 65539, 0, 2, 131075, 0, 65536, 3, 1, 65537, 65539, 1, 65538, 131075, 1, 131072, 3, 2, 131073, 65539, 2, 131074, 131075, 2)
+
+[sub_resource type="TileMapPattern" id="Wall8"]
+resource_name = "08 白骨堆疊牆"
+tile_data = PackedInt32Array(0, 196611, 0, 1, 262147, 0, 2, 327683, 0, 65536, 196611, 1, 65537, 262147, 1, 65538, 327683, 1, 131072, 196611, 2, 131073, 262147, 2, 131074, 327683, 2)
+
+[sub_resource type="TileMapPattern" id="Wall9"]
+resource_name = "09 地牢石牆"
+tile_data = PackedInt32Array(0, 393219, 0, 1, 458755, 0, 2, 524291, 0, 65536, 393219, 1, 65537, 458755, 1, 65538, 524291, 1, 131072, 393219, 2, 131073, 458755, 2, 131074, 524291, 2)
+
+[sub_resource type="TileMapPattern" id="Wall10"]
+resource_name = "10 龜裂石牆"
+tile_data = PackedInt32Array(0, 3, 3, 1, 65539, 3, 2, 131075, 3, 65536, 3, 4, 65537, 65539, 4, 65538, 131075, 4, 131072, 3, 5, 131073, 65539, 5, 131074, 131075, 5)
+
+[sub_resource type="TileMapPattern" id="Wall11"]
+resource_name = "11 青苔石牆"
+tile_data = PackedInt32Array(0, 196611, 3, 1, 262147, 3, 2, 327683, 3, 65536, 196611, 4, 65537, 262147, 4, 65538, 327683, 4, 131072, 196611, 5, 131073, 262147, 5, 131074, 327683, 5)
+
 [sub_resource type="TileMapPattern" id="BrickWall"]
 resource_name = "Interior brick wall"
 tile_data = PackedInt32Array(0, 393217, 0, 1, 458753, 0, 2, 524289, 0, 65536, 393217, 1, 65537, 458753, 1, 65538, 524289, 1, 131072, 393217, 2, 131073, 458753, 2, 131074, 524289, 2)
 
+[sub_resource type="TileMapPattern" id="Wall12"]
+resource_name = "12 詛咒符文牆"
+tile_data = PackedInt32Array(0, 393219, 3, 1, 458755, 3, 2, 524291, 3, 65536, 393219, 4, 65537, 458755, 4, 65538, 524291, 4, 131072, 393219, 5, 131073, 458755, 5, 131074, 524291, 5)
+
+[sub_resource type="TileMapPattern" id="Wall13"]
+resource_name = "13 岩石洞穴牆"
+tile_data = PackedInt32Array(0, 4, 0, 1, 65540, 0, 2, 131076, 0, 65536, 4, 1, 65537, 65540, 1, 65538, 131076, 1, 131072, 4, 2, 131073, 65540, 2, 131074, 131076, 2)
+
+[sub_resource type="TileMapPattern" id="Wall14"]
+resource_name = "14 地下泥土牆"
+tile_data = PackedInt32Array(0, 196612, 0, 1, 262148, 0, 2, 327684, 0, 65536, 196612, 1, 65537, 262148, 1, 65538, 327684, 1, 131072, 196612, 2, 131073, 262148, 2, 131074, 327684, 2)
+
+[sub_resource type="TileMapPattern" id="Wall15"]
+resource_name = "15 樹根牆"
+tile_data = PackedInt32Array(0, 393220, 0, 1, 458756, 0, 2, 524292, 0, 65536, 393220, 1, 65537, 458756, 1, 65538, 524292, 1, 131072, 393220, 2, 131073, 458756, 2, 131074, 524292, 2)
+
+[sub_resource type="TileMapPattern" id="Wall16"]
+resource_name = "16 藤蔓植物牆"
+tile_data = PackedInt32Array(0, 4, 3, 1, 65540, 3, 2, 131076, 3, 65536, 4, 4, 65537, 65540, 4, 65538, 131076, 4, 131072, 4, 5, 131073, 65540, 5, 131074, 131076, 5)
+
+[sub_resource type="TileMapPattern" id="Wall17"]
+resource_name = "17 巨樹樹皮牆"
+tile_data = PackedInt32Array(0, 196612, 3, 1, 262148, 3, 2, 327684, 3, 65536, 196612, 4, 65537, 262148, 4, 65538, 327684, 4, 131072, 196612, 5, 131073, 262148, 5, 131074, 327684, 5)
+
+[sub_resource type="TileMapPattern" id="Wall18"]
+resource_name = "18 蘑菇菌絲牆"
+tile_data = PackedInt32Array(0, 393220, 3, 1, 458756, 3, 2, 524292, 3, 65536, 393220, 4, 65537, 458756, 4, 65538, 524292, 4, 131072, 393220, 5, 131073, 458756, 5, 131074, 524292, 5)
+
+[sub_resource type="TileMapPattern" id="Wall19"]
+resource_name = "19 冰晶牆"
+tile_data = PackedInt32Array(0, 5, 0, 1, 65541, 0, 2, 131077, 0, 65536, 5, 1, 65537, 65541, 1, 65538, 131077, 1, 131072, 5, 2, 131073, 65541, 2, 131074, 131077, 2)
+
+[sub_resource type="TileMapPattern" id="Wall20"]
+resource_name = "20 熔岩岩石牆"
+tile_data = PackedInt32Array(0, 196613, 0, 1, 262149, 0, 2, 327685, 0, 65536, 196613, 1, 65537, 262149, 1, 65538, 327685, 1, 131072, 196613, 2, 131073, 262149, 2, 131074, 327685, 2)
+
+[sub_resource type="TileMapPattern" id="Wall21"]
+resource_name = "21 水晶礦石牆"
+tile_data = PackedInt32Array(0, 393221, 0, 1, 458757, 0, 2, 524293, 0, 65536, 393221, 1, 65537, 458757, 1, 65538, 524293, 1, 131072, 393221, 2, 131073, 458757, 2, 131074, 524293, 2)
+
 [sub_resource type="TileMapPattern" id="SlateFloor"]
 resource_name = "Interior slate floor"
 tile_data = PackedInt32Array(0, 1, 3, 1, 65537, 3, 2, 131073, 3)
+
+[sub_resource type="TileMapPattern" id="Wall22"]
+resource_name = "22 古代砂岩牆"
+tile_data = PackedInt32Array(0, 5, 3, 1, 65541, 3, 2, 131077, 3, 65536, 5, 4, 65537, 65541, 4, 65538, 131077, 4, 131072, 5, 5, 131073, 65541, 5, 131074, 131077, 5)
+
+[sub_resource type="TileMapPattern" id="Wall23"]
+resource_name = "23 黃金神殿牆"
+tile_data = PackedInt32Array(0, 196613, 3, 1, 262149, 3, 2, 327685, 3, 65536, 196613, 4, 65537, 262149, 4, 65538, 327685, 4, 131072, 196613, 5, 131073, 262149, 5, 131074, 327685, 5)
+
+[sub_resource type="TileMapPattern" id="Wall24"]
+resource_name = "24 魔法能量牆"
+tile_data = PackedInt32Array(0, 393221, 3, 1, 458757, 3, 2, 524293, 3, 65536, 393221, 4, 65537, 458757, 4, 65538, 524293, 4, 131072, 393221, 5, 131073, 458757, 5, 131074, 524293, 5)
+
+[sub_resource type="TileMapPattern" id="Wall25"]
+resource_name = "25 鉚釘鋼板牆"
+tile_data = PackedInt32Array(0, 6, 0, 1, 65542, 0, 2, 131078, 0, 65536, 6, 1, 65537, 65542, 1, 65538, 131078, 1, 131072, 6, 2, 131073, 65542, 2, 131074, 131078, 2)
+
+[sub_resource type="TileMapPattern" id="Wall26"]
+resource_name = "26 生鏽鐵牆"
+tile_data = PackedInt32Array(0, 196614, 0, 1, 262150, 0, 2, 327686, 0, 65536, 196614, 1, 65537, 262150, 1, 65538, 327686, 1, 131072, 196614, 2, 131073, 262150, 2, 131074, 327686, 2)
+
+[sub_resource type="TileMapPattern" id="Wall27"]
+resource_name = "27 蒸汽管線牆"
+tile_data = PackedInt32Array(0, 393222, 0, 1, 458758, 0, 2, 524294, 0, 65536, 393222, 1, 65537, 458758, 1, 65538, 524294, 1, 131072, 393222, 2, 131073, 458758, 2, 131074, 524294, 2)
+
+[sub_resource type="TileMapPattern" id="Wall28"]
+resource_name = "28 機械齒輪牆"
+tile_data = PackedInt32Array(0, 6, 3, 1, 65542, 3, 2, 131078, 3, 65536, 6, 4, 65537, 65542, 4, 65538, 131078, 4, 131072, 6, 5, 131073, 65542, 5, 131074, 131078, 5)
+
+[sub_resource type="TileMapPattern" id="Wall29"]
+resource_name = "29 科幻金屬牆"
+tile_data = PackedInt32Array(0, 196614, 3, 1, 262150, 3, 2, 327686, 3, 65536, 196614, 4, 65537, 262150, 4, 65538, 327686, 4, 131072, 196614, 5, 131073, 262150, 5, 131074, 327686, 5)
+
+[sub_resource type="TileMapPattern" id="Wall30"]
+resource_name = "30 電子電路牆"
+tile_data = PackedInt32Array(0, 393222, 3, 1, 458758, 3, 2, 524294, 3, 65536, 393222, 4, 65537, 458758, 4, 65538, 524294, 4, 131072, 393222, 5, 131073, 458758, 5, 131074, 524294, 5)
 
 [sub_resource type="TileMapPattern" id="TimberFloor"]
 resource_name = "Interior timber floor"
@@ -37,6 +158,10 @@ tile_data = PackedInt32Array(0, 196609, 5, 1, 262145, 5, 2, 327681, 5, 65536, 19
 [sub_resource type="TileMapPattern" id="StoneTrim"]
 resource_name = "Carved stone trim"
 tile_data = PackedInt32Array(0, 393217, 5, 1, 458753, 5, 2, 524289, 5, 65536, 393217, 6, 65537, 458753, 6, 65538, 524289, 6, 131072, 393217, 7, 131073, 458753, 7, 131074, 524289, 7)
+
+[sub_resource type="TileMapPattern" id="Wall1"]
+resource_name = "01 木板牆"
+tile_data = PackedInt32Array(0, 2, 0, 1, 65538, 0, 2, 131074, 0, 65536, 2, 1, 65537, 65538, 1, 65538, 131074, 1, 131072, 2, 2, 131073, 65538, 2, 131074, 131074, 2)
 
 [sub_resource type="TileSetAtlasSource" id="Atlas_interior_surfaces"]
 resource_name = "Interior Surfaces"
@@ -100,11 +225,311 @@ texture_region_size = Vector2i(20, 20)
 7:7/0 = 0
 8:7/0 = 0
 
+[sub_resource type="TileSetAtlasSource" id="Atlas_town_architecture"]
+resource_name = "城鎮與建築"
+texture = ExtResource("town_architecture")
+texture_region_size = Vector2i(20, 20)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+2:5/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+3:4/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+3:5/0 = 0
+4:5/0 = 0
+5:5/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+6:4/0 = 0
+7:4/0 = 0
+8:4/0 = 0
+6:5/0 = 0
+7:5/0 = 0
+8:5/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="Atlas_dungeon_horror"]
+resource_name = "地下城與恐怖"
+texture = ExtResource("dungeon_horror")
+texture_region_size = Vector2i(20, 20)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+2:5/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+3:4/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+3:5/0 = 0
+4:5/0 = 0
+5:5/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+6:4/0 = 0
+7:4/0 = 0
+8:4/0 = 0
+6:5/0 = 0
+7:5/0 = 0
+8:5/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="Atlas_forest_caves"]
+resource_name = "森林與自然洞穴"
+texture = ExtResource("forest_caves")
+texture_region_size = Vector2i(20, 20)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+2:5/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+3:4/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+3:5/0 = 0
+4:5/0 = 0
+5:5/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+6:4/0 = 0
+7:4/0 = 0
+8:4/0 = 0
+6:5/0 = 0
+7:5/0 = 0
+8:5/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="Atlas_magical_terrain"]
+resource_name = "特殊地形與魔法"
+texture = ExtResource("magical_terrain")
+texture_region_size = Vector2i(20, 20)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+2:5/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+3:4/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+3:5/0 = 0
+4:5/0 = 0
+5:5/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+6:4/0 = 0
+7:4/0 = 0
+8:4/0 = 0
+6:5/0 = 0
+7:5/0 = 0
+8:5/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="Atlas_industrial_scifi"]
+resource_name = "工業、機械與科幻"
+texture = ExtResource("industrial_scifi")
+texture_region_size = Vector2i(20, 20)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+8:0/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+8:1/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+8:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+2:5/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+3:4/0 = 0
+4:4/0 = 0
+5:4/0 = 0
+3:5/0 = 0
+4:5/0 = 0
+5:5/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+8:3/0 = 0
+6:4/0 = 0
+7:4/0 = 0
+8:4/0 = 0
+6:5/0 = 0
+7:5/0 = 0
+8:5/0 = 0
+
 [resource]
 tile_size = Vector2i(20, 20)
 occlusion_layer_0/light_mask = 1
 physics_layer_0/collision_layer = 1
 sources/1 = SubResource("Atlas_interior_surfaces")
+sources/2 = SubResource("Atlas_town_architecture")
+sources/3 = SubResource("Atlas_dungeon_horror")
+sources/4 = SubResource("Atlas_forest_caves")
+sources/5 = SubResource("Atlas_magical_terrain")
+sources/6 = SubResource("Atlas_industrial_scifi")
 pattern_0 = SubResource("StoneWall")
 pattern_1 = SubResource("PlankWall")
 pattern_2 = SubResource("BrickWall")
@@ -114,3 +539,33 @@ pattern_5 = SubResource("TimberCeiling")
 pattern_6 = SubResource("Carpet")
 pattern_7 = SubResource("TimberBrace")
 pattern_8 = SubResource("StoneTrim")
+pattern_9 = SubResource("Wall1")
+pattern_10 = SubResource("Wall2")
+pattern_11 = SubResource("Wall3")
+pattern_12 = SubResource("Wall4")
+pattern_13 = SubResource("Wall5")
+pattern_14 = SubResource("Wall6")
+pattern_15 = SubResource("Wall7")
+pattern_16 = SubResource("Wall8")
+pattern_17 = SubResource("Wall9")
+pattern_18 = SubResource("Wall10")
+pattern_19 = SubResource("Wall11")
+pattern_20 = SubResource("Wall12")
+pattern_21 = SubResource("Wall13")
+pattern_22 = SubResource("Wall14")
+pattern_23 = SubResource("Wall15")
+pattern_24 = SubResource("Wall16")
+pattern_25 = SubResource("Wall17")
+pattern_26 = SubResource("Wall18")
+pattern_27 = SubResource("Wall19")
+pattern_28 = SubResource("Wall20")
+pattern_29 = SubResource("Wall21")
+pattern_30 = SubResource("Wall22")
+pattern_31 = SubResource("Wall23")
+pattern_32 = SubResource("Wall24")
+pattern_33 = SubResource("Wall25")
+pattern_34 = SubResource("Wall26")
+pattern_35 = SubResource("Wall27")
+pattern_36 = SubResource("Wall28")
+pattern_37 = SubResource("Wall29")
+pattern_38 = SubResource("Wall30")

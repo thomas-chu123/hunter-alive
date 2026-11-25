@@ -1,4 +1,4 @@
-[gd_resource type="TileSet" format=3]
+[gd_resource type="TileSet" format=3 uid="uid://b3csgm2gxuxpi"]
 
 [ext_resource type="Texture2D" uid="uid://brni2wvpkm1b8" path="res://assets/environment/common/terrain/interior_fixtures.png" id="3_interior_fixtures"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/lighting/wall_lantern.tscn" id="4_wall_lantern"]
