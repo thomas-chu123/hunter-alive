@@ -19,6 +19,17 @@ func run() -> void:
 	Input.action_release("hunt_interact")
 	check(level.camp_menu.visible and level.camp_rest.icon != null and level.camp_level_up.icon != null,
 		"camp interaction opens the service cards")
+	var growth := level.camp_level_up.get_parent()
+	var smithy := level.camp_knife.get_parent()
+	check(growth != smithy and growth != level.camp_rest.get_parent() and smithy == level.camp_bow.get_parent()
+		and smithy == level.forge_fang.get_parent() and smithy != level.camp_rank_items.get_parent(),
+		"character growth, weapon modification and equipment ranks have distinct sections")
+	var divider := level.camp_menu.find_child("CampDivider", true, false) as TextureRect
+	check(divider.texture == preload("res://assets/ui/camp/ember_divider.png")
+		and level.camp_rest.icon == preload("res://assets/ui/camp/hearth.png")
+		and level.camp_level_up.icon == preload("res://assets/ui/camp/growth.png"), "camp uses its own divider and two illustrated symbols")
+	for button: Button in [level.camp_rest, level.camp_level_up, level.camp_knife, level.camp_rank_up, level.camp_leave]:
+		check(button.get_theme_stylebox("normal") is StyleBoxTexture, "raised button artwork on " + button.text)
 	level._grant_equipment("ember_staff")
 	level.soul_balance = 26
 	level.materials = 4
@@ -60,6 +71,16 @@ func run() -> void:
 	inventory.item_selected.emit(inventory.item_count - 1)
 	check(level.camp_rank_up.disabled and level.camp_rank_up.text == "已達 +5", "max rank uses numeric text")
 	await frames(40)
+	var base_level := level.hunter.level
+	var base_weapon := level.hunter.knife_level
+	level.camp_level_up.grab_focus()
+	await enter()
+	check(level.hunter.level == base_level + 1 and level.hunter.knife_level == base_weapon
+		and level.soul_balance == 6 and level.materials == 4, "growth spends souls and raises only character level")
+	level.camp_knife.grab_focus()
+	await enter()
+	check(level.hunter.knife_level == base_weapon + 1 and level.hunter.level == base_level + 1
+		and level.materials == 2 and level.soul_balance == 6, "weapon modification spends materials independently")
 	level.camp_rest.grab_focus()
 	await enter()
 	check(level.camp_rest.has_focus() and level.hunter.health == level.hunter.max_health(), "rest card restores health")
@@ -74,7 +95,10 @@ func run() -> void:
 	level.camera.position_smoothing_enabled = false
 	await frames(65)
 	Input.action_press("hunt_attack")
-	await frames(17)
+	for frame in range(60):
+		await physics_frame
+		if not level.arrows.is_empty():
+			break
 	Input.action_release("hunt_attack")
 	check(not level.arrows.is_empty(), "redrawn staff still releases a projectile")
 	await frames(43)

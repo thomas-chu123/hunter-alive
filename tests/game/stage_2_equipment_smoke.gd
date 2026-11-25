@@ -32,9 +32,28 @@ func run() -> void:
 	var portrait = ruins.gear_menu.find_child("HunterPortrait", true, false)
 	check(portrait is TextureRect and portrait.texture != null, "left panel displays the hunter")
 	var stats := ruins.gear_menu.find_child("HunterStats", true, false) as GridContainer
-	var status_panel := stats.get_parent().get_parent() as VBoxContainer
-	check(status_panel.get_child(0).text == "目前狀態" and stats.get_global_rect().position.x > portrait.get_global_rect().end.x,
-		"current status heading and stats appear to the right of the portrait")
+	await process_frame
+	await process_frame
+	var rows := stats.get_parent()
+	var equipment_title := rows.get_child(0) as Label
+	var divider := rows.get_child(2) as TextureRect
+	var status := rows.get_child(3) as Label
+	check(equipment_title.text == "目前裝備" and equipment_title.horizontal_alignment == HORIZONTAL_ALIGNMENT_CENTER
+		and absf(equipment_title.get_global_rect().get_center().x - portrait.get_global_rect().get_center().x) < 1
+		and equipment_title.get_global_rect().end.y <= portrait.global_position.y, "equipment title centered above character")
+	check(divider.texture != null and status.text == "目前狀態" and status.horizontal_alignment == HORIZONTAL_ALIGNMENT_CENTER
+		and status.global_position.y >= divider.get_global_rect().end.y and stats.global_position.y >= status.get_global_rect().end.y,
+		"generated divider and centered status heading sit above the stat grid")
+	var bow: int = ruins.gear_ids.find("hunter_bow")
+	ruins.gear_list.select(bow)
+	ruins.gear_list.item_selected.emit(bow)
+	check_preview(ruins, "攻擊力", "1", Color("#85dba2"))
+	check(hunter.selected_weapon() == "hunter_knife", "preview leaves active weapon unchanged")
+	var hood: int = ruins.gear_ids.find("linen_hood")
+	ruins.gear_list.select(hood)
+	ruins.gear_list.item_selected.emit(hood)
+	check_preview(ruins, "HP", "6 / 7", Color("#ff9890"))
+	check(not ruins.gear_stat_targets["攻擊力"].is_visible_in_tree(), "switching candidates clears previous damage preview")
 	check_stat(ruins, "Level", "0")
 	check_stat(ruins, "HP", "6 / 6")
 	check_stat(ruins, "MP", "4 / 4")
@@ -46,6 +65,7 @@ func run() -> void:
 	await equip(ruins, "linen_hood")
 	check(hunter.max_health() == 7, "hood raises maximum HP")
 	check_stat(ruins, "HP", "6 / 7")
+	check_preview(ruins, "HP", "6 / 6", Color("#85dba2"))
 	check_stat(ruins, "護甲", "1")
 	check_stat(ruins, "防禦力", "3%")
 	check(ruins.gear_name.text == "+1 營火布兜" and ruins.gear_slot.text == "頭部  ·  已裝備"
@@ -65,7 +85,8 @@ func run() -> void:
 	check_stat(ruins, "防禦力", "0%")
 	check(ruins.gear_slot_images["頭部"].texture == null, "removing hood clears the slot image")
 	await equip(ruins, "hunter_wraps")
-	check_stat(ruins, "攻擊頻率", "4.35 次/秒")
+	check_stat(ruins, "攻擊頻率", "4.35")
+	check_preview(ruins, "攻擊頻率", "3.45 次/秒", Color("#85dba2"))
 	await show_view()
 	await key(KEY_I)
 	Input.action_press("hunt_attack")
@@ -204,6 +225,12 @@ func run() -> void:
 	check(ruins.inventory.size() == count - 1 and not ruins.gear_ids.has("linen_hood"), "confirm destroys only the selected item")
 	await show_view()
 	quit(1 if failed else 0)
+
+
+func check_preview(ruins: Node, title: String, expected: String, color: Color) -> void:
+	var target: Label = ruins.gear_stat_targets[title]
+	check(target.is_visible_in_tree() and target.text == expected and target.get_theme_color("font_color") == color,
+		"%s projected to %s with color %s" % [title, expected, color.to_html(false)])
 
 
 func check_stat(ruins: Node, title: String, expected: String) -> void:

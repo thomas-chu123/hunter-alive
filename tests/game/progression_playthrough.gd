@@ -65,7 +65,11 @@ func run() -> void:
 	check(interiors.size() == 1, "the art inside all five borders is identical")
 	await view(78)
 	var gold_index := level.gear_uids.find(gold_knife)
+	check(gold_index == 0, "highest-ranked weapon appears first in the equipment grid")
 	await select_gear(gold_index)
+	check(level.gear_stat_targets["攻擊力"].text == "6" and level.gear_stat_targets["攻擊力"].is_visible_in_tree()
+		and level.gear_stat_targets["攻擊力"].get_theme_color("font_color") == Color("#ff9890")
+		and level.hunter.weapon_damage("hunter_knife") == 2, "gold duplicate previews damage 2 to 6 in red before equipping")
 	await click(level.gear_apply)
 	check(level._equipped_uid("武器") == gold_knife and level.hunter.weapon_damage("hunter_knife") == 6,
 		"equipping the gold duplicate increases the selected weapon's actual damage")

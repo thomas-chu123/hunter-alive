@@ -346,18 +346,18 @@ func hurt(source_x: float, damage: int = 1, effect: String = "") -> void:
 	velocity = Vector2(signf(position.x - source_x) * force, -240)
 
 
-func max_health() -> int:
-	return MAX_HEALTH + level + int(gear.get("頭部") == "linen_hood")
+func max_health(loadout: Dictionary = gear) -> int:
+	return MAX_HEALTH + level + int(loadout.get("頭部") == "linen_hood")
 
 
 func item_rank(id: String) -> int:
 	return int(item_ranks.get(id, 1))
 
 
-func armor_points() -> int:
+func armor_points(loadout: Dictionary = gear, ranks: Dictionary = item_ranks) -> int:
 	var points := 0
-	for id: String in gear.values():
-		points += item_rank(id)
+	for id: String in loadout.values():
+		points += int(ranks.get(id, 1))
 	return points
 
 
@@ -389,7 +389,7 @@ func attach_leech() -> void:
 	leech_tick = 1.5 if gear.get("身體") == "reed_coat" else 0.9
 
 
-func weapon_period(id: String) -> float:
+func weapon_period(id: String, loadout: Dictionary = gear) -> float:
 	var duration := KNIFE_DURATION
 	if Armory.WEAPONS.has(id):
 		duration = Armory.WEAPONS[id][3]
@@ -397,11 +397,11 @@ func weapon_period(id: String) -> float:
 		duration = BOW_DURATION
 	elif id == "ember_staff":
 		duration = STAFF_DURATION
-	if id in ["hunter_bow", "thorn_bow"] and gear.get("手部") == "bowstring_gloves":
+	if id in ["hunter_bow", "thorn_bow"] and loadout.get("手部") == "bowstring_gloves":
 		duration *= 0.85
-	if id in ["ember_staff", "scribe_staff"] and gear.get("手部") == "rune_gloves":
+	if id in ["ember_staff", "scribe_staff"] and loadout.get("手部") == "rune_gloves":
 		duration *= 0.85
-	if id == "hunter_knife" and gear.get("手部") == "hunter_wraps":
+	if id == "hunter_knife" and loadout.get("手部") == "hunter_wraps":
 		duration = WRAPS_KNIFE_DURATION
 	return duration
 
