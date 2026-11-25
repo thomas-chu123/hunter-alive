@@ -1,22 +1,19 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://br5qfrvr78wi7"]
 
-[ext_resource type="Script" path="res://scripts/trap/trap_tile.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/environment/common/traps/trap_atlas.png" id="2"]
+[ext_resource type="Script" uid="uid://fhpu75q2fmbw" path="res://scripts/trap/trap_tile.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://cjjf5uiclg7w3" path="res://assets/environment/common/traps/trap_atlas.png" id="2"]
 
 [sub_resource type="AtlasTexture" id="Atlas_0"]
 atlas = ExtResource("2")
 region = Rect2(4, 4, 120, 120)
 filter_clip = true
 
-[node name="CeilingSpikes" type="Node2D"]
+[node name="CeilingSpikes" type="Node2D" unique_id=1993429400]
 script = ExtResource("1")
-kind = 0
-direction = 1
 cycle_seconds = 5.0
 
-[node name="Preview" type="Node2D" parent="."]
+[node name="Preview" type="Node2D" parent="." unique_id=597124686]
 
-[node name="Frame0" type="Sprite2D" parent="Preview"]
-position = Vector2(0, 0)
+[node name="Frame0" type="Sprite2D" parent="Preview" unique_id=1960653132]
 scale = Vector2(0.5666667, 0.2333333)
 texture = SubResource("Atlas_0")
