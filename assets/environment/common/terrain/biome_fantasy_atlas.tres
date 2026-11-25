@@ -1,6 +1,6 @@
-[gd_resource type="TileSetAtlasSource" format=3]
+[gd_resource type="TileSetAtlasSource" format=3 uid="uid://y130o6ff7of5"]
 
-[ext_resource type="Texture2D" path="res://assets/environment/common/terrain/biome_fantasy.png" id="1_l6k7e"]
+[ext_resource type="Texture2D" uid="uid://bnqf6nmhbo6n4" path="res://assets/environment/common/terrain/biome_fantasy.png" id="1_l6k7e"]
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_fc44x"]
 polygon = PackedVector2Array(10, -10, 10, 10, 9, 10, 0, 6, 0, 4, -10, -2, -10, -8, -2, -9, -2, -10)

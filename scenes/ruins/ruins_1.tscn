@@ -3,8 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://c6fs0k5em18i0" path="res://scenes/ruins/ruins.tscn" id="1"]
 [ext_resource type="TileSet" uid="uid://b3csgm2gxuxpi" path="res://assets/environment/common/terrain/interior_fixtures_tileset.tres" id="fixtures"]
 [ext_resource type="TileSet" uid="uid://cwaer0rocx11j" path="res://assets/environment/common/terrain/interior_surfaces_tileset.tres" id="surfaces"]
-
-[ext_resource type="Script" path="res://scripts/scene/temple_vault.gd" id="vault"]
+[ext_resource type="Script" uid="uid://dv2qvlf6cnqw4" path="res://scripts/scene/temple_vault.gd" id="vault"]
 
 [node name="Ruins" unique_id=1114005150 instance=ExtResource("1")]
 script = ExtResource("vault")
@@ -26,7 +25,7 @@ tile_map_data = PackedByteArray("AABYAOr/AAAAAAAAAgBQAPf/AQAAAAAACABRAAMAAQAAAAA
 tile_map_data = PackedByteArray("AAB2AOv/AAAAAAAABgAqAAMAAAAAAAAAAgAcABsAAwAAAAAAAgAcABUAAwAAAAAAAgAYABsAAwAAAAAAAQBiAA8AAwAAAAAAAwBiAAkAAwAAAAAAAwBeAA8AAwAAAAAAAQAvAAMAAwAAAAAAAgAvAP3/AwAAAAAAAgArAAMAAwAAAAAAAQBfAPf/AwAAAAAAAwBfAPH/AwAAAAAAAwBbAPf/AwAAAAAAAQAeABoABAAAAAAAAQAoAA0ABAAAAAAABgAXAAsABAAAAAAAAwBkAA4ABAAAAAAAAQA4AAEABAAAAAAABgBdAP//BAAAAAAAAwAxAAIABAAAAAAAAQBEAPX/BAAAAAAABgAqAPP/BAAAAAAAAwBhAPb/BAAAAAAAAQBMAOn/BAAAAAAABgBaAOf/BAAAAAAAAwALABsAAAAAAAAAAQCCAAMAAgAAAAAAFABwAAMAAAAAAAAADABuABMAAgAAAAAAGwB5ABsAAgAAAAAAFgA=")
 
 [node name="Monster" parent="Landscape" parent_id_path=PackedInt32Array(825624333) index="6"]
-tile_map_data = PackedByteArray("AAB9AAMAAAAAAAAACgAoAPf/AAAAAAAABwBkAPf/AAAAAAAABAA9AOv/AAAAAAAADwAmAA8AAAAAAAAAAQBeAA8AAAAAAAAABwAtABsAAAAAAAAAAQA5ABsAAAAAAAAAAgAiAAMAAAAAAAAACABBABsAAAAAAAAACAA=")
+tile_map_data = PackedByteArray("AAB9AAMAAAAAAAAACgAoAPf/AAAAAAAABwBkAPf/AAAAAAAABAA9AOv/AAAAAAAADwAmAA8AAAAAAAAAAQAtABsAAAAAAAAAAQA5ABsAAAAAAAAAAgAiAAMAAAAAAAAACABBABsAAAAAAAAACAB2AA8AAAAAAAAABwA=")
 
 [node name="RoomWalls" type="TileMapLayer" parent="Landscape" parent_id_path=PackedInt32Array(825624333) index="7" unique_id=1865857317]
 z_index = -3
