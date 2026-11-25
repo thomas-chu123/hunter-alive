@@ -4,6 +4,14 @@
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/lighting/wall_lantern.tscn" id="4_wall_lantern"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/lighting/chandelier.tscn" id="5_chandelier"]
 
+[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/tables_and_seating.png" id="tex_tables_and_seating"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/storage.png" id="tex_storage"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/bedroom_and_lounge.png" id="tex_bedroom_and_lounge"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/hearths_and_ovens.png" id="tex_hearths_and_ovens"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/tavern_and_kitchen.png" id="tex_tavern_and_kitchen"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/magic_and_alchemy.png" id="tex_magic_and_alchemy"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/armory_and_smithy.png" id="tex_armory_and_smithy"]
+
 [sub_resource type="TileMapPattern" id="Doorway"]
 resource_name = "Stone doorway frame"
 tile_data = PackedInt32Array(0, 2, 0)
@@ -77,12 +85,264 @@ resource_name = "Interior Lighting"
 scenes/1/scene = ExtResource("4_wall_lantern")
 scenes/2/scene = ExtResource("5_chandelier")
 
+[sub_resource type="TileSetAtlasSource" id="atlas_tables_and_seating"]
+resource_name = "Tables and seating"
+texture = ExtResource("tex_tables_and_seating")
+texture_region_size = Vector2i(20, 20)
+0:0/size_in_atlas = Vector2i(6, 3)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, -20)
+7:0/size_in_atlas = Vector2i(4, 3)
+7:0/0 = 0
+7:0/0/texture_origin = Vector2i(0, -20)
+14:0/size_in_atlas = Vector2i(2, 3)
+14:0/0 = 0
+14:0/0/texture_origin = Vector2i(0, -20)
+0:7/size_in_atlas = Vector2i(5, 2)
+0:7/0 = 0
+0:7/0/texture_origin = Vector2i(0, -10)
+7:7/size_in_atlas = Vector2i(2, 3)
+7:7/0 = 0
+7:7/0/texture_origin = Vector2i(0, -20)
+14:7/size_in_atlas = Vector2i(4, 4)
+14:7/0 = 0
+14:7/0/texture_origin = Vector2i(0, -30)
+0:14/size_in_atlas = Vector2i(3, 4)
+0:14/0 = 0
+0:14/0/texture_origin = Vector2i(0, -30)
+7:14/size_in_atlas = Vector2i(4, 6)
+7:14/0 = 0
+7:14/0/texture_origin = Vector2i(0, -50)
+
+[sub_resource type="TileSetAtlasSource" id="atlas_storage"]
+resource_name = "Storage"
+texture = ExtResource("tex_storage")
+texture_region_size = Vector2i(20, 20)
+0:0/size_in_atlas = Vector2i(5, 6)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, -50)
+6:0/size_in_atlas = Vector2i(4, 6)
+6:0/0 = 0
+6:0/0/texture_origin = Vector2i(0, -50)
+12:0/size_in_atlas = Vector2i(4, 3)
+12:0/0 = 0
+12:0/0/texture_origin = Vector2i(0, -20)
+0:7/size_in_atlas = Vector2i(4, 6)
+0:7/0 = 0
+0:7/0/texture_origin = Vector2i(0, -50)
+6:7/size_in_atlas = Vector2i(3, 2)
+6:7/0 = 0
+6:7/0/texture_origin = Vector2i(0, -10)
+12:7/size_in_atlas = Vector2i(4, 5)
+12:7/0 = 0
+12:7/0/texture_origin = Vector2i(0, -40)
+
+[sub_resource type="TileSetAtlasSource" id="atlas_bedroom_and_lounge"]
+resource_name = "Bedroom and lounge"
+texture = ExtResource("tex_bedroom_and_lounge")
+texture_region_size = Vector2i(20, 20)
+0:0/size_in_atlas = Vector2i(6, 4)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, -30)
+7:0/size_in_atlas = Vector2i(6, 5)
+7:0/0 = 0
+7:0/0/texture_origin = Vector2i(0, -40)
+14:0/size_in_atlas = Vector2i(6, 4)
+14:0/0 = 0
+14:0/0/texture_origin = Vector2i(0, -30)
+0:6/size_in_atlas = Vector2i(4, 5)
+0:6/0 = 0
+0:6/0/texture_origin = Vector2i(0, -40)
+
+[sub_resource type="TileSetAtlasSource" id="atlas_hearths_and_ovens"]
+resource_name = "Hearths and ovens"
+texture = ExtResource("tex_hearths_and_ovens")
+texture_region_size = Vector2i(20, 20)
+0:0/size_in_atlas = Vector2i(6, 5)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, -40)
+7:0/size_in_atlas = Vector2i(5, 4)
+7:0/0 = 0
+7:0/0/texture_origin = Vector2i(0, -30)
+
+[sub_resource type="TileSetAtlasSource" id="atlas_tavern_and_kitchen"]
+resource_name = "Tavern and kitchen"
+texture = ExtResource("tex_tavern_and_kitchen")
+texture_region_size = Vector2i(20, 20)
+0:0/size_in_atlas = Vector2i(7, 4)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, -30)
+8:0/size_in_atlas = Vector2i(3, 3)
+8:0/0 = 0
+8:0/0/texture_origin = Vector2i(0, -20)
+16:0/size_in_atlas = Vector2i(6, 4)
+16:0/0 = 0
+16:0/0/texture_origin = Vector2i(0, -30)
+0:7/size_in_atlas = Vector2i(5, 6)
+0:7/0 = 0
+0:7/0/texture_origin = Vector2i(0, -50)
+8:7/size_in_atlas = Vector2i(5, 3)
+8:7/0 = 0
+8:7/0/texture_origin = Vector2i(0, 20)
+
+[sub_resource type="TileSetAtlasSource" id="atlas_magic_and_alchemy"]
+resource_name = "Magic and alchemy"
+texture = ExtResource("tex_magic_and_alchemy")
+texture_region_size = Vector2i(20, 20)
+0:0/size_in_atlas = Vector2i(6, 4)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, -30)
+7:0/size_in_atlas = Vector2i(3, 4)
+7:0/0 = 0
+7:0/0/texture_origin = Vector2i(0, -30)
+
+[sub_resource type="TileSetAtlasSource" id="atlas_armory_and_smithy"]
+resource_name = "Armory and smithy"
+texture = ExtResource("tex_armory_and_smithy")
+texture_region_size = Vector2i(20, 20)
+0:0/size_in_atlas = Vector2i(5, 5)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, -40)
+7:0/size_in_atlas = Vector2i(3, 5)
+7:0/0 = 0
+7:0/0/texture_origin = Vector2i(0, -40)
+14:0/size_in_atlas = Vector2i(6, 4)
+14:0/0 = 0
+14:0/0/texture_origin = Vector2i(0, -30)
+
+[sub_resource type="TileMapPattern" id="Furniture01"]
+resource_name = "01 Oak long table"
+tile_data = PackedInt32Array(0, 4, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture02"]
+resource_name = "02 Round pedestal table"
+tile_data = PackedInt32Array(0, 458756, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture03"]
+resource_name = "03 Curved-back wooden chair"
+tile_data = PackedInt32Array(0, 917508, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture04"]
+resource_name = "04 Rustic wooden bench"
+tile_data = PackedInt32Array(0, 4, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture05"]
+resource_name = "05 Tavern stool"
+tile_data = PackedInt32Array(0, 458756, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture06"]
+resource_name = "06 Crimson armchair"
+tile_data = PackedInt32Array(0, 917508, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture07"]
+resource_name = "07 Antique bookcase"
+tile_data = PackedInt32Array(0, 5, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture08"]
+resource_name = "08 Double-door wardrobe"
+tile_data = PackedInt32Array(0, 393221, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture09"]
+resource_name = "09 Three-drawer chest"
+tile_data = PackedInt32Array(0, 786437, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture10"]
+resource_name = "10 Glass display cabinet"
+tile_data = PackedInt32Array(0, 5, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture11"]
+resource_name = "11 Brass-bound treasure chest"
+tile_data = PackedInt32Array(0, 393221, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture12"]
+resource_name = "12 Open wooden shelves"
+tile_data = PackedInt32Array(0, 786437, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture13"]
+resource_name = "13 Single wooden bed"
+tile_data = PackedInt32Array(0, 6, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture14"]
+resource_name = "14 Double wooden bed"
+tile_data = PackedInt32Array(0, 458758, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture15"]
+resource_name = "15 Linen sofa"
+tile_data = PackedInt32Array(0, 917510, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture16"]
+resource_name = "16 Stone fireplace"
+tile_data = PackedInt32Array(0, 7, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture17"]
+resource_name = "17 Oval-mirror dressing table"
+tile_data = PackedInt32Array(0, 6, 6)
+
+[sub_resource type="TileMapPattern" id="Furniture18"]
+resource_name = "18 Wooden rocking chair"
+tile_data = PackedInt32Array(0, 4, 14)
+
+[sub_resource type="TileMapPattern" id="Furniture19"]
+resource_name = "19 Tavern bar counter"
+tile_data = PackedInt32Array(0, 8, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture20"]
+resource_name = "20 Tapped wooden barrel"
+tile_data = PackedInt32Array(0, 524296, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture21"]
+resource_name = "21 Kitchen prep counter"
+tile_data = PackedInt32Array(0, 1048584, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture22"]
+resource_name = "22 Domed stone oven"
+tile_data = PackedInt32Array(0, 458759, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture23"]
+resource_name = "23 Crockery hutch"
+tile_data = PackedInt32Array(0, 8, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture24"]
+resource_name = "24 Hanging pot rack"
+tile_data = PackedInt32Array(0, 524296, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture25"]
+resource_name = "25 Royal throne"
+tile_data = PackedInt32Array(0, 458756, 14)
+
+[sub_resource type="TileMapPattern" id="Furniture26"]
+resource_name = "26 Alchemy workbench"
+tile_data = PackedInt32Array(0, 9, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture27"]
+resource_name = "27 Spellbook lectern"
+tile_data = PackedInt32Array(0, 458761, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture28"]
+resource_name = "28 Weapon display rack"
+tile_data = PackedInt32Array(0, 10, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture29"]
+resource_name = "29 Knight armor stand"
+tile_data = PackedInt32Array(0, 458762, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture30"]
+resource_name = "30 Smithing workbench"
+tile_data = PackedInt32Array(0, 917514, 0)
+
 [resource]
 tile_size = Vector2i(20, 20)
 occlusion_layer_0/light_mask = 1
 physics_layer_0/collision_layer = 1
 sources/2 = SubResource("Atlas_interior_fixtures")
 sources/3 = SubResource("InteriorLighting")
+sources/4 = SubResource("atlas_tables_and_seating")
+sources/5 = SubResource("atlas_storage")
+sources/6 = SubResource("atlas_bedroom_and_lounge")
+sources/7 = SubResource("atlas_hearths_and_ovens")
+sources/8 = SubResource("atlas_tavern_and_kitchen")
+sources/9 = SubResource("atlas_magic_and_alchemy")
+sources/10 = SubResource("atlas_armory_and_smithy")
 pattern_0 = SubResource("Doorway")
 pattern_1 = SubResource("Door")
 pattern_2 = SubResource("Window")
@@ -92,3 +352,33 @@ pattern_5 = SubResource("Lantern")
 pattern_6 = SubResource("RestraintChair")
 pattern_7 = SubResource("BladeRack")
 pattern_8 = SubResource("Tapestry")
+pattern_9 = SubResource("Furniture01")
+pattern_10 = SubResource("Furniture02")
+pattern_11 = SubResource("Furniture03")
+pattern_12 = SubResource("Furniture04")
+pattern_13 = SubResource("Furniture05")
+pattern_14 = SubResource("Furniture06")
+pattern_15 = SubResource("Furniture07")
+pattern_16 = SubResource("Furniture08")
+pattern_17 = SubResource("Furniture09")
+pattern_18 = SubResource("Furniture10")
+pattern_19 = SubResource("Furniture11")
+pattern_20 = SubResource("Furniture12")
+pattern_21 = SubResource("Furniture13")
+pattern_22 = SubResource("Furniture14")
+pattern_23 = SubResource("Furniture15")
+pattern_24 = SubResource("Furniture16")
+pattern_25 = SubResource("Furniture17")
+pattern_26 = SubResource("Furniture18")
+pattern_27 = SubResource("Furniture19")
+pattern_28 = SubResource("Furniture20")
+pattern_29 = SubResource("Furniture21")
+pattern_30 = SubResource("Furniture22")
+pattern_31 = SubResource("Furniture23")
+pattern_32 = SubResource("Furniture24")
+pattern_33 = SubResource("Furniture25")
+pattern_34 = SubResource("Furniture26")
+pattern_35 = SubResource("Furniture27")
+pattern_36 = SubResource("Furniture28")
+pattern_37 = SubResource("Furniture29")
+pattern_38 = SubResource("Furniture30")

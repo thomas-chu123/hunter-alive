@@ -16,6 +16,12 @@ const PATTERNS := [
 	"Dungeon restraint chair", "Ceremonial blade rack", "Hanging tapestry",
 ]
 
+# RoomFixtures source IDs in the numbered furniture catalog.
+const FURNITURE_SOURCES := [
+	4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6,
+	7, 6, 4, 8, 8, 8, 7, 8, 8, 4, 9, 9, 10, 10, 10,
+]
+
 var failures := 0
 var proof := OS.get_environment("HUNTER_INTERIOR_PROOF")
 
@@ -124,7 +130,7 @@ func check_atlases() -> void:
 		"Terrain and Props use the shared 20 px grid")
 	check(Terrain.get_source_count() == 1 and Terrain.has_source(0)
 		and Surfaces.get_source_count() == 6 and Surfaces.has_source(1)
-		and Fixtures.get_source_count() == 2 and Fixtures.has_source(2) and Fixtures.has_source(3),
+		and Fixtures.get_source_count() == 9 and Fixtures.has_source(2) and Fixtures.has_source(3),
 		"terrain, walls and fixtures expose only their assigned sources")
 	for source_id in [1, 2]:
 		var tileset := Surfaces if source_id == 1 else Fixtures
@@ -164,14 +170,45 @@ func check_atlases() -> void:
 		var pattern := Surfaces.get_pattern(9 + index)
 		palette.clear()
 		palette.set_pattern(Vector2i.ZERO, pattern)
-		var valid := pattern.resource_name.begins_with("%02d " % (index + 1)) and palette.get_used_cells().size() == 9
+		var valid: bool = pattern.resource_name.begins_with("%02d " % (index + 1)) and palette.get_used_cells().size() == 9
 		for cell in palette.get_used_cells():
 			var atlas_origin := Vector2i(index % 3, (index % 6) / 3) * 3
 			valid = valid and palette.get_cell_source_id(cell) == 2 + index / 6 \
 				and palette.get_cell_atlas_coords(cell) == atlas_origin + cell \
 				and palette.get_cell_tile_data(cell) != null
 		check(valid, "%s stamps nine wall cells" % pattern.resource_name)
+	check_furniture(palette)
 	palette.free()
+
+
+func check_furniture(palette: TileMapLayer) -> void:
+	palette.tile_set = Fixtures
+	var seen := {}
+	for index in FURNITURE_SOURCES.size():
+		var pattern := Fixtures.get_pattern(9 + index)
+		if pattern == null:
+			check(false, "missing furniture pattern %02d" % (index + 1))
+			continue
+		palette.clear()
+		palette.set_pattern(Vector2i.ZERO, pattern)
+		var source_id := palette.get_cell_source_id(Vector2i.ZERO)
+		var coords := palette.get_cell_atlas_coords(Vector2i.ZERO)
+		var key := Vector3i(coords.x, coords.y, source_id)
+		var tile := palette.get_cell_tile_data(Vector2i.ZERO)
+		var valid: bool = pattern.resource_name.begins_with("%02d " % (index + 1)) \
+			and palette.get_used_cells().size() == 1 and source_id == FURNITURE_SOURCES[index] \
+			and tile != null and not seen.has(key)
+		if valid:
+			var atlas := Fixtures.get_source(source_id) as TileSetAtlasSource
+			var rect := atlas.get_tile_texture_region(coords)
+			var art := atlas.texture.get_image().get_region(rect)
+			var used := art.get_used_rect()
+			valid = used.has_area() and used != Rect2i(Vector2i.ZERO, rect.size) \
+				and tile.get_collision_polygons_count(0) == 0
+			var offset := (rect.size.y - Fixtures.tile_size.y) / 2
+			valid = valid and tile.texture_origin.y == (offset if index == 23 else -offset)
+		seen[key] = true
+		check(valid, "%s stamps one distinct furniture tile in its category" % pattern.resource_name)
 
 
 func check_interior_lights(background: TileMapLayer, fixtures: TileMapLayer, lantern_cell: Vector2i) -> void:
