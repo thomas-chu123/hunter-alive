@@ -213,6 +213,8 @@ func _physics_process(delta: float) -> void:
 	if not is_on_wall():
 		velocity.x -= blade_recoil
 	blade_recoil = move_toward(blade_recoil, 0.0, 1250.0 * delta)
+	if is_on_ceiling():
+		velocity.y = maxf(velocity.y, 140.0)
 	if is_on_floor() and not grounded and fall_speed > 245.0:
 		landing_left = LAND_DURATION * (0.5 if gear.get("腿部") == "cliff_boots" else 1.0)
 	animation_time += delta
