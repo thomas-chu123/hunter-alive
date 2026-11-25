@@ -3,6 +3,12 @@
 [ext_resource type="Texture2D" uid="uid://b6c6rrg5imjea" path="res://assets/environment/common/terrain/terrain_grid.png" id="1_grid"]
 [ext_resource type="TileSetAtlasSource" path="res://assets/environment/common/terrain/natural_rock_atlas.tres" id="NaturalRockTerrain"]
 
+[ext_resource type="TileSetAtlasSource" path="res://assets/environment/common/terrain/biome_natural_atlas.tres" id="Biome_natural"]
+[ext_resource type="TileSetAtlasSource" path="res://assets/environment/common/terrain/biome_caves_atlas.tres" id="Biome_caves"]
+[ext_resource type="TileSetAtlasSource" path="res://assets/environment/common/terrain/biome_extreme_atlas.tres" id="Biome_extreme"]
+[ext_resource type="TileSetAtlasSource" path="res://assets/environment/common/terrain/biome_constructed_atlas.tres" id="Biome_constructed"]
+[ext_resource type="TileSetAtlasSource" path="res://assets/environment/common/terrain/biome_fantasy_atlas.tres" id="Biome_fantasy"]
+
 [sub_resource type="TileMapPattern" id="MossFloor"]
 resource_name = "Moss floor"
 tile_data = PackedInt32Array(0, 0, 0, 1, 65536, 0, 2, 131072, 0, 3, 196608, 0, 4, 262144, 0, 5, 327680, 0, 65536, 0, 1, 65537, 65536, 1, 65538, 131072, 1, 65539, 196608, 1, 65540, 262144, 1, 65541, 327680, 1, 131072, 0, 2, 131073, 65536, 2, 131074, 131072, 2, 131075, 196608, 2, 131076, 262144, 2, 131077, 327680, 2)
@@ -663,12 +669,137 @@ texture_region_size = Vector2i(20, 20)
 11:6/0/occlusion_layer_0/polygon_0/polygon = SubResource("TerrainOccluder")
 11:6/0/physics_layer_0/polygon_0/points = PackedVector2Array(-10, -10, 10, -10, 10, 10, -10, 10)
 
+[sub_resource type="TileMapPattern" id="Biome01"]
+resource_name = "01 草地泥土 / Grassland Terrain"
+tile_data = PackedInt32Array(0, 2, 0, 1, 65538, 0, 2, 131074, 0, 3, 196610, 0, 4, 262146, 0, 5, 327682, 0, 6, 393218, 0, 7, 458754, 0, 65536, 2, 1, 65537, 65538, 1, 65538, 131074, 1, 65539, 196610, 1, 65540, 262146, 1, 65541, 327682, 1, 65542, 393218, 1, 65543, 458754, 1)
+
+[sub_resource type="TileMapPattern" id="Biome02"]
+resource_name = "02 裸露泥土 / Dirt Terrain"
+tile_data = PackedInt32Array(0, 589826, 0, 1, 655362, 0, 2, 720898, 0, 3, 786434, 0, 4, 851970, 0, 5, 917506, 0, 6, 983042, 0, 7, 1048578, 0, 65536, 589826, 1, 65537, 655362, 1, 65538, 720898, 1, 65539, 786434, 1, 65540, 851970, 1, 65541, 917506, 1, 65542, 983042, 1, 65543, 1048578, 1)
+
+[sub_resource type="TileMapPattern" id="Biome03"]
+resource_name = "03 不規則岩石 / Rocky Terrain"
+tile_data = PackedInt32Array(0, 1179650, 0, 1, 1245186, 0, 2, 1310722, 0, 3, 1376258, 0, 4, 1441794, 0, 5, 1507330, 0, 6, 1572866, 0, 7, 1638402, 0, 65536, 1179650, 1, 65537, 1245186, 1, 65538, 1310722, 1, 65539, 1376258, 1, 65540, 1441794, 1, 65541, 1507330, 1, 65542, 1572866, 1, 65543, 1638402, 1)
+
+[sub_resource type="TileMapPattern" id="Biome04"]
+resource_name = "04 森林腐植土 / Forest Floor"
+tile_data = PackedInt32Array(0, 2, 5, 1, 65538, 5, 2, 131074, 5, 3, 196610, 5, 4, 262146, 5, 5, 327682, 5, 6, 393218, 5, 7, 458754, 5, 65536, 2, 6, 65537, 65538, 6, 65538, 131074, 6, 65539, 196610, 6, 65540, 262146, 6, 65541, 327682, 6, 65542, 393218, 6, 65543, 458754, 6)
+
+[sub_resource type="TileMapPattern" id="Biome05"]
+resource_name = "05 巨樹樹根 / Tree Root Terrain"
+tile_data = PackedInt32Array(0, 589826, 5, 1, 655362, 5, 2, 720898, 5, 3, 786434, 5, 4, 851970, 5, 5, 917506, 5, 6, 983042, 5, 7, 1048578, 5, 65536, 589826, 6, 65537, 655362, 6, 65538, 720898, 6, 65539, 786434, 6, 65540, 851970, 6, 65541, 917506, 6, 65542, 983042, 6, 65543, 1048578, 6)
+
+[sub_resource type="TileMapPattern" id="Biome06"]
+resource_name = "06 沼澤泥地 / Swamp Terrain"
+tile_data = PackedInt32Array(0, 1179650, 5, 1, 1245186, 5, 2, 1310722, 5, 3, 1376258, 5, 4, 1441794, 5, 5, 1507330, 5, 6, 1572866, 5, 7, 1638402, 5, 65536, 1179650, 6, 65537, 1245186, 6, 65538, 1310722, 6, 65539, 1376258, 6, 65540, 1441794, 6, 65541, 1507330, 6, 65542, 1572866, 6, 65543, 1638402, 6)
+
+[sub_resource type="TileMapPattern" id="Biome07"]
+resource_name = "07 天然岩石洞穴 / Natural Cave Terrain"
+tile_data = PackedInt32Array(0, 3, 0, 1, 65539, 0, 2, 131075, 0, 3, 196611, 0, 4, 262147, 0, 5, 327683, 0, 6, 393219, 0, 7, 458755, 0, 65536, 3, 1, 65537, 65539, 1, 65538, 131075, 1, 65539, 196611, 1, 65540, 262147, 1, 65541, 327683, 1, 65542, 393219, 1, 65543, 458755, 1)
+
+[sub_resource type="TileMapPattern" id="Biome08"]
+resource_name = "08 石灰岩洞穴 / Limestone Cave"
+tile_data = PackedInt32Array(0, 589827, 0, 1, 655363, 0, 2, 720899, 0, 3, 786435, 0, 4, 851971, 0, 5, 917507, 0, 6, 983043, 0, 7, 1048579, 0, 65536, 589827, 1, 65537, 655363, 1, 65538, 720899, 1, 65539, 786435, 1, 65540, 851971, 1, 65541, 917507, 1, 65542, 983043, 1, 65543, 1048579, 1)
+
+[sub_resource type="TileMapPattern" id="Biome09"]
+resource_name = "09 鐘乳石洞穴 / Stalactite Cave"
+tile_data = PackedInt32Array(0, 1179651, 0, 1, 1245187, 0, 2, 1310723, 0, 3, 1376259, 0, 4, 1441795, 0, 5, 1507331, 0, 6, 1572867, 0, 7, 1638403, 0, 65536, 1179651, 1, 65537, 1245187, 1, 65538, 1310723, 1, 65539, 1376259, 1, 65540, 1441795, 1, 65541, 1507331, 1, 65542, 1572867, 1, 65543, 1638403, 1)
+
+[sub_resource type="TileMapPattern" id="Biome10"]
+resource_name = "10 水晶礦石洞穴 / Crystal Cave"
+tile_data = PackedInt32Array(0, 3, 5, 1, 65539, 5, 2, 131075, 5, 3, 196611, 5, 4, 262147, 5, 5, 327683, 5, 6, 393219, 5, 7, 458755, 5, 65536, 3, 6, 65537, 65539, 6, 65538, 131075, 6, 65539, 196611, 6, 65540, 262147, 6, 65541, 327683, 6, 65542, 393219, 6, 65543, 458755, 6)
+
+[sub_resource type="TileMapPattern" id="Biome11"]
+resource_name = "11 蘑菇洞穴 / Mushroom Cave"
+tile_data = PackedInt32Array(0, 589827, 5, 1, 655363, 5, 2, 720899, 5, 3, 786435, 5, 4, 851971, 5, 5, 917507, 5, 6, 983043, 5, 7, 1048579, 5, 65536, 589827, 6, 65537, 655363, 6, 65538, 720899, 6, 65539, 786435, 6, 65540, 851971, 6, 65541, 917507, 6, 65542, 983043, 6, 65543, 1048579, 6)
+
+[sub_resource type="TileMapPattern" id="Biome12"]
+resource_name = "12 地下白骨洞穴 / Bone Cave"
+tile_data = PackedInt32Array(0, 1179651, 5, 1, 1245187, 5, 2, 1310723, 5, 3, 1376259, 5, 4, 1441795, 5, 5, 1507331, 5, 6, 1572867, 5, 7, 1638403, 5, 65536, 1179651, 6, 65537, 1245187, 6, 65538, 1310723, 6, 65539, 1376259, 6, 65540, 1441795, 6, 65541, 1507331, 6, 65542, 1572867, 6, 65543, 1638403, 6)
+
+[sub_resource type="TileMapPattern" id="Biome13"]
+resource_name = "13 冰雪地形 / Snow Terrain"
+tile_data = PackedInt32Array(0, 4, 0, 1, 65540, 0, 2, 131076, 0, 3, 196612, 0, 4, 262148, 0, 5, 327684, 0, 6, 393220, 0, 7, 458756, 0, 65536, 4, 1, 65537, 65540, 1, 65538, 131076, 1, 65539, 196612, 1, 65540, 262148, 1, 65541, 327684, 1, 65542, 393220, 1, 65543, 458756, 1)
+
+[sub_resource type="TileMapPattern" id="Biome14"]
+resource_name = "14 冰川地形 / Glacier Terrain"
+tile_data = PackedInt32Array(0, 589828, 0, 1, 655364, 0, 2, 720900, 0, 3, 786436, 0, 4, 851972, 0, 5, 917508, 0, 6, 983044, 0, 7, 1048580, 0, 65536, 589828, 1, 65537, 655364, 1, 65538, 720900, 1, 65539, 786436, 1, 65540, 851972, 1, 65541, 917508, 1, 65542, 983044, 1, 65543, 1048580, 1)
+
+[sub_resource type="TileMapPattern" id="Biome15"]
+resource_name = "15 火山岩地形 / Volcanic Terrain"
+tile_data = PackedInt32Array(0, 1179652, 0, 1, 1245188, 0, 2, 1310724, 0, 3, 1376260, 0, 4, 1441796, 0, 5, 1507332, 0, 6, 1572868, 0, 7, 1638404, 0, 65536, 1179652, 1, 65537, 1245188, 1, 65538, 1310724, 1, 65539, 1376260, 1, 65540, 1441796, 1, 65541, 1507332, 1, 65542, 1572868, 1, 65543, 1638404, 1)
+
+[sub_resource type="TileMapPattern" id="Biome16"]
+resource_name = "16 熔岩裂縫地形 / Lava Cracked Terrain"
+tile_data = PackedInt32Array(0, 4, 5, 1, 65540, 5, 2, 131076, 5, 3, 196612, 5, 4, 262148, 5, 5, 327684, 5, 6, 393220, 5, 7, 458756, 5, 65536, 4, 6, 65537, 65540, 6, 65538, 131076, 6, 65539, 196612, 6, 65540, 262148, 6, 65541, 327684, 6, 65542, 393220, 6, 65543, 458756, 6)
+
+[sub_resource type="TileMapPattern" id="Biome17"]
+resource_name = "17 沙漠沙丘 / Desert Sand Terrain"
+tile_data = PackedInt32Array(0, 589828, 5, 1, 655364, 5, 2, 720900, 5, 3, 786436, 5, 4, 851972, 5, 5, 917508, 5, 6, 983044, 5, 7, 1048580, 5, 65536, 589828, 6, 65537, 655364, 6, 65538, 720900, 6, 65539, 786436, 6, 65540, 851972, 6, 65541, 917508, 6, 65542, 983044, 6, 65543, 1048580, 6)
+
+[sub_resource type="TileMapPattern" id="Biome18"]
+resource_name = "18 乾裂泥土地形 / Cracked Earth Terrain"
+tile_data = PackedInt32Array(0, 1179652, 5, 1, 1245188, 5, 2, 1310724, 5, 3, 1376260, 5, 4, 1441796, 5, 5, 1507332, 5, 6, 1572868, 5, 7, 1638404, 5, 65536, 1179652, 6, 65537, 1245188, 6, 65538, 1310724, 6, 65539, 1376260, 6, 65540, 1441796, 6, 65541, 1507332, 6, 65542, 1572868, 6, 65543, 1638404, 6)
+
+[sub_resource type="TileMapPattern" id="Biome19"]
+resource_name = "19 城堡石磚平台 / Castle Stone Platform"
+tile_data = PackedInt32Array(0, 5, 0, 1, 65541, 0, 2, 131077, 0, 3, 196613, 0, 4, 262149, 0, 5, 327685, 0, 6, 393221, 0, 7, 458757, 0, 65536, 5, 1, 65537, 65541, 1, 65538, 131077, 1, 65539, 196613, 1, 65540, 262149, 1, 65541, 327685, 1, 65542, 393221, 1, 65543, 458757, 1)
+
+[sub_resource type="TileMapPattern" id="Biome20"]
+resource_name = "20 地牢石磚平台 / Dungeon Platform"
+tile_data = PackedInt32Array(0, 589829, 0, 1, 655365, 0, 2, 720901, 0, 3, 786437, 0, 4, 851973, 0, 5, 917509, 0, 6, 983045, 0, 7, 1048581, 0, 65536, 589829, 1, 65537, 655365, 1, 65538, 720901, 1, 65539, 786437, 1, 65540, 851973, 1, 65541, 917509, 1, 65542, 983045, 1, 65543, 1048581, 1)
+
+[sub_resource type="TileMapPattern" id="Biome21"]
+resource_name = "21 木板平台 / Wooden Platform"
+tile_data = PackedInt32Array(0, 1179653, 0, 1, 1245189, 0, 2, 1310725, 0, 3, 1376261, 0, 4, 1441797, 0, 5, 1507333, 0, 6, 1572869, 0, 7, 1638405, 0, 65536, 1179653, 1, 65537, 1245189, 1, 65538, 1310725, 1, 65539, 1376261, 1, 65540, 1441797, 1, 65541, 1507333, 1, 65542, 1572869, 1, 65543, 1638405, 1)
+
+[sub_resource type="TileMapPattern" id="Biome22"]
+resource_name = "22 古代遺跡平台 / Ancient Ruins Platform"
+tile_data = PackedInt32Array(0, 5, 5, 1, 65541, 5, 2, 131077, 5, 3, 196613, 5, 4, 262149, 5, 5, 327685, 5, 6, 393221, 5, 7, 458757, 5, 65536, 5, 6, 65537, 65541, 6, 65538, 131077, 6, 65539, 196613, 6, 65540, 262149, 6, 65541, 327685, 6, 65542, 393221, 6, 65543, 458757, 6)
+
+[sub_resource type="TileMapPattern" id="Biome23"]
+resource_name = "23 紅磚建築平台 / Brick Platform"
+tile_data = PackedInt32Array(0, 589829, 5, 1, 655365, 5, 2, 720901, 5, 3, 786437, 5, 4, 851973, 5, 5, 917509, 5, 6, 983045, 5, 7, 1048581, 5, 65536, 589829, 6, 65537, 655365, 6, 65538, 720901, 6, 65539, 786437, 6, 65540, 851973, 6, 65541, 917509, 6, 65542, 983045, 6, 65543, 1048581, 6)
+
+[sub_resource type="TileMapPattern" id="Biome24"]
+resource_name = "24 工業金屬平台 / Industrial Metal Platform"
+tile_data = PackedInt32Array(0, 1179653, 5, 1, 1245189, 5, 2, 1310725, 5, 3, 1376261, 5, 4, 1441797, 5, 5, 1507333, 5, 6, 1572869, 5, 7, 1638405, 5, 65536, 1179653, 6, 65537, 1245189, 6, 65538, 1310725, 6, 65539, 1376261, 6, 65540, 1441797, 6, 65541, 1507333, 6, 65542, 1572869, 6, 65543, 1638405, 6)
+
+[sub_resource type="TileMapPattern" id="Biome25"]
+resource_name = "25 浮空岩石島 / Floating Rock Island"
+tile_data = PackedInt32Array(0, 6, 0, 1, 65542, 0, 2, 131078, 0, 3, 196614, 0, 4, 262150, 0, 5, 327686, 0, 6, 393222, 0, 7, 458758, 0, 65536, 6, 1, 65537, 65542, 1, 65538, 131078, 1, 65539, 196614, 1, 65540, 262150, 1, 65541, 327686, 1, 65542, 393222, 1, 65543, 458758, 1)
+
+[sub_resource type="TileMapPattern" id="Biome26"]
+resource_name = "26 浮空草地島 / Floating Grass Island"
+tile_data = PackedInt32Array(0, 589830, 0, 1, 655366, 0, 2, 720902, 0, 3, 786438, 0, 4, 851974, 0, 5, 917510, 0, 6, 983046, 0, 7, 1048582, 0, 65536, 589830, 1, 65537, 655366, 1, 65538, 720902, 1, 65539, 786438, 1, 65540, 851974, 1, 65541, 917510, 1, 65542, 983046, 1, 65543, 1048582, 1)
+
+[sub_resource type="TileMapPattern" id="Biome27"]
+resource_name = "27 巨型蘑菇平台 / Giant Mushroom Platform"
+tile_data = PackedInt32Array(0, 1179654, 0, 1, 1245190, 0, 2, 1310726, 0, 3, 1376262, 0, 4, 1441798, 0, 5, 1507334, 0, 6, 1572870, 0, 7, 1638406, 0, 65536, 1179654, 1, 65537, 1245190, 1, 65538, 1310726, 1, 65539, 1376262, 1, 65540, 1441798, 1, 65541, 1507334, 1, 65542, 1572870, 1, 65543, 1638406, 1, 131074, 1310726, 2, 131075, 1376262, 2, 131076, 1441798, 2)
+
+[sub_resource type="TileMapPattern" id="Biome28"]
+resource_name = "28 巨型樹枝平台 / Giant Tree Branch"
+tile_data = PackedInt32Array(0, 6, 5, 1, 65542, 5, 2, 131078, 5, 3, 196614, 5, 4, 262150, 5, 5, 327686, 5, 6, 393222, 5, 7, 458758, 5, 65536, 6, 6, 65537, 65542, 6, 65538, 131078, 6, 65539, 196614, 6, 65540, 262150, 6, 65541, 327686, 6, 65542, 393222, 6, 65543, 458758, 6)
+
+[sub_resource type="TileMapPattern" id="Biome29"]
+resource_name = "29 魔法水晶平台 / Magic Crystal Platform"
+tile_data = PackedInt32Array(0, 589830, 5, 1, 655366, 5, 2, 720902, 5, 3, 786438, 5, 4, 851974, 5, 5, 917510, 5, 6, 983046, 5, 7, 1048582, 5, 65536, 589830, 6, 65537, 655366, 6, 65538, 720902, 6, 65539, 786438, 6, 65540, 851974, 6, 65541, 917510, 6, 65542, 983046, 6, 65543, 1048582, 6)
+
+[sub_resource type="TileMapPattern" id="Biome30"]
+resource_name = "30 腐化詛咒地形 / Corrupted Terrain"
+tile_data = PackedInt32Array(0, 1179654, 5, 1, 1245190, 5, 2, 1310726, 5, 3, 1376262, 5, 4, 1441798, 5, 5, 1507334, 5, 6, 1572870, 5, 7, 1638406, 5, 65536, 1179654, 6, 65537, 1245190, 6, 65538, 1310726, 6, 65539, 1376262, 6, 65540, 1441798, 6, 65541, 1507334, 6, 65542, 1572870, 6, 65543, 1638406, 6, 131072, 1179654, 7, 131073, 1245190, 7, 131074, 1310726, 7, 131075, 1376262, 7, 131076, 1441798, 7, 131077, 1507334, 7, 131078, 1572870, 7, 131079, 1638406, 7)
+
 [resource]
 tile_size = Vector2i(20, 20)
 occlusion_layer_0/light_mask = 1
 physics_layer_0/collision_layer = 1
 sources/0 = SubResource("Atlas_ruins")
 sources/1 = ExtResource("NaturalRockTerrain")
+sources/2 = ExtResource("Biome_natural")
+sources/3 = ExtResource("Biome_caves")
+sources/4 = ExtResource("Biome_extreme")
+sources/5 = ExtResource("Biome_constructed")
+sources/6 = ExtResource("Biome_fantasy")
 pattern_0 = SubResource("MossFloor")
 pattern_1 = SubResource("SandstoneFloor")
 pattern_2 = SubResource("RootFloor")
@@ -691,3 +822,33 @@ pattern_18 = SubResource("NaturalRock09")
 pattern_19 = SubResource("NaturalRock10")
 pattern_20 = SubResource("NaturalRock11")
 pattern_21 = SubResource("NaturalRock12")
+pattern_22 = SubResource("Biome01")
+pattern_23 = SubResource("Biome02")
+pattern_24 = SubResource("Biome03")
+pattern_25 = SubResource("Biome04")
+pattern_26 = SubResource("Biome05")
+pattern_27 = SubResource("Biome06")
+pattern_28 = SubResource("Biome07")
+pattern_29 = SubResource("Biome08")
+pattern_30 = SubResource("Biome09")
+pattern_31 = SubResource("Biome10")
+pattern_32 = SubResource("Biome11")
+pattern_33 = SubResource("Biome12")
+pattern_34 = SubResource("Biome13")
+pattern_35 = SubResource("Biome14")
+pattern_36 = SubResource("Biome15")
+pattern_37 = SubResource("Biome16")
+pattern_38 = SubResource("Biome17")
+pattern_39 = SubResource("Biome18")
+pattern_40 = SubResource("Biome19")
+pattern_41 = SubResource("Biome20")
+pattern_42 = SubResource("Biome21")
+pattern_43 = SubResource("Biome22")
+pattern_44 = SubResource("Biome23")
+pattern_45 = SubResource("Biome24")
+pattern_46 = SubResource("Biome25")
+pattern_47 = SubResource("Biome26")
+pattern_48 = SubResource("Biome27")
+pattern_49 = SubResource("Biome28")
+pattern_50 = SubResource("Biome29")
+pattern_51 = SubResource("Biome30")

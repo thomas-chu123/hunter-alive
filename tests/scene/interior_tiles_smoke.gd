@@ -128,7 +128,7 @@ func check_stage_layers() -> void:
 func check_atlases() -> void:
 	check(Terrain.tile_size == Vector2i(20, 20) and Props.tile_size == Terrain.tile_size,
 		"Terrain and Props use the shared 20 px grid")
-	check(Terrain.get_source_count() == 2 and Terrain.has_source(0) and Terrain.has_source(1)
+	check(Terrain.get_source_count() == 7 and Terrain.has_source(0) and Terrain.has_source(1)
 		and Surfaces.get_source_count() == 6 and Surfaces.has_source(1)
 		and Fixtures.get_source_count() == 9 and Fixtures.has_source(2) and Fixtures.has_source(3),
 		"terrain, walls and fixtures expose only their assigned sources")

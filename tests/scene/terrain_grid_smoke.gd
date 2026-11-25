@@ -35,6 +35,7 @@ func run() -> void:
 			check(can_paint_pattern(terrain), "%s can stamp a pattern on the same grid" % path)
 		level.free()
 	await check_natural_rock()
+	await check_terrain_categories()
 	await process_frame
 	quit(0 if failures == 0 else 1)
 
@@ -69,7 +70,7 @@ func cells_match_grid(terrain: TileMapLayer, cells: Array[Vector2i]) -> bool:
 		var center := (Vector2(cell) + Vector2(0.5, 0.5)) * Vector2(TILE_SIZE)
 		if terrain.map_to_local(cell) != center or terrain.local_to_map(center) != cell:
 			return false
-		if terrain.get_cell_source_id(cell) == 1:
+		if terrain.get_cell_source_id(cell) != 0:
 			if tile.texture_origin != Vector2i.ZERO:
 				return false
 			continue
@@ -149,6 +150,45 @@ func check_natural_rock() -> void:
 	check(reached_crest and descended, "hunter walks up and down the connected slopes without jumping")
 	check(hunter.position.x > 775 and hunter.is_on_floor(), "standing hunter crosses the full arch on level ground")
 	hunter.free()
+	layer.free()
+
+
+func check_terrain_categories() -> void:
+	var categories := ["自然地形", "洞穴地形", "極端環境地形", "人工建築地形", "奇幻地形"]
+	var layer := TileMapLayer.new()
+	layer.tile_set = TERRAIN_TILESET
+	root.add_child(layer)
+	for index in 30:
+		var group := index / 6
+		var source_id := 2 + group
+		var origin := Vector2i(index * 10, 0)
+		var pattern := TERRAIN_TILESET.get_pattern(22 + index)
+		var source := TERRAIN_TILESET.get_source(source_id) as TileSetAtlasSource
+		var slot := Vector2i((index % 3) * 9, ((index % 6) / 3) * 5)
+		layer.set_pattern(origin, pattern)
+		var valid: bool = source.resource_name == categories[group] and pattern.resource_name.begins_with("%02d " % (index + 1))
+		var texture := source.texture.get_image()
+		for cell in pattern.get_used_cells():
+			var coords := layer.get_cell_atlas_coords(origin + cell)
+			var tile := layer.get_cell_tile_data(origin + cell)
+			valid = valid and tile != null and layer.get_cell_source_id(origin + cell) == source_id and coords == slot + cell
+			if tile == null:
+				continue
+			var region := source.get_tile_texture_region(coords)
+			valid = valid and not texture.get_region(region).is_invisible()
+			valid = valid and tile.get_occluder_polygons_count(0) == tile.get_collision_polygons_count(0)
+		check(valid and not pattern.get_used_cells().is_empty(), "%s / %s stamps its own artwork" % [categories[group], pattern.resource_name])
+	layer.update_internals()
+	await physics_frame
+	await physics_frame
+	var space := layer.get_world_2d().direct_space_state
+	for index in 30:
+		var supported := true
+		for offset in [45, 81, 115]:
+			var x: int = index * 200 + offset
+			var hit := space.intersect_ray(PhysicsRayQueryParameters2D.create(Vector2(x, -20), Vector2(x, 80), 1))
+			supported = supported and not hit.is_empty() and hit.normal.y < -0.7
+		check(supported, "terrain %02d supports standing across its upper surface" % (index + 1))
 	layer.free()
 
 
