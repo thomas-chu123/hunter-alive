@@ -1,10 +1,6 @@
 [gd_resource type="TileSet" format=3 uid="uid://con8hl5nkiqgu"]
 
 [ext_resource type="Texture2D" uid="uid://b6c6rrg5imjea" path="res://assets/environment/common/terrain/terrain_grid.png" id="1_grid"]
-[ext_resource type="Texture2D" uid="uid://beah6kxxk71mh" path="res://assets/environment/common/terrain/interior_surfaces.png" id="2_interior_surfaces"]
-[ext_resource type="Texture2D" uid="uid://brni2wvpkm1b8" path="res://assets/environment/common/terrain/interior_fixtures.png" id="3_interior_fixtures"]
-[ext_resource type="PackedScene" path="res://assets/environment/common/props/lighting/wall_lantern.tscn" id="4_wall_lantern"]
-[ext_resource type="PackedScene" path="res://assets/environment/common/props/lighting/chandelier.tscn" id="5_chandelier"]
 
 [sub_resource type="TileMapPattern" id="MossFloor"]
 resource_name = "Moss floor"
@@ -14,81 +10,9 @@ tile_data = PackedInt32Array(0, 0, 0, 1, 65536, 0, 2, 131072, 0, 3, 196608, 0, 4
 resource_name = "Sandstone floor"
 tile_data = PackedInt32Array(0, 393216, 0, 1, 458752, 0, 2, 524288, 0, 3, 589824, 0, 4, 655360, 0, 5, 720896, 0, 65536, 393216, 1, 65537, 458752, 1, 65538, 524288, 1, 65539, 589824, 1, 65540, 655360, 1, 65541, 720896, 1, 131072, 393216, 2, 131073, 458752, 2, 131074, 524288, 2, 131075, 589824, 2, 131076, 655360, 2, 131077, 720896, 2)
 
-[sub_resource type="TileMapPattern" id="StoneWall"]
-resource_name = "Interior stone wall"
-tile_data = PackedInt32Array(0, 1, 0, 1, 65537, 0, 2, 131073, 0, 65536, 1, 1, 65537, 65537, 1, 65538, 131073, 1, 131072, 1, 2, 131073, 65537, 2, 131074, 131073, 2)
-
-[sub_resource type="TileMapPattern" id="PlankWall"]
-resource_name = "Interior plank wall"
-tile_data = PackedInt32Array(0, 196609, 0, 1, 262145, 0, 2, 327681, 0, 65536, 196609, 1, 65537, 262145, 1, 65538, 327681, 1, 131072, 196609, 2, 131073, 262145, 2, 131074, 327681, 2)
-
-[sub_resource type="TileMapPattern" id="BrickWall"]
-resource_name = "Interior brick wall"
-tile_data = PackedInt32Array(0, 393217, 0, 1, 458753, 0, 2, 524289, 0, 65536, 393217, 1, 65537, 458753, 1, 65538, 524289, 1, 131072, 393217, 2, 131073, 458753, 2, 131074, 524289, 2)
-
-[sub_resource type="TileMapPattern" id="SlateFloor"]
-resource_name = "Interior slate floor"
-tile_data = PackedInt32Array(0, 1, 3, 1, 65537, 3, 2, 131073, 3)
-
-[sub_resource type="TileMapPattern" id="TimberFloor"]
-resource_name = "Interior timber floor"
-tile_data = PackedInt32Array(0, 196609, 3, 1, 262145, 3, 2, 327681, 3)
-
-[sub_resource type="TileMapPattern" id="TimberCeiling"]
-resource_name = "Timber ceiling"
-tile_data = PackedInt32Array(0, 393217, 3, 1, 458753, 3, 2, 524289, 3)
-
-[sub_resource type="TileMapPattern" id="Carpet"]
-resource_name = "Carpet runner"
-tile_data = PackedInt32Array(0, 1, 6, 1, 65537, 6, 2, 131073, 6)
-
-[sub_resource type="TileMapPattern" id="TimberBrace"]
-resource_name = "Iron-banded timber brace"
-tile_data = PackedInt32Array(0, 196609, 5, 1, 262145, 5, 2, 327681, 5, 65536, 196609, 6, 65537, 262145, 6, 65538, 327681, 6, 131072, 196609, 7, 131073, 262145, 7, 131074, 327681, 7)
-
-[sub_resource type="TileMapPattern" id="StoneTrim"]
-resource_name = "Carved stone trim"
-tile_data = PackedInt32Array(0, 393217, 5, 1, 458753, 5, 2, 524289, 5, 65536, 393217, 6, 65537, 458753, 6, 65538, 524289, 6, 131072, 393217, 7, 131073, 458753, 7, 131074, 524289, 7)
-
-[sub_resource type="TileMapPattern" id="Doorway"]
-resource_name = "Stone doorway frame"
-tile_data = PackedInt32Array(0, 2, 0)
-
 [sub_resource type="TileMapPattern" id="RootFloor"]
 resource_name = "Root floor"
 tile_data = PackedInt32Array(0, 786432, 0, 1, 851968, 0, 2, 917504, 0, 3, 983040, 0, 4, 1048576, 0, 5, 1114112, 0, 65536, 786432, 1, 65537, 851968, 1, 65538, 917504, 1, 65539, 983040, 1, 65540, 1048576, 1, 65541, 1114112, 1, 131072, 786432, 2, 131073, 851968, 2, 131074, 917504, 2, 131075, 983040, 2, 131076, 1048576, 2, 131077, 1114112, 2)
-
-[sub_resource type="TileMapPattern" id="Door"]
-resource_name = "Closed timber door"
-tile_data = PackedInt32Array(0, 262146, 0)
-
-[sub_resource type="TileMapPattern" id="Window"]
-resource_name = "Mullioned window"
-tile_data = PackedInt32Array(0, 524290, 0)
-
-[sub_resource type="TileMapPattern" id="Chair"]
-resource_name = "Wooden chair"
-tile_data = PackedInt32Array(0, 2, 4)
-
-[sub_resource type="TileMapPattern" id="Chandelier"]
-resource_name = "Hanging chandelier"
-tile_data = PackedInt32Array(0, 262146, 4)
-
-[sub_resource type="TileMapPattern" id="Lantern"]
-resource_name = "Wall lantern"
-tile_data = PackedInt32Array(0, 524290, 4)
-
-[sub_resource type="TileMapPattern" id="RestraintChair"]
-resource_name = "Dungeon restraint chair"
-tile_data = PackedInt32Array(0, 2, 8)
-
-[sub_resource type="TileMapPattern" id="BladeRack"]
-resource_name = "Ceremonial blade rack"
-tile_data = PackedInt32Array(0, 262146, 8)
-
-[sub_resource type="TileMapPattern" id="Tapestry"]
-resource_name = "Hanging tapestry"
-tile_data = PackedInt32Array(0, 524290, 8)
 
 [sub_resource type="TileMapPattern" id="CarvedFloor"]
 resource_name = "Carved stone floor"
@@ -690,113 +614,11 @@ texture_region_size = Vector2i(20, 20)
 11:6/0/occlusion_layer_0/polygon_0/polygon = SubResource("TerrainOccluder")
 11:6/0/physics_layer_0/polygon_0/points = PackedVector2Array(-10, -10, 10, -10, 10, 10, -10, 10)
 
-[sub_resource type="TileSetAtlasSource" id="Atlas_interior_surfaces"]
-resource_name = "Interior Surfaces"
-texture = ExtResource("2_interior_surfaces")
-texture_region_size = Vector2i(20, 20)
-0:0/0 = 0
-1:0/0 = 0
-2:0/0 = 0
-0:1/0 = 0
-1:1/0 = 0
-2:1/0 = 0
-0:2/0 = 0
-1:2/0 = 0
-2:2/0 = 0
-3:0/0 = 0
-4:0/0 = 0
-5:0/0 = 0
-3:1/0 = 0
-4:1/0 = 0
-5:1/0 = 0
-3:2/0 = 0
-4:2/0 = 0
-5:2/0 = 0
-6:0/0 = 0
-7:0/0 = 0
-8:0/0 = 0
-6:1/0 = 0
-7:1/0 = 0
-8:1/0 = 0
-6:2/0 = 0
-7:2/0 = 0
-8:2/0 = 0
-0:3/0 = 0
-1:3/0 = 0
-2:3/0 = 0
-3:3/0 = 0
-4:3/0 = 0
-5:3/0 = 0
-6:3/0 = 0
-7:3/0 = 0
-8:3/0 = 0
-0:6/0 = 0
-1:6/0 = 0
-2:6/0 = 0
-3:5/0 = 0
-4:5/0 = 0
-5:5/0 = 0
-3:6/0 = 0
-4:6/0 = 0
-5:6/0 = 0
-3:7/0 = 0
-4:7/0 = 0
-5:7/0 = 0
-6:5/0 = 0
-7:5/0 = 0
-8:5/0 = 0
-6:6/0 = 0
-7:6/0 = 0
-8:6/0 = 0
-6:7/0 = 0
-7:7/0 = 0
-8:7/0 = 0
-
-[sub_resource type="TileSetAtlasSource" id="Atlas_interior_fixtures"]
-resource_name = "Interior Fixtures"
-texture = ExtResource("3_interior_fixtures")
-texture_region_size = Vector2i(20, 20)
-0:0/size_in_atlas = Vector2i(3, 4)
-0:0/0 = 0
-0:0/0/texture_origin = Vector2i(0, -30)
-4:0/size_in_atlas = Vector2i(3, 4)
-4:0/0 = 0
-4:0/0/texture_origin = Vector2i(0, -30)
-8:0/size_in_atlas = Vector2i(3, 3)
-8:0/0 = 0
-8:0/0/texture_origin = Vector2i(0, -20)
-0:4/size_in_atlas = Vector2i(2, 3)
-0:4/0 = 0
-0:4/0/texture_origin = Vector2i(0, -20)
-4:4/size_in_atlas = Vector2i(3, 3)
-4:4/0 = 0
-4:4/0/texture_origin = Vector2i(0, 20)
-8:4/size_in_atlas = Vector2i(2, 2)
-8:4/0 = 0
-8:4/0/texture_origin = Vector2i(0, 10)
-0:8/size_in_atlas = Vector2i(3, 3)
-0:8/0 = 0
-0:8/0/texture_origin = Vector2i(0, -20)
-4:8/size_in_atlas = Vector2i(3, 3)
-4:8/0 = 0
-4:8/0/texture_origin = Vector2i(0, -20)
-8:8/size_in_atlas = Vector2i(3, 3)
-8:8/0 = 0
-8:8/0/texture_origin = Vector2i(0, 20)
-
-[sub_resource type="TileSetScenesCollectionSource" id="InteriorLighting"]
-resource_name = "Interior Lighting"
-scenes/1/scene = ExtResource("4_wall_lantern")
-scenes/2/scene = ExtResource("5_chandelier")
-
 [resource]
 tile_size = Vector2i(20, 20)
 occlusion_layer_0/light_mask = 1
 physics_layer_0/collision_layer = 1
 sources/0 = SubResource("Atlas_ruins")
-sources/1 = SubResource("Atlas_interior_surfaces")
-sources/2 = SubResource("Atlas_interior_fixtures")
-sources/3 = SubResource("InteriorLighting")
 pattern_0 = SubResource("MossFloor")
 pattern_1 = SubResource("SandstoneFloor")
 pattern_2 = SubResource("RootFloor")
@@ -807,21 +629,3 @@ pattern_6 = SubResource("RootFill")
 pattern_7 = SubResource("CarvedFill")
 pattern_8 = SubResource("MossLedge")
 pattern_9 = SubResource("RootLedge")
-pattern_10 = SubResource("StoneWall")
-pattern_11 = SubResource("PlankWall")
-pattern_12 = SubResource("BrickWall")
-pattern_13 = SubResource("SlateFloor")
-pattern_14 = SubResource("TimberFloor")
-pattern_15 = SubResource("TimberCeiling")
-pattern_16 = SubResource("Carpet")
-pattern_17 = SubResource("TimberBrace")
-pattern_18 = SubResource("StoneTrim")
-pattern_19 = SubResource("Doorway")
-pattern_20 = SubResource("Door")
-pattern_21 = SubResource("Window")
-pattern_22 = SubResource("Chair")
-pattern_23 = SubResource("Chandelier")
-pattern_24 = SubResource("Lantern")
-pattern_25 = SubResource("RestraintChair")
-pattern_26 = SubResource("BladeRack")
-pattern_27 = SubResource("Tapestry")

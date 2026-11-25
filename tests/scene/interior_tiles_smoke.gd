@@ -1,8 +1,11 @@
 extends SceneTree
 
 const Terrain := preload("res://assets/environment/common/terrain/terrain_tileset.tres")
+const Surfaces := preload("res://assets/environment/common/terrain/interior_surfaces_tileset.tres")
+const Fixtures := preload("res://assets/environment/common/terrain/interior_fixtures_tileset.tres")
 const Props := preload("res://assets/environment/common/props/props_tileset.tres")
 const Hunter := preload("res://scripts/character/ruin_hunter.gd")
+const Campaign := preload("res://scripts/game/campaign.gd")
 const Landscape := preload("res://scripts/scene/ruin_landscape.gd")
 const FLOOR_Y := 280
 const PATTERNS := [
@@ -23,30 +26,31 @@ func _initialize() -> void:
 
 func run() -> void:
 	check_atlases()
+	check_stage_layers()
 	var room := Node2D.new()
 	root.add_child(room)
 	var ambient := CanvasModulate.new()
 	ambient.color = Color("#535750")
 	room.add_child(ambient)
-	var background := add_layer(room, Terrain)
+	var background := add_layer(room, Surfaces)
 	for y in range(2, 14, 3):
 		for x in range(0, 30, 3):
-			paint(background, Vector2i(x, y), 10 + x / 12)
+			paint(background, Vector2i(x, y), x / 12)
 	for x in range(0, 30, 3):
-		paint(background, Vector2i(x, 2), 15)
-		paint(background, Vector2i(x, 14), 13 if x < 15 else 14)
+		paint(background, Vector2i(x, 2), 5)
+		paint(background, Vector2i(x, 14), 3 if x < 15 else 4)
 	for x in range(9, 15, 3):
-		paint(background, Vector2i(x, 14), 16)
-	paint(background, Vector2i(0, 5), 17)
-	paint(background, Vector2i(27, 5), 18)
+		paint(background, Vector2i(x, 14), 6)
+	paint(background, Vector2i(0, 5), 7)
+	paint(background, Vector2i(27, 5), 8)
 
-	var fixtures := add_layer(room, Terrain)
+	var fixtures := add_layer(room, Fixtures)
 	var fixture_cells := [
 		Vector2i(4, 13), Vector2i(8, 13), Vector2i(11, 8), Vector2i(11, 13), Vector2i(14, 3),
 		Vector2i(17, 5), Vector2i(16, 13), Vector2i(28, 9), Vector2i(25, 3),
 	]
 	for index in fixture_cells.size():
-		paint(fixtures, fixture_cells[index], 19 + index)
+		paint(fixtures, fixture_cells[index], index)
 	await check_interior_lights(background, fixtures, fixture_cells[5])
 	if "--lighting-only" in OS.get_cmdline_user_args():
 		room.free()
@@ -61,9 +65,6 @@ func run() -> void:
 	solid.modulate = Color(1.0, 1.0, 1.0, 0.8)
 	var landscape := Landscape.new()
 	check(landscape._has_brazier_space(solid, Vector2i(7, 14)), "solid tiles support a brazier")
-	solid.set_cell(Vector2i(7, 13), 2, Vector2i.ZERO)
-	check(landscape._has_brazier_space(solid, Vector2i(7, 14)), "interior fixture does not obstruct brazier placement")
-	solid.erase_cell(Vector2i(7, 13))
 	check(not landscape._has_brazier_space(background, Vector2i(7, 14)), "interior floor art cannot support a brazier")
 	landscape.free()
 
@@ -94,11 +95,40 @@ func run() -> void:
 	quit(1 if failures else 0)
 
 
+func check_stage_layers() -> void:
+	for region in Campaign.IDS.size():
+		for stage in range(1, Campaign.BOSS_STAGE + 1):
+			var path := Campaign.scene_path({"region": region, "stage": stage})
+			var level := (load(path) as PackedScene).instantiate()
+			var walls: TileMapLayer = level.get_node("Landscape/RoomWalls")
+			var fixtures: TileMapLayer = level.get_node("Landscape/RoomFixtures")
+			var terrain: TileMapLayer = level.get_node("Landscape/Terrain")
+			var valid := terrain.tile_set == Terrain and walls.tile_set == Surfaces \
+				and fixtures.tile_set == Fixtures and walls.z_index < fixtures.z_index
+			for layer: TileMapLayer in [terrain, walls, fixtures]:
+				for cell in layer.get_used_cells():
+					valid = valid and layer.tile_set.has_source(layer.get_cell_source_id(cell))
+			check(valid, "%s uses the assigned palettes and valid cell sources" % path)
+			if region == Campaign.Region.TEMPLE and stage == 1:
+				var anchor := walls.get_used_rect().end + Vector2i.ONE
+				walls.set_pattern(anchor, Surfaces.get_pattern(0))
+				fixtures.set_pattern(anchor, Fixtures.get_pattern(0))
+				check(walls.get_cell_source_id(anchor) == 1 and fixtures.get_cell_source_id(anchor) == 2
+					and fixtures.get_cell_atlas_coords(anchor) == Vector2i.ZERO,
+					"a stone doorway can share a wall cell on separate layers")
+			level.free()
+
+
 func check_atlases() -> void:
 	check(Terrain.tile_size == Vector2i(20, 20) and Props.tile_size == Terrain.tile_size,
 		"Terrain and Props use the shared 20 px grid")
+	check(Terrain.get_source_count() == 1 and Terrain.has_source(0)
+		and Surfaces.get_source_count() == 1 and Surfaces.has_source(1)
+		and Fixtures.get_source_count() == 2 and Fixtures.has_source(2) and Fixtures.has_source(3),
+		"terrain, walls and fixtures expose only their assigned sources")
 	for source_id in [1, 2]:
-		var atlas := Terrain.get_source(source_id) as TileSetAtlasSource
+		var tileset := Surfaces if source_id == 1 else Fixtures
+		var atlas := tileset.get_source(source_id) as TileSetAtlasSource
 		var expected := 57 if source_id == 1 else 9
 		check(atlas != null and atlas.get_tiles_count() == expected, "interior source %d contains %d tiles" % [source_id, expected])
 		if atlas == null:
@@ -114,9 +144,9 @@ func check_atlases() -> void:
 			decorative = decorative and not region.is_invisible()
 		check(decorative, "interior source %d has visible art with no collision or shadow polygons" % source_id)
 	var palette := TileMapLayer.new()
-	palette.tile_set = Terrain
 	for index in PATTERNS.size():
-		var pattern := Terrain.get_pattern(index + 10)
+		palette.tile_set = Surfaces if index < 9 else Fixtures
+		var pattern := palette.tile_set.get_pattern(index % 9)
 		var origin := Vector2i(5, 5)
 		palette.clear()
 		palette.set_pattern(origin, pattern)
@@ -128,7 +158,7 @@ func check_atlases() -> void:
 			else:
 				valid = valid and palette.get_cell_source_id(cell) == (1 if index < 9 else 2) \
 					and palette.get_cell_tile_data(cell) != null
-		check(valid, "%s stamps valid tiles on the Terrain layer" % PATTERNS[index])
+		check(valid, "%s stamps valid tiles on its assigned layer" % PATTERNS[index])
 	palette.free()
 
 
@@ -247,7 +277,7 @@ func check_stacked_rope(hunter: Hunter, traversal: TileMapLayer) -> void:
 
 
 func paint(layer: TileMapLayer, cell: Vector2i, pattern_index: int) -> void:
-	layer.set_pattern(cell, Terrain.get_pattern(pattern_index))
+	layer.set_pattern(cell, layer.tile_set.get_pattern(pattern_index))
 
 
 func add_layer(room: Node2D, tileset: TileSet) -> TileMapLayer:
