@@ -3,14 +3,13 @@
 [ext_resource type="Texture2D" uid="uid://brni2wvpkm1b8" path="res://assets/environment/common/terrain/interior_fixtures.png" id="3_interior_fixtures"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/lighting/wall_lantern.tscn" id="4_wall_lantern"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/lighting/chandelier.tscn" id="5_chandelier"]
-
-[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/tables_and_seating.png" id="tex_tables_and_seating"]
-[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/storage.png" id="tex_storage"]
-[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/bedroom_and_lounge.png" id="tex_bedroom_and_lounge"]
-[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/hearths_and_ovens.png" id="tex_hearths_and_ovens"]
-[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/tavern_and_kitchen.png" id="tex_tavern_and_kitchen"]
-[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/magic_and_alchemy.png" id="tex_magic_and_alchemy"]
-[ext_resource type="Texture2D" path="res://assets/environment/common/roomfixtures/armory_and_smithy.png" id="tex_armory_and_smithy"]
+[ext_resource type="Texture2D" uid="uid://b8ixnsycyvgfm" path="res://assets/environment/common/roomfixtures/armory_and_smithy.png" id="tex_armory_and_smithy"]
+[ext_resource type="Texture2D" uid="uid://dvjv46hj7yp8" path="res://assets/environment/common/roomfixtures/bedroom_and_lounge.png" id="tex_bedroom_and_lounge"]
+[ext_resource type="Texture2D" uid="uid://jd7mv431boug" path="res://assets/environment/common/roomfixtures/hearths_and_ovens.png" id="tex_hearths_and_ovens"]
+[ext_resource type="Texture2D" uid="uid://bn2gd8owhoequ" path="res://assets/environment/common/roomfixtures/magic_and_alchemy.png" id="tex_magic_and_alchemy"]
+[ext_resource type="Texture2D" uid="uid://8ula0bclcroa" path="res://assets/environment/common/roomfixtures/storage.png" id="tex_storage"]
+[ext_resource type="Texture2D" uid="uid://dn2e5iq54nkd7" path="res://assets/environment/common/roomfixtures/tables_and_seating.png" id="tex_tables_and_seating"]
+[ext_resource type="Texture2D" uid="uid://capjxrfhd447i" path="res://assets/environment/common/roomfixtures/tavern_and_kitchen.png" id="tex_tavern_and_kitchen"]
 
 [sub_resource type="TileMapPattern" id="Doorway"]
 resource_name = "Stone doorway frame"
@@ -20,13 +19,129 @@ tile_data = PackedInt32Array(0, 2, 0)
 resource_name = "Closed timber door"
 tile_data = PackedInt32Array(0, 262146, 0)
 
+[sub_resource type="TileMapPattern" id="Furniture02"]
+resource_name = "02 Round pedestal table"
+tile_data = PackedInt32Array(0, 458756, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture03"]
+resource_name = "03 Curved-back wooden chair"
+tile_data = PackedInt32Array(0, 917508, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture04"]
+resource_name = "04 Rustic wooden bench"
+tile_data = PackedInt32Array(0, 4, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture05"]
+resource_name = "05 Tavern stool"
+tile_data = PackedInt32Array(0, 458756, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture06"]
+resource_name = "06 Crimson armchair"
+tile_data = PackedInt32Array(0, 917508, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture07"]
+resource_name = "07 Antique bookcase"
+tile_data = PackedInt32Array(0, 5, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture08"]
+resource_name = "08 Double-door wardrobe"
+tile_data = PackedInt32Array(0, 393221, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture09"]
+resource_name = "09 Three-drawer chest"
+tile_data = PackedInt32Array(0, 786437, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture10"]
+resource_name = "10 Glass display cabinet"
+tile_data = PackedInt32Array(0, 5, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture11"]
+resource_name = "11 Brass-bound treasure chest"
+tile_data = PackedInt32Array(0, 393221, 7)
+
 [sub_resource type="TileMapPattern" id="Window"]
 resource_name = "Mullioned window"
 tile_data = PackedInt32Array(0, 524290, 0)
 
+[sub_resource type="TileMapPattern" id="Furniture12"]
+resource_name = "12 Open wooden shelves"
+tile_data = PackedInt32Array(0, 786437, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture13"]
+resource_name = "13 Single wooden bed"
+tile_data = PackedInt32Array(0, 6, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture14"]
+resource_name = "14 Double wooden bed"
+tile_data = PackedInt32Array(0, 458758, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture15"]
+resource_name = "15 Linen sofa"
+tile_data = PackedInt32Array(0, 917510, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture16"]
+resource_name = "16 Stone fireplace"
+tile_data = PackedInt32Array(0, 7, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture17"]
+resource_name = "17 Oval-mirror dressing table"
+tile_data = PackedInt32Array(0, 6, 6)
+
+[sub_resource type="TileMapPattern" id="Furniture18"]
+resource_name = "18 Wooden rocking chair"
+tile_data = PackedInt32Array(0, 4, 14)
+
+[sub_resource type="TileMapPattern" id="Furniture19"]
+resource_name = "19 Tavern bar counter"
+tile_data = PackedInt32Array(0, 8, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture20"]
+resource_name = "20 Tapped wooden barrel"
+tile_data = PackedInt32Array(0, 524296, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture21"]
+resource_name = "21 Kitchen prep counter"
+tile_data = PackedInt32Array(0, 1048584, 0)
+
 [sub_resource type="TileMapPattern" id="Chair"]
 resource_name = "Wooden chair"
 tile_data = PackedInt32Array(0, 2, 4)
+
+[sub_resource type="TileMapPattern" id="Furniture22"]
+resource_name = "22 Domed stone oven"
+tile_data = PackedInt32Array(0, 458759, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture23"]
+resource_name = "23 Crockery hutch"
+tile_data = PackedInt32Array(0, 8, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture24"]
+resource_name = "24 Hanging pot rack"
+tile_data = PackedInt32Array(0, 524296, 7)
+
+[sub_resource type="TileMapPattern" id="Furniture25"]
+resource_name = "25 Royal throne"
+tile_data = PackedInt32Array(0, 458756, 14)
+
+[sub_resource type="TileMapPattern" id="Furniture26"]
+resource_name = "26 Alchemy workbench"
+tile_data = PackedInt32Array(0, 9, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture27"]
+resource_name = "27 Spellbook lectern"
+tile_data = PackedInt32Array(0, 458761, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture28"]
+resource_name = "28 Weapon display rack"
+tile_data = PackedInt32Array(0, 10, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture29"]
+resource_name = "29 Knight armor stand"
+tile_data = PackedInt32Array(0, 458762, 0)
+
+[sub_resource type="TileMapPattern" id="Furniture30"]
+resource_name = "30 Smithing workbench"
+tile_data = PackedInt32Array(0, 917514, 0)
 
 [sub_resource type="TileMapPattern" id="Chandelier"]
 resource_name = "Hanging chandelier"
@@ -47,6 +162,24 @@ tile_data = PackedInt32Array(0, 262146, 8)
 [sub_resource type="TileMapPattern" id="Tapestry"]
 resource_name = "Hanging tapestry"
 tile_data = PackedInt32Array(0, 524290, 8)
+
+[sub_resource type="TileMapPattern" id="Furniture01"]
+resource_name = "01 Oak long table"
+tile_data = PackedInt32Array(0, 4, 0)
+
+[sub_resource type="TileSetAtlasSource" id="atlas_armory_and_smithy"]
+resource_name = "Armory and smithy"
+texture = ExtResource("tex_armory_and_smithy")
+texture_region_size = Vector2i(20, 20)
+0:0/size_in_atlas = Vector2i(5, 5)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, -40)
+7:0/size_in_atlas = Vector2i(3, 5)
+7:0/0 = 0
+7:0/0/texture_origin = Vector2i(0, -40)
+14:0/size_in_atlas = Vector2i(6, 4)
+14:0/0 = 0
+14:0/0/texture_origin = Vector2i(0, -30)
 
 [sub_resource type="TileSetAtlasSource" id="Atlas_interior_fixtures"]
 resource_name = "Interior Fixtures"
@@ -195,140 +328,6 @@ texture_region_size = Vector2i(20, 20)
 7:0/size_in_atlas = Vector2i(3, 4)
 7:0/0 = 0
 7:0/0/texture_origin = Vector2i(0, -30)
-
-[sub_resource type="TileSetAtlasSource" id="atlas_armory_and_smithy"]
-resource_name = "Armory and smithy"
-texture = ExtResource("tex_armory_and_smithy")
-texture_region_size = Vector2i(20, 20)
-0:0/size_in_atlas = Vector2i(5, 5)
-0:0/0 = 0
-0:0/0/texture_origin = Vector2i(0, -40)
-7:0/size_in_atlas = Vector2i(3, 5)
-7:0/0 = 0
-7:0/0/texture_origin = Vector2i(0, -40)
-14:0/size_in_atlas = Vector2i(6, 4)
-14:0/0 = 0
-14:0/0/texture_origin = Vector2i(0, -30)
-
-[sub_resource type="TileMapPattern" id="Furniture01"]
-resource_name = "01 Oak long table"
-tile_data = PackedInt32Array(0, 4, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture02"]
-resource_name = "02 Round pedestal table"
-tile_data = PackedInt32Array(0, 458756, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture03"]
-resource_name = "03 Curved-back wooden chair"
-tile_data = PackedInt32Array(0, 917508, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture04"]
-resource_name = "04 Rustic wooden bench"
-tile_data = PackedInt32Array(0, 4, 7)
-
-[sub_resource type="TileMapPattern" id="Furniture05"]
-resource_name = "05 Tavern stool"
-tile_data = PackedInt32Array(0, 458756, 7)
-
-[sub_resource type="TileMapPattern" id="Furniture06"]
-resource_name = "06 Crimson armchair"
-tile_data = PackedInt32Array(0, 917508, 7)
-
-[sub_resource type="TileMapPattern" id="Furniture07"]
-resource_name = "07 Antique bookcase"
-tile_data = PackedInt32Array(0, 5, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture08"]
-resource_name = "08 Double-door wardrobe"
-tile_data = PackedInt32Array(0, 393221, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture09"]
-resource_name = "09 Three-drawer chest"
-tile_data = PackedInt32Array(0, 786437, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture10"]
-resource_name = "10 Glass display cabinet"
-tile_data = PackedInt32Array(0, 5, 7)
-
-[sub_resource type="TileMapPattern" id="Furniture11"]
-resource_name = "11 Brass-bound treasure chest"
-tile_data = PackedInt32Array(0, 393221, 7)
-
-[sub_resource type="TileMapPattern" id="Furniture12"]
-resource_name = "12 Open wooden shelves"
-tile_data = PackedInt32Array(0, 786437, 7)
-
-[sub_resource type="TileMapPattern" id="Furniture13"]
-resource_name = "13 Single wooden bed"
-tile_data = PackedInt32Array(0, 6, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture14"]
-resource_name = "14 Double wooden bed"
-tile_data = PackedInt32Array(0, 458758, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture15"]
-resource_name = "15 Linen sofa"
-tile_data = PackedInt32Array(0, 917510, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture16"]
-resource_name = "16 Stone fireplace"
-tile_data = PackedInt32Array(0, 7, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture17"]
-resource_name = "17 Oval-mirror dressing table"
-tile_data = PackedInt32Array(0, 6, 6)
-
-[sub_resource type="TileMapPattern" id="Furniture18"]
-resource_name = "18 Wooden rocking chair"
-tile_data = PackedInt32Array(0, 4, 14)
-
-[sub_resource type="TileMapPattern" id="Furniture19"]
-resource_name = "19 Tavern bar counter"
-tile_data = PackedInt32Array(0, 8, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture20"]
-resource_name = "20 Tapped wooden barrel"
-tile_data = PackedInt32Array(0, 524296, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture21"]
-resource_name = "21 Kitchen prep counter"
-tile_data = PackedInt32Array(0, 1048584, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture22"]
-resource_name = "22 Domed stone oven"
-tile_data = PackedInt32Array(0, 458759, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture23"]
-resource_name = "23 Crockery hutch"
-tile_data = PackedInt32Array(0, 8, 7)
-
-[sub_resource type="TileMapPattern" id="Furniture24"]
-resource_name = "24 Hanging pot rack"
-tile_data = PackedInt32Array(0, 524296, 7)
-
-[sub_resource type="TileMapPattern" id="Furniture25"]
-resource_name = "25 Royal throne"
-tile_data = PackedInt32Array(0, 458756, 14)
-
-[sub_resource type="TileMapPattern" id="Furniture26"]
-resource_name = "26 Alchemy workbench"
-tile_data = PackedInt32Array(0, 9, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture27"]
-resource_name = "27 Spellbook lectern"
-tile_data = PackedInt32Array(0, 458761, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture28"]
-resource_name = "28 Weapon display rack"
-tile_data = PackedInt32Array(0, 10, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture29"]
-resource_name = "29 Knight armor stand"
-tile_data = PackedInt32Array(0, 458762, 0)
-
-[sub_resource type="TileMapPattern" id="Furniture30"]
-resource_name = "30 Smithing workbench"
-tile_data = PackedInt32Array(0, 917514, 0)
 
 [resource]
 tile_size = Vector2i(20, 20)

@@ -34,6 +34,7 @@ func run() -> void:
 				"%s aligns %d tile textures and collision rectangles to the grid" % [path, cells.size()])
 			check(can_paint_pattern(terrain), "%s can stamp a pattern on the same grid" % path)
 		level.free()
+	await check_natural_rock()
 	await process_frame
 	quit(0 if failures == 0 else 1)
 
@@ -65,12 +66,16 @@ func cells_match_grid(terrain: TileMapLayer, cells: Array[Vector2i]) -> bool:
 		var tile := terrain.get_cell_tile_data(cell)
 		if atlas == null or tile == null or atlas.get_tile_texture_region(atlas_coords).size != TILE_SIZE:
 			return false
+		var center := (Vector2(cell) + Vector2(0.5, 0.5)) * Vector2(TILE_SIZE)
+		if terrain.map_to_local(cell) != center or terrain.local_to_map(center) != cell:
+			return false
+		if terrain.get_cell_source_id(cell) == 1:
+			if tile.texture_origin != Vector2i.ZERO:
+				return false
+			continue
 		if tile.texture_origin != Vector2i.ZERO or tile.get_collision_polygons_count(0) != 1:
 			return false
 		if tile.get_collision_polygon_points(0, 0) != expected_polygon:
-			return false
-		var center := (Vector2(cell) + Vector2(0.5, 0.5)) * Vector2(TILE_SIZE)
-		if terrain.map_to_local(cell) != center or terrain.local_to_map(center) != cell:
 			return false
 	return true
 
@@ -85,6 +90,66 @@ func can_paint_pattern(terrain: TileMapLayer) -> bool:
 			return false
 		terrain.erase_cell(painted)
 	return true
+
+
+func check_natural_rock() -> void:
+	var layer := TileMapLayer.new()
+	layer.tile_set = TERRAIN_TILESET
+	root.add_child(layer)
+	for index in 12:
+		var pattern := TERRAIN_TILESET.get_pattern(10 + index)
+		var origin := Vector2i(index * 14, 0)
+		layer.set_pattern(origin, pattern)
+		var valid := pattern.resource_name.begins_with("%02d " % (index + 1))
+		var solids := 0
+		for cell in pattern.get_used_cells():
+			var data := layer.get_cell_tile_data(origin + cell)
+			valid = valid and layer.get_cell_source_id(origin + cell) == 1 and data != null
+			if data != null:
+				solids += data.get_collision_polygons_count(0)
+		check(valid and solids > 0, "%s stamps natural rock terrain with collision" % pattern.resource_name)
+	layer.update_internals()
+	await physics_frame
+	await physics_frame
+	var space := layer.get_world_2d().direct_space_state
+	for index in 6:
+		var x := index * 280
+		var left := space.intersect_ray(PhysicsRayQueryParameters2D.create(Vector2(x + 30, -40), Vector2(x + 30, 145), 1))
+		var right := space.intersect_ray(PhysicsRayQueryParameters2D.create(Vector2(x + 90, -40), Vector2(x + 90, 145), 1))
+		var valid := not left.is_empty() and not right.is_empty()
+		if valid:
+			var angle := rad_to_deg(atan2(right.position.y - left.position.y, 60))
+			var expected := -30 if index == 1 else 30 if index == 2 else 0
+			valid = absf(angle - expected) < (2 if index in [1, 2] else 12)
+			valid = valid and left.normal.y < -0.7 and right.normal.y < -0.7
+		check(valid, "formation %02d has its intended walkable grade" % (index + 1))
+
+	# Join both slopes at their crest, with level ground at either end.
+	layer.clear()
+	for pair in [[0, Vector2i(0, 4)], [1, Vector2i(7, 0)], [2, Vector2i(14, 0)], [0, Vector2i(21, 4)]]:
+		layer.set_pattern(pair[1], TERRAIN_TILESET.get_pattern(10 + pair[0]))
+	layer.set_pattern(Vector2i(28, -4), TERRAIN_TILESET.get_pattern(20))
+	for x in range(28, 40):
+		layer.set_cell(Vector2i(x, 4), 0, Vector2i.ZERO)
+	layer.update_internals()
+	var hunter := preload("res://scripts/character/ruin_hunter.gd").new()
+	hunter.position = Vector2(50, 75)
+	root.add_child(hunter)
+	Input.action_press("hunt_right")
+	var reached_crest := false
+	var descended := false
+	for tick in 300:
+		await physics_frame
+		if hunter.is_on_floor():
+			reached_crest = reached_crest or (hunter.position.x > 250 and hunter.position.y < 12)
+			descended = descended or (hunter.position.x > 435 and absf(hunter.position.y - 80) < 2)
+		if hunter.position.x > 775:
+			break
+	Input.action_release("hunt_right")
+	check(reached_crest and descended, "hunter walks up and down the connected slopes without jumping")
+	check(hunter.position.x > 775 and hunter.is_on_floor(), "standing hunter crosses the full arch on level ground")
+	hunter.free()
+	layer.free()
 
 
 func check(result: bool, message: String) -> void:
