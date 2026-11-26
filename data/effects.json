@@ -1,0 +1,205 @@
+{
+  "durations": {
+    "impact": 0.23,
+    "slash": 0.16,
+    "spark": 0.24,
+    "fire": 0.42,
+    "shockwave": 0.26,
+    "starburst": 0.22,
+    "scar": 0.28
+  },
+  "guard_color": "#b9d7eb",
+  "element_colors": {
+    "metal": "#ffe7ab",
+    "wood": "#c6eb83",
+    "water": "#81e6ff",
+    "fire": "#ff8352",
+    "earth": "#e6aa73"
+  },
+  "impact_timing": {
+    "light": {
+      "time_scale": 0.18,
+      "stop": 0.038,
+      "shake": 0.12,
+      "frequency": 28
+    },
+    "heavy": {
+      "time_scale": 0.05,
+      "stop": 0.08,
+      "shake": 0.22,
+      "frequency": 36
+    }
+  },
+  "events": {
+    "impact": [
+      {
+        "kind": "wave",
+        "duration": 0.22,
+        "size": 26,
+        "color": [1.0, 0.6235294117647059, 0.35294117647058826, 1]
+      }
+    ],
+    "disarm": [
+      {
+        "kind": "wave",
+        "duration": 0.22,
+        "size": 36,
+        "color": [1.0, 0.8313725490196079, 0.5019607843137255, 1]
+      }
+    ],
+    "fire": [
+      {
+        "kind": "wave",
+        "duration": 0.28,
+        "size": 58,
+        "color": [1, 0.45, 0.12, 1],
+        "thickness": 4
+      },
+      {
+        "kind": "burst",
+        "duration": 0.2,
+        "size": 38,
+        "color": [1, 0.72, 0.25, 1]
+      },
+      {
+        "kind": "flash",
+        "duration": 0.14,
+        "color": [1, 0.45, 0.12, 0.22]
+      }
+    ],
+    "guard": [
+      {
+        "kind": "wave",
+        "duration": 0.2,
+        "size": 32,
+        "thickness": 2.5
+      }
+    ],
+    "blade_heavy": [
+      {
+        "kind": "wave",
+        "duration": 0.28,
+        "size": 62,
+        "color": [1, 0.65, 0.28, 1],
+        "thickness": 4.5
+      },
+      {
+        "kind": "wave",
+        "duration": 0.19,
+        "size": 38,
+        "color": [1, 0.95, 0.8, 1],
+        "thickness": 3
+      },
+      {
+        "kind": "burst",
+        "duration": 0.24,
+        "size": 52,
+        "color": [1, 0.88, 0.45, 1]
+      },
+      {
+        "kind": "scar",
+        "duration": 0.3,
+        "size": 85,
+        "color": [1, 0.72, 0.3, 1]
+      },
+      {
+        "kind": "flash",
+        "duration": 0.11,
+        "color": [1, 0.88, 0.6, 0.28]
+      }
+    ],
+    "blade_light": [
+      {
+        "kind": "wave",
+        "duration": 0.18,
+        "size": 32,
+        "color": [1, 0.85, 0.45, 1],
+        "thickness": 2.5
+      },
+      {
+        "kind": "burst",
+        "duration": 0.16,
+        "size": 24,
+        "color": [1, 0.92, 0.65, 1]
+      }
+    ],
+    "hurt_heavy": [
+      {
+        "kind": "flash",
+        "duration": 0.14,
+        "color": [0.85, 0.08, 0.05, 0.28]
+      },
+      {
+        "kind": "wave",
+        "duration": 0.22,
+        "size": 48,
+        "color": [0.95, 0.22, 0.12, 1]
+      },
+      {
+        "kind": "scar",
+        "duration": 0.28,
+        "size": 65,
+        "color": [1, 0.2, 0.1, 1]
+      },
+      {
+        "kind": "burst",
+        "duration": 0.18,
+        "size": 36,
+        "color": [1, 0.45, 0.2, 1]
+      }
+    ],
+    "hurt_light": [
+      {
+        "kind": "flash",
+        "duration": 0.08,
+        "color": [0.85, 0.08, 0.05, 0.16]
+      },
+      {
+        "kind": "wave",
+        "duration": 0.22,
+        "size": 28,
+        "color": [0.95, 0.22, 0.12, 1]
+      },
+      {
+        "kind": "scar",
+        "duration": 0.28,
+        "size": 38,
+        "color": [1, 0.2, 0.1, 1]
+      },
+      {
+        "kind": "burst",
+        "duration": 0.18,
+        "size": 20,
+        "color": [1, 0.45, 0.2, 1]
+      }
+    ],
+    "enemy_launch": [
+      {
+        "kind": "burst",
+        "duration": 0.17,
+        "size": 26,
+        "lighten": 0.4
+      },
+      {
+        "kind": "wave",
+        "duration": 0.22,
+        "size": 29,
+        "thickness": 3
+      }
+    ],
+    "enemy_impact": [
+      {
+        "kind": "burst",
+        "duration": 0.21,
+        "size": 29,
+        "lighten": 0.35
+      },
+      {
+        "kind": "wave",
+        "duration": 0.3,
+        "size": 42,
+        "thickness": 4.5
+      }
+    ]
+  }
+}

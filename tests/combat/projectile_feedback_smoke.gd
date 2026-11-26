@@ -36,10 +36,10 @@ func run() -> void:
 	var mana := level.hunter.mana
 	await attack()
 	var start: Vector2 = level.arrows.front().at
-	await frames(3)
+	await frames(1)
 	var next: Vector2 = level.arrows.front().at
 	check(next.x > start.x and next.y == start.y and level.hunter.mana == mana - 1, "rightward fireball keeps its release height and spends one mana")
-	await frames(5)
+	await frames(7)
 	check(target.health == health - 3 and level.hit_effects.explosions.size() == 1
 		and level.hit_effects.fire_voice.playing, "enemy impact applies damage and triggers one explosion with sound")
 	await frames(48)
@@ -59,10 +59,10 @@ func run() -> void:
 	level.hunter.facing = -1.0
 	await attack()
 	var left: Vector2 = level.arrows.front().at
-	await frames(3)
+	await frames(1)
 	var later: Vector2 = level.arrows.front().at
 	check(later.x < left.x and later.y == left.y, "leftward fireball also travels horizontally")
-	await frames(5)
+	await frames(7)
 	check(level.arrows.is_empty() and level.hit_effects.explosions.size() == 1
 		and level.hit_effects.fire_voice.playing, "terrain removes the fireball and triggers one audible explosion")
 	await frames(48)

@@ -12,7 +12,7 @@ filter_clip = true
 script = ExtResource("1")
 kind = 10
 direction = 1
-cycle_seconds = 4.0
+cycle_profile = "random_portal"
 
 [node name="Preview" type="Node2D" parent="."]
 

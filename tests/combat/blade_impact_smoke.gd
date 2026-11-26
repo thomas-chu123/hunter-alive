@@ -67,7 +67,8 @@ func run() -> void:
 		and observed(3, "step") == 3, "held attack releases stages 1, 2 and 3 in order")
 	check(observed(1, "hp") == initial_hp - 2 and observed(2, "hp") == initial_hp - 4
 		and observed(3, "hp") == initial_hp - 7, "fang dagger still deals 2, 2 and 3 damage")
-	check(observed(1, "scale") == 0.20 and observed(3, "scale") == 0.12
+	check(is_equal_approx(observed(1, "scale"), HitEffects.settings.impact_timing.light.time_scale)
+		and is_equal_approx(observed(3, "scale"), HitEffects.settings.impact_timing.heavy.time_scale)
 		and observed(3, "shake") > observed(1, "shake"), "finisher increases hitstop and camera impulse")
 	check(observed(1, "flash") and observed(2, "flash") and observed(3, "flash")
 		and observed(1, "recoil") < 0.0 and observed(1, "enemy_hit"),

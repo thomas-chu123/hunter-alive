@@ -1,0 +1,28 @@
+{
+  "max_rank": 5,
+  "max_level": 10,
+  "rank_names": [
+    "",
+    "木",
+    "鐵",
+    "銅",
+    "銀",
+    "金"
+  ],
+  "rank_colors": [
+    "#00000000",
+    "#a9734d",
+    "#718d9a",
+    "#ce8555",
+    "#d1def0",
+    "#f2ca61"
+  ],
+  "first_upgrade_cost": 10,
+  "upgrade_cost": 20,
+  "level_cost_step": 10,
+  "bag_base": 10,
+  "bag_per_level": 2,
+  "salvage_per_rank": 2,
+  "armor_per_point": 3,
+  "armor_cap": 60
+}

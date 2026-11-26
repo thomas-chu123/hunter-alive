@@ -6,10 +6,15 @@ const GROUND_FRAME := Vector2(256, 128)
 const GROUND_FRAME_COUNT := 4
 const GROUND_BASELINE := 112.0
 
-const COLORS := {
-	"metal": Color("#ffe7ab"), "wood": Color("#c6eb83"), "water": Color("#81e6ff"),
-	"fire": Color("#ff8352"), "earth": Color("#e6aa73"),
-}
+const Config := preload("res://scripts/game/config_table.gd")
+static var COLORS := _element_colors()
+
+
+static func _element_colors() -> Dictionary:
+	var palette: Dictionary = Config.read("effects").element_colors.duplicate()
+	for element: String in palette:
+		palette[element] = Color(str(palette[element]))
+	return palette
 
 
 static func element_color(element: String) -> Color:

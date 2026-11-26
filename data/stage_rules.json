@@ -1,0 +1,31 @@
+{
+  "interaction": {
+    "prop_half_width": 79,
+    "prop_half_height": 60,
+    "chest_radius": 50,
+    "cache_radius": 65
+  },
+  "stages": {
+    "ruins_1": {
+      "slab_delay": 0.85,
+      "normal_depth": 52,
+      "drained_depth": 5,
+      "drain_speed": 38,
+      "wading_depth": 12,
+      "escape_delay": 2,
+      "collapse_interval": 0.18,
+      "collapse_tiles": 15,
+      "nest_radius": 145,
+      "nest_vertical_range": 65,
+      "agitated_speed_multiplier": 1.3,
+      "sluice_radius": 55,
+      "release_radius": 54,
+      "boulder_radius_from_hunter": 440,
+      "boulder_vertical_range": 120,
+      "clash_radius": 280,
+      "clash_hit_margin": 14,
+      "clash_cooldown": 2,
+      "clash_damage": 1
+    }
+  }
+}

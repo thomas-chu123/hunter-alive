@@ -1,0 +1,70 @@
+{
+  "boss_stage": 5,
+  "regions": [
+    {
+      "id": "ruins",
+      "name": "崩塌神殿",
+      "scene": "res://scenes/ruins/ruins.tscn",
+      "boss": {
+        "size": 1.9,
+        "level_bonus": 5,
+        "health_multiplier": 3
+      }
+    },
+    {
+      "id": "flooded_corridor",
+      "name": "淹沒的迴廊",
+      "scene": "res://scenes/flooded_corridor/flooded_corridor.tscn",
+      "boss": {
+        "size": 2.4,
+        "level_bonus": 7,
+        "health_multiplier": 8
+      }
+    },
+    {
+      "id": "buried_court",
+      "name": "埋碑內庭",
+      "scene": "res://scenes/buried_court/buried_court.tscn",
+      "boss": {
+        "size": 1.75,
+        "level_bonus": 9,
+        "health_multiplier": 4
+      }
+    },
+    {
+      "id": "volcanic_caldera",
+      "name": "火山熔爐",
+      "scene": "res://scenes/volcanic_caldera/volcanic_caldera.tscn",
+      "boss": {
+        "size": 2.15,
+        "level_bonus": 11,
+        "health_multiplier": 9
+      }
+    }
+  ],
+  "stage_width": 2800,
+  "entry_width": 3330,
+  "fallback_spawn": [
+    950,
+    526
+  ],
+  "camp_spawn_offset": [
+    48,
+    -14
+  ],
+  "presentation": {
+    "entry_camera_top": -240,
+    "stage_camera_top": -760,
+    "camera_bottom": 662,
+    "entry_camera_y": -204,
+    "stage_camera_y": -155,
+    "camera_smoothing": 7,
+    "brazier_spacing": 500,
+    "brazier_min_gap": 280,
+    "ambient_rgb": [
+      0.3,
+      0.33,
+      0.38
+    ]
+  }
+}

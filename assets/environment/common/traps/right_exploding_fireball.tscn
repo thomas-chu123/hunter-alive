@@ -22,7 +22,7 @@ filter_clip = true
 script = ExtResource("1")
 kind = 5
 direction = -1
-cycle_seconds = 3.4
+cycle_profile = "right_exploding_fireball"
 
 [node name="Preview" type="Node2D" parent="."]
 

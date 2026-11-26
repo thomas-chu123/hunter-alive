@@ -1,0 +1,13 @@
+{
+  "camp_equipment": [
+    "linen_hood",
+    "hunter_wraps"
+  ],
+  "cache_materials": 3,
+  "cache_equipment_by_region": {
+    "ruins": [
+      "moss_vest",
+      "ember_staff"
+    ]
+  }
+}

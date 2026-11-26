@@ -6,7 +6,7 @@
 script = ExtResource("1")
 kind = 11
 direction = 1
-cycle_seconds = 4.0
+cycle_profile = "random_landing"
 
 [node name="Preview" type="Node2D" parent="."]
 

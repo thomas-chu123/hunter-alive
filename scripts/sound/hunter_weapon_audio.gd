@@ -1,27 +1,19 @@
 extends RefCounted
 
-const SAMPLE_RATE := 22050
-# Duration, fundamental, pitch sweep, resonance, air, and low-end weight.
-const PROFILES := {
-	"root_blade": [0.24, 245.0, -300.0, 514.0, 0.73, 0.21],
-	"fang_dagger": [0.13, 1380.0, -1800.0, 2360.0, 0.32, 0.04],
-	"sluice_spear": [0.21, 845.0, 960.0, 1700.0, 0.60, 0.03],
-	"tide_hammer": [0.38, 101.0, -82.0, 423.0, 0.27, 0.68],
-	"thorn_bow": [0.25, 193.0, -38.0, 579.0, 0.26, 0.16],
-	"ember_staff": [0.29, 279.0, -286.0, 722.0, 0.86, 0.36],
-	"scribe_staff": [0.53, 448.0, 165.0, 1134.0, 0.08, 0.10],
-	"gate_halberd": [0.34, 367.0, -240.0, 1399.0, 0.49, 0.35],
-}
+const Config := preload("res://scripts/game/config_table.gd")
+static var settings := Config.read("sound")
+static var SAMPLE_RATE: int = settings.sample_rate
+static var PROFILES: Dictionary = settings.weapon_profiles
 
 
 static func make_stream(weapon: String) -> AudioStreamWAV:
-	var profile: Array = PROFILES[weapon]
-	var duration: float = profile[0]
-	var frequency: float = profile[1]
-	var sweep: float = profile[2]
-	var resonance: float = profile[3]
-	var noise_amount: float = profile[4]
-	var weight: float = profile[5]
+	var profile: Dictionary = PROFILES[weapon]
+	var duration: float = profile.duration
+	var frequency: float = profile.frequency
+	var sweep: float = profile.sweep
+	var resonance: float = profile.resonance
+	var noise_amount: float = profile.noise_amount
+	var weight: float = profile.weight
 	var random := RandomNumberGenerator.new()
 	random.seed = weapon.hash()
 	var data := PackedByteArray()

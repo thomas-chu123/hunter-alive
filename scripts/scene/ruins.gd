@@ -17,11 +17,12 @@ const Armory := preload("res://scripts/game/ruin_armory.gd")
 const Campaign := preload("res://scripts/game/campaign.gd")
 const FloorVisibility := preload("res://scripts/scene/ruin_floor_visibility.gd")
 const SOFT_LIGHT := preload("res://assets/environment/common/props/soft_light.tres")
-const AMBIENT_LIGHT := Color(0.30, 0.33, 0.38)
-const START := Vector2(950, 526)
-const STAGE_WIDTH := 2800
-const BOSS_SIZES := [1.9, 2.4, 1.75, 2.15]
-const BOSS_HEALTH := [3.0, 8.0, 4.0, 9.0]
+static var stage_rules := Campaign.Config.read("stage_rules")
+static var interaction: Dictionary = stage_rules.interaction
+static var reward_rules := Campaign.Config.read("rewards")
+var presentation: Dictionary
+static var START := Campaign.Config.vector(Campaign.settings.fallback_spawn)
+static var STAGE_WIDTH: int = Campaign.settings.stage_width
 const DROP_ATLAS := preload("res://assets/items/misc/world_drops.png")
 const DROP_ATLAS_CELL := 40
 const DROP_SPRITES := {"soul_currency": 0, "material": 1, "lizard": 2, "spider": 3, "fang_material": 4}
@@ -145,7 +146,11 @@ func _ready() -> void:
 	rng.randomize()
 	loot_rng.randomize()
 	loot_catalog = Equipment.catalog_ids()
-	var level_width := STAGE_WIDTH if stage > 0 else 3330
+	var level_width := STAGE_WIDTH if stage > 0 else int(Campaign.settings.entry_width)
+	presentation = Campaign.settings.presentation.duplicate()
+	presentation.merge(Campaign.regions[region].get("presentation", {}), true)
+	landscape.brazier_spacing = presentation.brazier_spacing
+	landscape.brazier_min_gap = presentation.brazier_min_gap
 	landscape.initialize_props(level_width)
 	_resize_backdrop()
 	get_viewport().size_changed.connect(_resize_backdrop)
@@ -167,11 +172,11 @@ func _ready() -> void:
 	camera = Camera2D.new()
 	camera.limit_left = 0
 	camera.limit_right = level_width
-	camera.limit_top = -760 if stage > 0 else -240
-	camera.limit_bottom = 662
-	camera.position.y = -155 if stage > 0 else -204
+	camera.limit_top = presentation.stage_camera_top if stage > 0 else presentation.entry_camera_top
+	camera.limit_bottom = presentation.camera_bottom
+	camera.position.y = presentation.stage_camera_y if stage > 0 else presentation.entry_camera_y
 	camera.position_smoothing_enabled = true
-	camera.position_smoothing_speed = 7.0
+	camera.position_smoothing_speed = presentation.camera_smoothing
 	hunter.add_child(camera)
 	camera.reset_smoothing()
 	if stage > 0 and stage < Campaign.BOSS_STAGE:
@@ -208,10 +213,11 @@ func _ready() -> void:
 func _set_up_lighting() -> void:
 	var ambient := CanvasModulate.new()
 	ambient.name = "AmbientLight"
-	ambient.color = AMBIENT_LIGHT
+	var rgb: Array = presentation.ambient_rgb
+	ambient.color = Color(rgb[0], rgb[1], rgb[2])
 	add_child(ambient)
 	# The parallax backdrop draws on its own canvas, outside the world lighting.
-	background.self_modulate = AMBIENT_LIGHT
+	background.self_modulate = ambient.color
 
 	var nearby_light := PointLight2D.new()
 	nearby_light.name = "NearbyLight"
@@ -315,7 +321,8 @@ func _add_monster(species: String, x: float, y: float = Landscape.FLOOR_Y) -> vo
 	if not unarmed_if.is_empty() and bool(get(unarmed_if)):
 		monster.armed = false
 	if stage == Campaign.BOSS_STAGE:
-		monster.promote_to_boss(BOSS_SIZES[region], 5 + region * 2, BOSS_HEALTH[region])
+		var profile: Dictionary = Campaign.regions[region].boss
+		monster.promote_to_boss(profile.size, profile.level_bonus, profile.health_multiplier)
 		boss = monster
 		boss.phase_changed.connect(_play_level_music)
 	monster.felled.connect(_on_monster_felled)
@@ -328,10 +335,13 @@ func _add_monster(species: String, x: float, y: float = Landscape.FLOOR_Y) -> vo
 func _attack(origin: Vector2, direction: float, ranged: bool, damage: int, weapon: String) -> void:
 	if ranged:
 		hit_effects.release_weapon(weapon)
-		arrows.append({"at": origin, "direction": direction, "damage": damage, "left": 0.55,
-			"weapon": weapon, "pierce": int(weapon == "thorn_bow"), "hit_ids": []})
+		var bow: Dictionary = Armory.WEAPONS.get(weapon, Equipment.ITEMS.hunter_bow)
+		var shot: Dictionary = Armory.catalog.projectiles[bow.projectile]
+		arrows.append({"at": origin, "direction": direction, "damage": damage, "left": shot.lifetime,
+			"speed": shot.speed, "height": shot.height,
+			"weapon": weapon, "pierce": int(bow.get("pierce", 0)), "hit_ids": []})
 		return
-	var reach: float = Armory.WEAPONS[weapon][4] if Armory.WEAPONS.has(weapon) else 51.0
+	var reach: float = Armory.WEAPONS[weapon].reach if Armory.WEAPONS.has(weapon) else Armory.catalog.items.hunter_knife.reach
 	var is_short_blade := weapon in Hunter.SHORT_BLADES
 	var blade_step := maxi(1, hunter.blade_step) if is_short_blade else 3
 	var is_melee := is_short_blade or weapon in ["root_blade", "tide_hammer", "gate_halberd", "sluice_spear"]
@@ -339,7 +349,9 @@ func _attack(origin: Vector2, direction: float, ranged: bool, damage: int, weapo
 		hit_effects.swing(origin, direction, reach, blade_step, weapon)
 	else:
 		hit_effects.release_weapon(weapon)
-	var hitbox := Rect2(origin.x if direction > 0 else origin.x - reach, origin.y - 17, reach, 42)
+	var melee_box: Dictionary = Armory.catalog.melee_hitbox
+	var hitbox := Rect2(origin.x if direction > 0 else origin.x - reach,
+		origin.y + float(melee_box.top_offset), reach, melee_box.height)
 	var candidates := enemies.duplicate()
 	candidates.sort_custom(func(a, b): return absf(a.position.x - origin.x) < absf(b.position.x - origin.x))
 	var hit_count := 0
@@ -354,29 +366,32 @@ func _attack(origin: Vector2, direction: float, ranged: bool, damage: int, weapo
 				fang_target = monster
 				fang_hits = 0
 			fang_hits += 1
-			applied += int(fang_hits % 3 == 0)
+			applied += int(fang_hits % int(Armory.WEAPONS.fang_dagger.combo_hits) == 0)
 		else:
 			fang_hits = 0
 		_hit_monster(monster, applied, weapon_hit, hitbox.intersection(bounds).get_center(),
 			direction, false, weapon, blade_step)
 		hit_count += 1
-		if hit_count >= (2 if weapon == "gate_halberd" else 1):
+		if hit_count >= (int(Armory.WEAPONS.gate_halberd.max_targets) if weapon == "gate_halberd" else 1):
 			break
 
 
 func _cast(origin: Vector2, direction: float, weapon: String) -> void:
 	hit_effects.release_weapon(weapon)
 	if weapon == "scribe_staff":
-		var x := clampf(origin.x + direction * 129.0, 54.0, 3230.0)
-		var vertical_ray := PhysicsRayQueryParameters2D.create(Vector2(x, origin.y), Vector2(x, origin.y + 280.0), 1)
+		var glyph: Dictionary = Armory.WEAPONS.scribe_staff.glyph
+		var x := clampf(origin.x + direction * float(glyph.forward_distance), glyph.min_x, glyph.max_x)
+		var vertical_ray := PhysicsRayQueryParameters2D.create(Vector2(x, origin.y), Vector2(x, origin.y + float(glyph.ground_probe)), 1)
 		var ground := get_world_2d().direct_space_state.intersect_ray(vertical_ray)
 		if not ground.is_empty():
-			glyphs.append({"at": ground.position, "left": 0.46, "damage": hunter.weapon_damage(weapon), "direction": direction})
+			glyphs.append({"at": ground.position, "left": glyph.delay, "damage": hunter.weapon_damage(weapon), "direction": direction})
 		return
 	# Sweep from just in front of the hunter on the first tick so the staff
 	# cannot launch a fireball through a wall or enemy between the body and tip.
-	var cast_start := Vector2(hunter.position.x + direction * 15.0, origin.y)
-	arrows.append({"at": origin, "direction": direction, "damage": hunter.weapon_damage(weapon), "left": 0.44,
+	var shot: Dictionary = Armory.catalog.projectiles[Equipment.ITEMS.ember_staff.projectile]
+	var cast_start := Vector2(hunter.position.x + direction * float(shot.cast_start_offset), origin.y)
+	arrows.append({"at": origin, "direction": direction, "damage": hunter.weapon_damage(weapon), "left": shot.lifetime,
+		"speed": shot.speed, "height": shot.height,
 		"spell": true, "weapon": weapon, "hit_ids": [], "cast_start": cast_start})
 
 
@@ -386,8 +401,7 @@ func _launch_enemy_projectile(origin: Vector2, direction: float, attack: Diction
 		"left": (float(attack.trigger_range) + float(Bestiary.rules.combat.projectile_range_padding)) / speed, "hostile": attack.kind,
 		"speed": speed, "radius": float(attack.extent), "element": attack.element, "origin_x": origin.x})
 	var tint := EnemyEffects.element_color(attack.element)
-	hit_effects.trigger_starburst(origin, 26.0, tint.lightened(0.4), 0.17)
-	hit_effects.trigger_shockwave(origin, 29.0, tint, 0.22, 3.0)
+	hit_effects.play_event("enemy_launch", origin, direction, tint)
 
 
 func _update_glyphs(delta: float) -> void:
@@ -396,7 +410,8 @@ func _update_glyphs(delta: float) -> void:
 		glyph.left -= delta
 		if glyph.left > 0:
 			continue
-		var area := Rect2(glyph.at - Vector2(54, 64), Vector2(108, 69))
+		var area := Bestiary.rectangle(Armory.WEAPONS.scribe_staff.glyph.hitbox)
+		area.position += Vector2(glyph.at)
 		for enemy: Monster in enemies.duplicate():
 			if enemy.body_hitbox().intersects(area):
 				_hit_monster(enemy, glyph.damage, false, enemy.position - Vector2(0, 24), glyph.direction, true, "scribe_staff")
@@ -410,16 +425,13 @@ func _update_arrows(delta: float) -> void:
 		arrow.erase("cast_start")
 		var spell: bool = arrow.get("spell", false)
 		var hostile: String = arrow.get("hostile", "")
-		var speed: float = arrow.get("speed", 850.0)
-		var velocity := Vector2(arrow.direction * (710.0 if spell else speed), 0)
+		var velocity := Vector2(arrow.direction * arrow.speed, 0)
 		var to: Vector2 = arrow.at + velocity * delta
 		var ray := PhysicsRayQueryParameters2D.create(from, to, 1)
 		var wall := get_world_2d().direct_space_state.intersect_ray(ray)
 		if not wall.is_empty():
 			to = wall.position
-		var hitbox := Rect2(Vector2(minf(from.x, to.x), from.y - 4), Vector2(absf(to.x - from.x), 8))
-		if spell:
-			hitbox = Rect2(Vector2(minf(from.x, to.x), from.y - 6), Vector2(absf(to.x - from.x), 12))
+		var hitbox := Rect2()
 		var hit := false
 		if not hostile.is_empty():
 			var height := Hunter.CROUCH_HEIGHT if hunter.crouching else Hunter.STANDING_HEIGHT
@@ -432,6 +444,8 @@ func _update_arrows(delta: float) -> void:
 				if hit:
 					hunter.hurt(hunter.position.x - arrow.direction, arrow.damage, hostile)
 		else:
+			var height: float = arrow.height
+			hitbox = Rect2(minf(from.x, to.x), from.y - height * 0.5, absf(to.x - from.x), height)
 			var target_id := _arrow_hits_monster(hitbox, arrow)
 			hit = target_id != 0
 			if hit and int(arrow.get("pierce", 0)) > 0:
@@ -447,8 +461,7 @@ func _update_arrows(delta: float) -> void:
 				if hit:
 					point.x = clampf(hunter.position.x, minf(from.x, to.x), maxf(from.x, to.x))
 				var tint := EnemyEffects.element_color(arrow.element)
-				hit_effects.trigger_starburst(point, 29.0 + float(arrow.radius), tint.lightened(0.35), 0.21)
-				hit_effects.trigger_shockwave(point, 42.0 + float(arrow.radius), tint, 0.30, 4.5)
+				hit_effects.play_event("enemy_impact", point, arrow.direction, tint, arrow.radius)
 			arrows.remove_at(index)
 		else:
 			arrow.at = to
@@ -490,7 +503,7 @@ func _hit_monster(monster: Monster, damage: int, weapon_hit: bool, point: Vector
 		if not push.is_empty() and hunter.gear.get("手部") == push.gear and monster.recovery > 0.0:
 			monster.apply_equipment_push(direction, float(push.force))
 		elif hunter.gear.get("手部") == "hardroot_bracers" and not hunter.is_on_floor():
-			monster.apply_equipment_push(direction, 85.0)
+			monster.apply_equipment_push(direction, Armory.WEAR.hardroot_bracers.air_push)
 	if result == Monster.HitResult.BLOCKED:
 		hit_effects.guard_impact(point, direction)
 		return
@@ -692,7 +705,7 @@ func _interact() -> void:
 		else:
 			_warn_full_bag()
 	elif _near_prop(landscape.campfires):
-		for id in ["linen_hood", "hunter_wraps"]:
+		for id: String in reward_rules.camp_equipment:
 			if not obtained_equipment.has(id):
 				_grant_equipment(id)
 		_set_camp_open(true)
@@ -719,42 +732,42 @@ func _interact() -> void:
 				else:
 					_notice("主祭壇被封印者封鎖。", 3.0)
 	elif _near_cache() and not landscape.cache_open:
-		if region == Campaign.Region.TEMPLE:
-			var needed := int(not obtained_equipment.has("moss_vest")) + int(not obtained_equipment.has("ember_staff"))
-			if inventory.size() + needed > Progression.bag_capacity(hunter.level):
-				_warn_full_bag()
-				return
+		var configured: Array = reward_rules.cache_equipment_by_region.get(Campaign.IDS[region], [])
+		var pending := configured.filter(func(id: String) -> bool: return not obtained_equipment.has(id))
+		if not pending.is_empty() and inventory.size() + pending.size() > Progression.bag_capacity(hunter.level):
+			_warn_full_bag()
+			return
 		landscape.cache_open = true
-		materials += 3
+		var amount: int = reward_rules.cache_materials
+		materials += amount
 		var rewards := PackedStringArray()
-		if region == Campaign.Region.TEMPLE:
-			for id in ["moss_vest", "ember_staff"]:
-				if not obtained_equipment.has(id) and _grant_equipment(id):
-					rewards.append(_ranked_gear_name(id, 1))
+		for id: String in pending:
+			if _grant_equipment(id):
+				rewards.append(_ranked_gear_name(id, 1))
 		if not rewards.is_empty():
-			_notice("取得%s和 3 份素材。按 I 看裝備。" % "、".join(rewards), 4.0)
+			_notice("取得%s和 %d 份素材。按 I 看裝備。" % ["、".join(rewards), amount], 4.0)
 		else:
-			_notice("從石匣取得 3 份工坊素材。", 4.0)
+			_notice("從石匣取得 %d 份工坊素材。" % amount, 4.0)
 
 
 func _near_prop(props: Array[Node2D]) -> bool:
 	for prop in props:
 		var separation := hunter.global_position - prop.global_position
-		if absf(separation.x) < 79 and absf(separation.y) < 60:
+		if absf(separation.x) < interaction.prop_half_width and absf(separation.y) < interaction.prop_half_height:
 			return true
 	return false
 
 
 func _near_treasure() -> String:
 	for chest in landscape.equipment_chests:
-		if not obtained_equipment.has(chest.equipment_id) and hunter.global_position.distance_to(chest.global_position) < 50:
+		if not obtained_equipment.has(chest.equipment_id) and hunter.global_position.distance_to(chest.global_position) < interaction.chest_radius:
 			return chest.equipment_id
 	return ""
 
 
 func _near_cache() -> bool:
 	for cache in landscape.reliquaries:
-		if hunter.global_position.distance_to(cache.global_position) < 65:
+		if hunter.global_position.distance_to(cache.global_position) < interaction.cache_radius:
 			return true
 	return false
 
@@ -765,10 +778,7 @@ func _on_hunter_damaged(source_x: float, damage: int, effect: String) -> void:
 		dir = 1.0
 	var heavy := damage >= 2 or effect in ["ram", "slam", "crush", "hammer", "shards", "heavy"]
 	var hit_pt := hunter.position + Vector2(0, -28)
-	hit_effects.trigger_screen_flash(Color(0.85, 0.08, 0.05, 0.28 if heavy else 0.16), 0.14 if heavy else 0.08)
-	hit_effects.trigger_shockwave(hit_pt, 48.0 if heavy else 28.0, Color(0.95, 0.22, 0.12), 0.22)
-	hit_effects.trigger_slash_scar(hit_pt, dir, 65.0 if heavy else 38.0, Color(1.0, 0.20, 0.10), 0.28)
-	hit_effects.trigger_starburst(hit_pt, 36.0 if heavy else 20.0, Color(1.0, 0.45, 0.20), 0.18)
+	hit_effects.play_event("hurt_heavy" if heavy else "hurt_light", hit_pt, dir)
 	hit_effects._punctuate_hit(dir, heavy, 11.0 if heavy else 6.2)
 
 
@@ -811,7 +821,7 @@ func _finish() -> void:
 func _camp_start() -> Vector2:
 	if (stage == 0 and region == Campaign.Region.TEMPLE) or landscape.campfires.is_empty():
 		return START
-	return to_local(landscape.campfires[0].global_position) + Vector2(48, -14)
+	return to_local(landscape.campfires[0].global_position) + Campaign.Config.vector(Campaign.settings.camp_spawn_offset)
 
 
 func _sync_region_gate() -> void:
@@ -899,7 +909,7 @@ func _draw_enemy_projectiles() -> void:
 func _draw() -> void:
 	for glyph in glyphs:
 		var center: Vector2 = glyph.at - Vector2(0, 9)
-		var charge := 1.0 - float(glyph.left) / 0.46
+		var charge := 1.0 - float(glyph.left) / float(Armory.WEAPONS.scribe_staff.glyph.delay)
 		draw_circle(center, 26.0, Color(0.31, 0.64, 0.92, 0.08 + charge * 0.15))
 		draw_arc(center, 22.0, -PI * 0.5, TAU * charge - PI * 0.5, 32, Color("#bbebff"), 2.2, true)
 		draw_arc(center, 33.0, 0, TAU, 32, Color("#9cc9ee"), 1.1, true)
@@ -1427,7 +1437,7 @@ func _update_camp_menu() -> void:
 		inventory.size(), Progression.bag_capacity(hunter.level)]
 	var cost := Progression.level_cost(hunter.level)
 	camp_level_up.disabled = hunter.level >= Progression.MAX_LEVEL or soul_balance < cost
-	camp_level_up.text = "角色成長\n已達 Lv.10" if hunter.level >= Progression.MAX_LEVEL else (
+	camp_level_up.text = "角色成長\n已達 Lv.%d" % Progression.MAX_LEVEL if hunter.level >= Progression.MAX_LEVEL else (
 		"Lv.%d → Lv.%d\n體力 +1  ·  %d 魂" % [hunter.level, hunter.level + 1, cost])
 	var selected := _selected_camp_item()
 	if selected == 0:
@@ -2118,9 +2128,9 @@ func _gear_item_values(id: String, rank: int) -> String:
 	match id:
 		"linen_hood":
 			var base := Hunter.MAX_HEALTH + hunter.level
-			return "最大體力　%d → %d" % [base, base + 1]
+			return "最大體力　%d → %d" % [base, base + int(Equipment.ITEMS.linen_hood.bonus_health)]
 		"scaleveil_hood":
-			return "鱗粉緩速　%.1f 秒 → %.1f 秒" % [Hunter.POLLEN_DURATION, Hunter.POLLEN_DURATION * 0.5]
+			return "鱗粉緩速　%.1f 秒 → %.1f 秒" % [Hunter.POLLEN_DURATION, Hunter.POLLEN_DURATION * float(Equipment.ITEMS.scaleveil_hood.pollen_multiplier)]
 		"moss_vest":
 			return "每次休息後　格擋 1 次傷害"
 		"hunter_wraps":

@@ -1,15 +1,18 @@
 extends Node2D
 
 const WeaponAudio := preload("res://scripts/sound/hunter_weapon_audio.gd")
-const GUARD_TINT := Color("#b9d7eb")
-const DURATION := 0.23
-const SLASH_DURATION := 0.16
-const SPARK_DURATION := 0.24
-const FIRE_DURATION := 0.42
-const SHOCKWAVE_DURATION := 0.26
-const STARBURST_DURATION := 0.22
-const SCAR_DURATION := 0.28
-const SAMPLE_RATE := 22050
+const Config := preload("res://scripts/game/config_table.gd")
+static var settings := Config.read("effects")
+static var GUARD_TINT := Color(str(settings.guard_color))
+static var DURATION: float = settings.durations.impact
+static var SLASH_DURATION: float = settings.durations.slash
+static var SPARK_DURATION: float = settings.durations.spark
+static var FIRE_DURATION: float = settings.durations.fire
+static var SHOCKWAVE_DURATION: float = settings.durations.shockwave
+static var STARBURST_DURATION: float = settings.durations.starburst
+static var SCAR_DURATION: float = settings.durations.scar
+static var SAMPLE_RATE: int = WeaponAudio.SAMPLE_RATE
+static var mix: Dictionary = WeaponAudio.settings.hunter_voice
 
 var bursts: Array[Dictionary] = []
 var slashes: Array[Dictionary] = []
@@ -97,7 +100,7 @@ func _stop_audio() -> void:
 
 func impact(point: Vector2, direction: float, disarm: bool) -> void:
 	bursts.append({"point": point, "direction": direction, "disarm": disarm, "age": 0.0})
-	trigger_shockwave(point, 36.0 if disarm else 26.0, Color("#ffd480") if disarm else Color("#ff9f5a"), 0.22)
+	play_event("disarm" if disarm else "impact", point)
 	_play(disarm_voice if disarm else hit_voice)
 	_punctuate_hit(direction, disarm, 6.5 if disarm else 4.2)
 	queue_redraw()
@@ -110,51 +113,67 @@ func release_weapon(weapon: String) -> void:
 	elif WeaponAudio.PROFILES.has(weapon):
 		if not weapon_voices.has(weapon):
 			weapon_voices[weapon] = _make_voice(WeaponAudio.make_stream(weapon))
-		_play(weapon_voices[weapon], 1.5)
+		_play(weapon_voices[weapon], mix.weapon_gain)
+
+
+func play_event(event: String, point: Vector2, direction := 1.0, base_color := Color.WHITE, extra_radius := 0.0) -> void:
+	for layer: Dictionary in settings.events[event]:
+		var tint := base_color.lightened(float(layer.get("lighten", 0.0)))
+		if layer.has("color"):
+			var rgba: Array = layer.color
+			tint = Color(rgba[0], rgba[1], rgba[2], rgba[3])
+		var radius := extra_radius + float(layer.get("size", 0.0))
+		match layer.kind:
+			"wave":
+				trigger_shockwave(point, radius, tint, layer.duration, layer.get("thickness", 3.0))
+			"burst":
+				trigger_starburst(point, radius, tint, layer.duration)
+			"scar":
+				trigger_slash_scar(point, direction, radius, tint, layer.duration)
+			"flash":
+				trigger_screen_flash(tint, layer.duration)
 
 
 func fire_impact(point: Vector2) -> void:
 	explosions.append({"point": point, "age": 0.0, "angle": randf() * TAU})
-	trigger_shockwave(point, 58.0, Color(1.0, 0.45, 0.12), 0.28, 4.0)
-	trigger_starburst(point, 38.0, Color(1.0, 0.72, 0.25), 0.20)
-	trigger_screen_flash(Color(1.0, 0.45, 0.12, 0.22), 0.14)
+	play_event("fire", point)
 	_punctuate_hit(0.0, true, 8.5)
-	_play(fire_voice, -0.5)
+	_play(fire_voice, mix.fire_gain)
 	queue_redraw()
 	additive_layer.queue_redraw()
 
 
-func trigger_shockwave(point: Vector2, max_radius: float, tint: Color, duration: float = SHOCKWAVE_DURATION, thickness: float = 3.0) -> void:
+func trigger_shockwave(point: Vector2, max_radius: float, tint: Color, duration: float = -1.0, thickness: float = 3.0) -> void:
 	shockwaves.append({
 		"point": point,
 		"radius": max_radius,
 		"tint": tint,
-		"duration": duration,
+		"duration": SHOCKWAVE_DURATION if duration < 0.0 else duration,
 		"thickness": thickness,
 		"age": 0.0
 	})
 	additive_layer.queue_redraw()
 
 
-func trigger_starburst(point: Vector2, radius: float, tint: Color, duration: float = STARBURST_DURATION) -> void:
+func trigger_starburst(point: Vector2, radius: float, tint: Color, duration: float = -1.0) -> void:
 	starbursts.append({
 		"point": point,
 		"radius": radius,
 		"tint": tint,
-		"duration": duration,
+		"duration": STARBURST_DURATION if duration < 0.0 else duration,
 		"rotation": randf() * TAU,
 		"age": 0.0
 	})
 	additive_layer.queue_redraw()
 
 
-func trigger_slash_scar(point: Vector2, direction: float, length: float, tint: Color, duration: float = SCAR_DURATION) -> void:
+func trigger_slash_scar(point: Vector2, direction: float, length: float, tint: Color, duration: float = -1.0) -> void:
 	var angle := randf_range(-0.45, 0.45)
 	slash_scars.append({
 		"start": point - Vector2(cos(angle) * direction, sin(angle)) * (length * 0.5),
 		"end": point + Vector2(cos(angle) * direction, sin(angle)) * (length * 0.5),
 		"tint": tint,
-		"duration": duration,
+		"duration": SCAR_DURATION if duration < 0.0 else duration,
 		"age": 0.0
 	})
 	additive_layer.queue_redraw()
@@ -183,7 +202,7 @@ func swing(point: Vector2, direction: float, reach: float, step: int, weapon: St
 		# Heavy swing air-pressure screen shake - adds visceral weight to start of big moves
 		_windup_shake(direction, 3.2 if weapon == "tide_hammer" else 2.6)
 	if weapon == "hunter_knife":
-		_play(swing_voice, -3.0 if step == 3 else -6.5)
+		_play(swing_voice, mix.finisher_gain if step == 3 else mix.swing_gain)
 	else:
 		release_weapon(weapon)
 	slash_layer.queue_redraw()
@@ -191,7 +210,7 @@ func swing(point: Vector2, direction: float, reach: float, step: int, weapon: St
 
 func guard_impact(point: Vector2, direction: float) -> void:
 	_impact_sparks(point, direction, GUARD_TINT, false)
-	trigger_shockwave(point, 32.0, GUARD_TINT, 0.20, 2.5)
+	play_event("guard", point, direction, GUARD_TINT)
 	_play(guard_voice)
 
 
@@ -204,18 +223,10 @@ func blade_impact(point: Vector2, direction: float, step: int, disarmed: bool) -
 		tint = Color("#ff8833")
 	_impact_sparks(point, direction, tint, heavy)
 
-	if heavy:
-		trigger_shockwave(point, 62.0, Color(1.0, 0.65, 0.28), 0.28, 4.5)
-		trigger_shockwave(point, 38.0, Color(1.0, 0.95, 0.80), 0.19, 3.0)
-		trigger_starburst(point, 52.0, Color(1.0, 0.88, 0.45), 0.24)
-		trigger_slash_scar(point, direction, 85.0, Color(1.0, 0.72, 0.30), 0.30)
-		trigger_screen_flash(Color(1.0, 0.88, 0.60, 0.28), 0.11)
-	else:
-		trigger_shockwave(point, 32.0, Color(1.0, 0.85, 0.45), 0.18, 2.5)
-		trigger_starburst(point, 24.0, Color(1.0, 0.92, 0.65), 0.16)
+	play_event("blade_heavy" if heavy else "blade_light", point, direction)
 
 	var voice := disarm_voice if disarmed else (finisher_voice if heavy else hit_voice)
-	_play(voice, -1.0 if heavy else 0.0)
+	_play(voice, mix.heavy_gain if heavy else 0.0)
 	_punctuate_hit(direction, heavy, 12.0 if heavy else 5.2)
 
 
@@ -232,8 +243,8 @@ func _impact_sparks(point: Vector2, direction: float, tint: Color, heavy: bool) 
 
 
 func _play(voice: AudioStreamPlayer, gain: float = 0.0) -> void:
-	voice.volume_db = -4.0 + gain
-	voice.pitch_scale = randf_range(0.94, 1.06)
+	voice.volume_db = float(mix.gain_db) + gain
+	voice.pitch_scale = randf_range(mix.pitch_min, mix.pitch_max)
 	voice.play()
 
 
@@ -252,16 +263,17 @@ func _punctuate_hit(direction: float, heavy: bool, amplitude: float = 5.0) -> vo
 		hitstop.kill()
 
 	# Dramatic hit-stop duration and slowdown curve for ultimate/heavy attacks
-	Engine.time_scale = time_scale_before_hit * (0.05 if heavy else 0.18)
+	var timing: Dictionary = settings.impact_timing.heavy if heavy else settings.impact_timing.light
+	Engine.time_scale = time_scale_before_hit * float(timing.time_scale)
 	hitstop = create_tween().set_ignore_time_scale(true)
-	hitstop.tween_interval(0.080 if heavy else 0.038)
+	hitstop.tween_interval(timing.stop)
 	hitstop.tween_callback(_end_hitstop)
 
 	if shake != null:
 		shake.kill()
 
-	var duration := 0.22 if heavy else 0.12
-	var freq := 36.0 if heavy else 28.0
+	var duration: float = timing.shake
+	var freq: float = timing.frequency
 	_shake_camera(0.0, direction, amplitude, freq)
 	shake = create_tween().set_ignore_time_scale(true)
 	shake.tween_method(_shake_camera.bind(direction, amplitude, freq), 0.0, 1.0, duration)
@@ -483,7 +495,7 @@ func _draw_slashes() -> void:
 func _make_sound(disarm: bool) -> AudioStreamWAV:
 	var random := RandomNumberGenerator.new()
 	random.seed = 78
-	var count := int(SAMPLE_RATE * (0.26 if disarm else 0.18))
+	var count := int(SAMPLE_RATE * (mix.disarm_duration if disarm else mix.hit_duration))
 	var data := PackedByteArray()
 	data.resize(count * 2)
 	for i in range(count):
@@ -504,7 +516,7 @@ func _make_sound(disarm: bool) -> AudioStreamWAV:
 func _make_blade_sound(heavy: bool) -> AudioStreamWAV:
 	var random := RandomNumberGenerator.new()
 	random.seed = 459
-	var count := int(SAMPLE_RATE * (0.26 if heavy else 0.13))
+	var count := int(SAMPLE_RATE * (mix.heavy_duration if heavy else mix.swing_duration))
 	var data := PackedByteArray()
 	data.resize(count * 2)
 	var previous := 0.0
@@ -531,7 +543,7 @@ func _make_projectile_sound(fire: bool) -> AudioStreamWAV:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 219
 	var data := PackedByteArray()
-	var count := int(SAMPLE_RATE * (0.35 if fire else 0.17))
+	var count := int(SAMPLE_RATE * (mix.fire_duration if fire else mix.bow_duration))
 	data.resize(count * 2)
 	var filtered := 0.0
 	for index in range(count):

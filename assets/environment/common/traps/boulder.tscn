@@ -17,7 +17,7 @@ filter_clip = true
 script = ExtResource("1")
 kind = 7
 direction = 1
-cycle_seconds = 4.5
+cycle_profile = "boulder"
 
 [node name="Preview" type="Node2D" parent="."]
 

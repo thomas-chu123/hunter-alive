@@ -12,30 +12,32 @@ const HunterSprites := preload("res://scripts/character/hunter_sprites.gd")
 const WeaponArt := preload("res://scripts/character/hunter_weapon_art.gd")
 const TrapArt := preload("res://scripts/trap/trap_art.gd")
 const ClimbableProp := preload("res://assets/environment/common/props/traversal/climbable_prop.gd")
-const RUN_SPEED := 250.0
-const WALK_SPEED := 115.0
-const CROUCH_SPEED := 64.0
-const CLIMB_SPEED := 110.0
-const KNIFE_DURATION := 0.29
-const BOW_DURATION := 0.39
-const ATTACK_BUFFER := 0.22
-const BLADE_CHAIN_WINDOW := 0.46
-const SHORT_BLADES := ["hunter_knife", "fang_dagger"]
-const LAND_DURATION := 0.15
-const HURT_DURATION := 0.23
-const STANDING_HEIGHT := 48.0
-const CROUCH_HEIGHT := 28.0
-const GLIDE_SPEED := 337.0
-const GRAVITY := 1530.0
-const JUMP_SPEED := 525.0
-const MAX_HEALTH := 6
-const MAX_MANA := 4
-const STAFF_DURATION := 0.54
-const STAFF_DAMAGE := 3
-const STAFF_MANA_COST := 1
-const MANA_RECOVERY_INTERVAL := 0.9
-const WRAPS_KNIFE_DURATION := 0.23
-const POLLEN_DURATION := 2.4
+const Config := preload("res://scripts/game/config_table.gd")
+static var tuning := Config.read("hunter")
+static var RUN_SPEED: float = tuning.run_speed
+static var WALK_SPEED: float = tuning.walk_speed
+static var CROUCH_SPEED: float = tuning.crouch_speed
+static var CLIMB_SPEED: float = tuning.climb_speed
+static var KNIFE_DURATION: float = Armory.catalog.items.hunter_knife.period
+static var BOW_DURATION: float = Armory.catalog.items.hunter_bow.period
+static var ATTACK_BUFFER: float = tuning.attack_buffer
+static var BLADE_CHAIN_WINDOW: float = tuning.blade_chain_window
+static var SHORT_BLADES: Array = tuning.short_blades
+static var LAND_DURATION: float = tuning.land_duration
+static var HURT_DURATION: float = tuning.hurt_duration
+static var STANDING_HEIGHT: float = tuning.standing_height
+static var CROUCH_HEIGHT: float = tuning.crouch_height
+static var GLIDE_SPEED: float = tuning.glide_speed
+static var GRAVITY: float = tuning.gravity
+static var JUMP_SPEED: float = tuning.jump_speed
+static var MAX_HEALTH: int = tuning.max_health
+static var MAX_MANA: int = tuning.max_mana
+static var STAFF_DURATION: float = Armory.catalog.items.ember_staff.period
+static var STAFF_DAMAGE: int = Armory.catalog.items.ember_staff.damage
+static var STAFF_MANA_COST: int = Armory.catalog.staff_mana_cost
+static var MANA_RECOVERY_INTERVAL: float = tuning.mana_recovery_interval
+static var WRAPS_KNIFE_DURATION: float = Armory.catalog.items.hunter_wraps.knife_period
+static var POLLEN_DURATION: float = tuning.pollen_duration
 
 var health := MAX_HEALTH
 var level := 0
@@ -56,7 +58,7 @@ var mud_left := 0.0
 var shallow_water := false
 var equipped_weapon := ""
 var attack_weapon := "hunter_knife"
-var unlocked_weapons: Array[String] = ["hunter_knife", "hunter_bow"]
+var unlocked_weapons: Array[String] = []
 var equipped_soul := ""
 var knife_level := 0
 var bow_level := 0
@@ -87,6 +89,11 @@ var prop_climbing := false
 var at_climb_top := false
 var climb_jump_lock := false
 var jump_grace := 0.0
+
+
+func _init() -> void:
+	unlocked_weapons.assign(Armory.catalog.starting_weapons)
+	select_weapon(unlocked_weapons[0] if not unlocked_weapons.is_empty() else "unarmed")
 
 
 func _ready() -> void:
@@ -131,7 +138,7 @@ func _physics_process(delta: float) -> void:
 		leech_tick -= delta
 		if leech_tick <= 0:
 			hurt(position.x - facing, 1, "leech")
-			leech_tick = 1.5 if gear.get("身體") == "reed_coat" else 0.9
+			leech_tick = Armory.WEAR.reed_coat.leech_interval if gear.get("身體") == "reed_coat" else tuning.leech_interval
 	var grounded := is_on_floor()
 	var direction := Input.get_axis("hunt_left", "hunt_right")
 	var vertical := Input.get_axis("hunt_climb_up", "hunt_crouch")
@@ -150,7 +157,7 @@ func _physics_process(delta: float) -> void:
 	crouch_time = crouch_time + delta if crouching else 0.0
 	walking = Input.is_action_pressed("hunt_walk")
 	invincible_left = maxf(invincible_left - delta, 0)
-	jump_grace = 0.08 if is_on_floor() else maxf(jump_grace - delta, 0)
+	jump_grace = float(tuning.jump_grace_seconds) if is_on_floor() else maxf(jump_grace - delta, 0)
 
 	wall_holding = (
 		not prop_climbing and equipped_soul == "spider" and Input.is_action_pressed("hunt_soul")
@@ -161,9 +168,9 @@ func _physics_process(delta: float) -> void:
 		var climb_step := target_y - global_position.y
 		velocity.y = climb_step / delta if climb_step * vertical > 0.0 else 0.0
 	elif wall_holding:
-		velocity.y = -135.0
+		velocity.y = -float(tuning.wall_climb_speed)
 	else:
-		velocity.y = minf(velocity.y + GRAVITY * delta, 950.0)
+		velocity.y = minf(velocity.y + GRAVITY * delta, tuning.fall_speed_limit)
 
 	if jumped and not crouching and (jump_grace > 0.0 or wall_holding or was_prop_climbing):
 		velocity.y = -JUMP_SPEED
@@ -176,7 +183,7 @@ func _physics_process(delta: float) -> void:
 		and not is_on_floor() and velocity.y > 0
 	)
 	if gliding:
-		velocity.y = minf(velocity.y, 49.3 if gear.get("身體") == "wing_cape" else 58.0)
+		velocity.y = minf(velocity.y, float(tuning.glide_max_fall_speed) * (Armory.WEAR.wing_cape.glide_fall_multiplier if gear.get("身體") == "wing_cape" else 1.0))
 
 	var on_ground := grounded and not wall_holding and not prop_climbing and velocity.y >= 0.0
 	if direction != 0 and (not on_ground or attack_left <= 0.0):
@@ -193,13 +200,13 @@ func _physics_process(delta: float) -> void:
 	elif crouching:
 		speed = CROUCH_SPEED
 	if landing_left > 0.0:
-		speed *= 0.75
+		speed *= tuning.landing_speed_multiplier
 	if pollen_left > 0 or mud_left > 0:
-		speed *= 0.64
+		speed *= tuning.slowed_speed_multiplier
 	var current_force := 0.0
 	if shallow_water:
-		speed *= 1.20 if gear.get("腿部") == "eel_greaves" else 1.0
-		current_force = -16.0 if gear.get("腿部") == "sluice_boots" else -32.0
+		speed *= Armory.WEAR.eel_greaves.water_speed_multiplier if gear.get("腿部") == "eel_greaves" else 1.0
+		current_force = float(tuning.water_current) * (Armory.WEAR.sluice_boots.current_multiplier if gear.get("腿部") == "sluice_boots" else 1.0)
 	if prop_climbing:
 		var offset := climb_prop.global_position.x - global_position.x
 		velocity.x = clampf(offset / delta, -CLIMB_SPEED, CLIMB_SPEED)
@@ -207,7 +214,7 @@ func _physics_process(delta: float) -> void:
 		# Ground attack sprites are planted. Keep impact recoil separate from steering.
 		velocity.x = 0.0
 	else:
-		velocity.x = move_toward(velocity.x, direction * speed + current_force, 2100.0 * delta)
+		velocity.x = move_toward(velocity.x, direction * speed + current_force, float(tuning.acceleration) * delta)
 	velocity.x += blade_recoil
 	var fall_speed := velocity.y
 	move_and_slide()
@@ -218,7 +225,7 @@ func _physics_process(delta: float) -> void:
 	if is_on_ceiling():
 		velocity.y = maxf(velocity.y, 140.0)
 	if is_on_floor() and not grounded and fall_speed > 245.0:
-		landing_left = LAND_DURATION * (0.5 if gear.get("腿部") == "cliff_boots" else 1.0)
+		landing_left = LAND_DURATION * (Armory.WEAR.cliff_boots.landing_multiplier if gear.get("腿部") == "cliff_boots" else 1.0)
 	animation_time += delta
 	_release_attack()
 	queue_redraw()
@@ -319,15 +326,15 @@ func hurt(source_x: float, damage: int = 1, effect: String = "") -> void:
 		return
 	if vest_ready and gear.get("身體") in ["moss_vest", "earthen_armor"]:
 		vest_ready = false
-		invincible_left = 0.45
+		invincible_left = float(tuning.blocked_invincibility)
 		return
 	if effect == "rune" and gear.get("頭部") == "ash_cowl":
-		damage = maxi(1, damage - 1)
+		damage = maxi(1, damage - int(Armory.WEAR.ash_cowl.rune_reduction))
 	armor_credit += damage * armor_reduction()
 	damage = maxi(0, damage - floori(armor_credit / 100.0))
 	armor_credit %= 100
 	if damage == 0:
-		invincible_left = 0.45
+		invincible_left = float(tuning.blocked_invincibility)
 		return
 	health = maxi(0, health - damage)
 	prop_climbing = false
@@ -336,10 +343,10 @@ func hurt(source_x: float, damage: int = 1, effect: String = "") -> void:
 	if health == 0:
 		defeated.emit()
 		return
-	invincible_left = 0.9
+	invincible_left = float(tuning.hit_invincibility)
 	hurt_left = HURT_DURATION
 	if (effect == "shock" and gear.get("頭部") == "copper_helm") or (effect == "shards" and gear.get("腿部") == "cinder_greaves"):
-		hurt_left *= 0.5
+		hurt_left *= Armory.WEAR.copper_helm.hurt_multiplier if effect == "shock" else Armory.WEAR.cinder_greaves.hurt_multiplier
 	attack_left = 0.0
 	attack_buffer_left = 0.0
 	attack_queued = false
@@ -347,12 +354,12 @@ func hurt(source_x: float, damage: int = 1, effect: String = "") -> void:
 	blade_recoil = 0.0
 	var force := 270.0
 	if (effect == "spray" and gear.get("頭部") == "sealed_cap") or (effect == "ram" and gear.get("腿部") == "ram_boots"):
-		force *= 0.55
+		force *= Armory.WEAR.sealed_cap.knockback_multiplier if effect == "spray" else Armory.WEAR.ram_boots.knockback_multiplier
 	velocity = Vector2(signf(position.x - source_x) * force, -240)
 
 
 func max_health(loadout: Dictionary = gear) -> int:
-	return MAX_HEALTH + level + int(loadout.get("頭部") == "linen_hood")
+	return MAX_HEALTH + level + (int(Armory.catalog.items.linen_hood.bonus_health) if loadout.get("頭部") == "linen_hood" else 0)
 
 
 func item_rank(id: String) -> int:
@@ -382,30 +389,30 @@ func rest() -> void:
 
 
 func apply_pollen() -> void:
-	pollen_left = POLLEN_DURATION * (0.5 if gear.get("頭部") == "scaleveil_hood" else 1.0)
+	pollen_left = POLLEN_DURATION * (Armory.catalog.items.scaleveil_hood.pollen_multiplier if gear.get("頭部") == "scaleveil_hood" else 1.0)
 
 
 func apply_mud() -> void:
-	mud_left = 1.1 if gear.get("身體") == "silt_shell" else 2.2
+	mud_left = float(tuning.mud_duration) * (Armory.WEAR.silt_shell.mud_multiplier if gear.get("身體") == "silt_shell" else 1.0)
 
 
 func attach_leech() -> void:
-	leech_left = 3.6
-	leech_tick = 1.5 if gear.get("身體") == "reed_coat" else 0.9
+	leech_left = float(tuning.leech_duration)
+	leech_tick = Armory.WEAR.reed_coat.leech_interval if gear.get("身體") == "reed_coat" else tuning.leech_interval
 
 
 func weapon_period(id: String, loadout: Dictionary = gear) -> float:
 	var duration := KNIFE_DURATION
 	if Armory.WEAPONS.has(id):
-		duration = Armory.WEAPONS[id][3]
+		duration = Armory.WEAPONS[id].period
 	elif id == "hunter_bow":
 		duration = BOW_DURATION
 	elif id == "ember_staff":
 		duration = STAFF_DURATION
 	if id in ["hunter_bow", "thorn_bow"] and loadout.get("手部") == "bowstring_gloves":
-		duration *= 0.85
+		duration *= Armory.WEAR.bowstring_gloves.period_multiplier
 	if id in ["ember_staff", "scribe_staff"] and loadout.get("手部") == "rune_gloves":
-		duration *= 0.85
+		duration *= Armory.WEAR.rune_gloves.period_multiplier
 	if id == "hunter_knife" and loadout.get("手部") == "hunter_wraps":
 		duration = WRAPS_KNIFE_DURATION
 	return duration
@@ -415,16 +422,16 @@ func weapon_damage(id: String, rank: int = 0) -> int:
 	# Existing wood weapons keep their old damage curve; higher quality adds one per tier.
 	var bonus := (item_rank(id) if rank <= 0 else rank) - 1
 	if Armory.WEAPONS.has(id):
-		return int(Armory.WEAPONS[id][2]) + bonus + (0 if id == "scribe_staff" else (bow_level if id == "thorn_bow" else knife_level))
+		return int(Armory.WEAPONS[id].damage) + bonus + (0 if id == "scribe_staff" else (bow_level if id == "thorn_bow" else knife_level))
 	match id:
 		"unarmed":
 			return 1
 		"hunter_bow":
-			return 1 + bow_level + bonus
+			return int(Armory.catalog.items.hunter_bow.damage) + bow_level + bonus
 		"ember_staff":
 			return STAFF_DAMAGE + bonus
 		_:
-			return 2 + knife_level + bonus
+			return int(Armory.catalog.items.hunter_knife.damage) + knife_level + bonus
 
 
 func select_weapon(id: String) -> void:
@@ -459,7 +466,7 @@ func respawn(at: Vector2) -> void:
 	blade_recoil = 0.0
 	velocity = Vector2.ZERO
 	rest()
-	invincible_left = 0.9
+	invincible_left = float(tuning.hit_invincibility)
 	jump_grace = 0.0
 	gliding = false
 	wall_holding = false

@@ -4,8 +4,10 @@ const FLOOR_Y := 540.0
 const Reliquary := preload("res://assets/environment/common/props/reliquary.gd")
 const EquipmentChest := preload("res://assets/environment/common/props/equipment_chest.gd")
 const BRAZIER_TILE_ID := 12
-const BRAZIER_SPACING := 500.0
-const BRAZIER_MIN_GAP := 280.0
+const Campaign := preload("res://scripts/game/campaign.gd")
+static var BRAZIER_MIN_GAP: float = Campaign.settings.presentation.brazier_min_gap
+var brazier_min_gap := BRAZIER_MIN_GAP
+var brazier_spacing: float = Campaign.settings.presentation.brazier_spacing
 
 @export var shrine_flame_height := 29.0
 
@@ -51,7 +53,7 @@ func place_braziers(level_width: float, random: RandomNumberGenerator) -> void:
 		for cell in layer.get_used_cells():
 			occupied.append(to_local(layer.to_global(layer.map_to_local(cell))))
 
-	var band_count := maxi(1, roundi(level_width / BRAZIER_SPACING))
+	var band_count := maxi(1, roundi(level_width / brazier_spacing))
 	var band_width := level_width / band_count
 	var bands: Array[Array] = []
 	for band in band_count:
@@ -70,7 +72,7 @@ func place_braziers(level_width: float, random: RandomNumberGenerator) -> void:
 	var existing := props.get_used_cells_by_id(0, Vector2i.ZERO, BRAZIER_TILE_ID)
 	var last_x := -INF
 	for band in bands:
-		var candidates := band.filter(func(at: Vector2) -> bool: return at.x >= last_x + BRAZIER_MIN_GAP and existing.all(func(cell): return absf(at.x - props.position.x - props.map_to_local(cell).x) >= BRAZIER_MIN_GAP))
+		var candidates := band.filter(func(at: Vector2) -> bool: return at.x >= last_x + brazier_min_gap and existing.all(func(cell): return absf(at.x - props.position.x - props.map_to_local(cell).x) >= brazier_min_gap))
 		if candidates.is_empty():
 			continue
 		var foot: Vector2 = candidates[random.randi_range(0, candidates.size() - 1)]

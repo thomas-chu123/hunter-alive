@@ -3,7 +3,7 @@ extends "res://scripts/scene/ruins.gd"
 const Trap := preload("res://scripts/trap/trap_tile.gd")
 const SLAB_START := Vector2i(115, -9)
 const SLAB_WIDTH := 5
-const SLAB_DELAY := 0.85
+static var vault: Dictionary = stage_rules.stages.ruins_1
 const WALL_X := 110
 const RELEASE := Vector2(2240, 60)
 const SLUICE := Vector2(2080, 540)
@@ -15,7 +15,7 @@ var crack_time := -1.0
 var collapsed := false
 var passage_open := false
 var drained := false
-var river_depth := 52.0
+var river_depth : float = vault.normal_depth
 var nest_position := Vector2.INF
 var guardian: Monster
 var nest_awake := false
@@ -37,7 +37,7 @@ func _ready() -> void:
 func _on_boulder_rolled(center: Vector2, radius: float) -> void:
 	# Offscreen cycles should leave the encounter for the hunter to discover.
 	var point := to_local(center)
-	if absf(hunter.position.y - point.y) > 120 or hunter.position.distance_to(point) > 440.0:
+	if absf(hunter.position.y - point.y) > vault.boulder_vertical_range or hunter.position.distance_to(point) > vault.boulder_radius_from_hunter:
 		return
 	for monster in enemies.duplicate():
 		var bounds: Rect2 = monster.body_hitbox()
@@ -56,16 +56,16 @@ func _physics_process(delta: float) -> void:
 	super(delta)
 	if not hunter.is_physics_processing() or restarting or transitioning or completed:
 		return
-	river_depth = move_toward(river_depth, 5.0 if drained else 52.0, delta * 38)
-	hunter.shallow_water = hunter.position.x > RIVER_LEFT and hunter.position.x < RIVER_RIGHT and hunter.position.y > 540 - river_depth and river_depth > 12
+	river_depth = move_toward(river_depth, vault.drained_depth if drained else vault.normal_depth, delta * float(vault.drain_speed))
+	hunter.shallow_water = hunter.position.x > RIVER_LEFT and hunter.position.x < RIVER_RIGHT and hunter.position.y > 540 - river_depth and river_depth > vault.wading_depth
 	_update_nest()
 	_update_clash(delta)
 	if escape_time >= 0:
 		escape_time += delta
-		if escape_time >= 2.0 + loose_floor * 0.18:
+		if escape_time >= float(vault.escape_delay) + loose_floor * float(vault.collapse_interval):
 			terrain.erase_cell(Vector2i(133 - loose_floor, 3))
 			loose_floor += 1
-			if loose_floor == 15:
+			if loose_floor == int(vault.collapse_tiles):
 				escape_time = -1
 	if collapsed:
 		return
@@ -76,7 +76,7 @@ func _physics_process(delta: float) -> void:
 		if hunter.position.distance_to(Vector2(2350, -180)) < 400:
 			_notice("裂板正在下沉！退回斷柱，或隨它落下。", 2.2)
 	crack_time += delta
-	if crack_time >= SLAB_DELAY:
+	if crack_time >= vault.slab_delay:
 		_collapse()
 
 
@@ -86,12 +86,16 @@ func _collapse() -> void:
 	collapsed = true
 
 
+func _at_sluice() -> bool:
+	return not drained and hunter.position.distance_to(SLUICE) < vault.sluice_radius
+
+
 func _at_release() -> bool:
-	return not passage_open and hunter.position.x > (WALL_X + 1) * 20 and hunter.position.distance_to(RELEASE) < 54
+	return not passage_open and hunter.position.x > (WALL_X + 1) * 20 and hunter.position.distance_to(RELEASE) < vault.release_radius
 
 
 func _interact() -> void:
-	if not drained and hunter.position.distance_to(SLUICE) < 55:
+	if _at_sluice():
 		_drain_river()
 		_notice("水閘升起，河床通往舊研究室。閘頂的石匣需要蛛魂攀上。", 4)
 	elif _nest_guarding_chest():
@@ -109,7 +113,7 @@ func _interact() -> void:
 
 func _update_stage_hud() -> void:
 	super()
-	if not drained and hunter.position.distance_to(SLUICE) < 55:
+	if _at_sluice():
 		prompt_label.text = "E　轉動洩水輪"
 	elif _nest_guarding_chest():
 		prompt_label.text = "鼴獸守著靴匣"
@@ -166,12 +170,12 @@ func _restore_camp(state: Dictionary) -> void:
 
 	if state.get("temple_drained", false):
 		_drain_river()
-		river_depth = 5
+		river_depth = vault.drained_depth
 	stone_kill = state.get("temple_stone_kill", false)
-	loose_floor = clampi(state.get("temple_loose_floor", 0), 0, 15)
+	loose_floor = clampi(state.get("temple_loose_floor", 0), 0, vault.collapse_tiles)
 	for i in loose_floor:
 		terrain.erase_cell(Vector2i(133 - i, 3))
-	if state.get("temple_escape_started", false) and loose_floor < 15:
+	if state.get("temple_escape_started", false) and loose_floor < vault.collapse_tiles:
 		escape_time = 0
 
 
@@ -203,7 +207,7 @@ func _add_monster(species: String, x: float, y: float = Landscape.FLOOR_Y) -> vo
 
 
 func _update_nest() -> void:
-	if nest_awake or hunter.position.distance_to(nest_position) > 145 or absf(hunter.position.y - nest_position.y) > 65:
+	if nest_awake or hunter.position.distance_to(nest_position) > vault.nest_radius or absf(hunter.position.y - nest_position.y) > vault.nest_vertical_range:
 		return
 	nest_awake = true
 	var props: TileMapLayer = $Landscape/BackgroundProps
@@ -213,7 +217,7 @@ func _update_nest() -> void:
 	var mole := guardian
 	if stone_kill:
 		mole.profile = mole.profile.duplicate()
-		mole.profile.speed *= 1.3
+		mole.profile.speed *= vault.agitated_speed_multiplier
 		mole.modulate = Color("#e3bb91")
 		_notice("斷柱倒下，銅背鼴獸竄出！滾石的震動讓牠衝得更快。", 4)
 	else:
@@ -228,10 +232,10 @@ func _update_clash(delta: float) -> void:
 	clash_cooldown = maxf(0, clash_cooldown - delta)
 	if clash_cooldown > 0 or not is_instance_valid(lizard) or not is_instance_valid(hare):
 		return
-	if lizard.health <= 0 or hare.health <= 0 or hunter.position.distance_to(lizard.position) > 280:
+	if lizard.health <= 0 or hare.health <= 0 or hunter.position.distance_to(lizard.position) > vault.clash_radius:
 		return
-	if lizard.body_hitbox().grow(14).intersects(hare.body_hitbox()):
-		clash_cooldown = 2.0
+	if lizard.body_hitbox().grow(vault.clash_hit_margin).intersects(hare.body_hitbox()):
+		clash_cooldown = vault.clash_cooldown
 		var direction := signf(hare.position.x - lizard.position.x)
-		hare.receive_hit(1, false, false, "", direction)
-		lizard.receive_hit(1, false, false, "", -direction)
+		hare.receive_hit(vault.clash_damage, false, false, "", direction)
+		lizard.receive_hit(vault.clash_damage, false, false, "", -direction)

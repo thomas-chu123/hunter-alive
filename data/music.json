@@ -1,0 +1,25 @@
+{
+  "regions": {
+    "ruins": {
+      "theme": "res://assets/audio/music/the_hunter_temple.ogg",
+      "boss": "res://assets/audio/music/boss_temple.mp3"
+    },
+    "flooded_corridor": {
+      "theme": "res://assets/audio/music/the_hunter_corridor.ogg",
+      "boss": "res://assets/audio/music/boss_corridor.mp3"
+    },
+    "buried_court": {
+      "theme": "res://assets/audio/music/the_hunter_finale.ogg",
+      "boss": "res://assets/audio/music/boss_court.mp3"
+    },
+    "volcanic_caldera": {
+      "theme": "res://assets/audio/music/the_hunter_finale.ogg",
+      "boss": "res://assets/audio/music/boss_caldera.mp3"
+    }
+  },
+  "title": "res://assets/audio/music/the_hunter_title.ogg",
+  "final_boss": "",
+  "volume_db": -5,
+  "fade_seconds": 0.95,
+  "silent_db": -60
+}

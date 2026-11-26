@@ -11,7 +11,6 @@ const EnemyAudio := preload("res://scripts/sound/ruin_enemy_audio.gd")
 const Effects := preload("res://scripts/effects/ruin_enemy_effects.gd")
 const Hunter := preload("res://scripts/character/ruin_hunter.gd")
 const HIT_FLASH := preload("res://scripts/effects/ruin_hit_flash.gdshader")
-const PATROL_SPEED := 45.0
 enum State { PATROL, NOTICE, CHASE, WINDUP, STRIKE, RECOVER, RETURN, STAGGER }
 enum AttackPose { IDLE = -1, ANTICIPATION, RELEASE, RECOVERY }
 enum HitResult { BLOCKED, DAMAGED, DISARMED }
@@ -108,6 +107,7 @@ func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
 	max_health = int(design.health)
 	level = int(design.level)
 	soul_reward = design.soul_reward
+	motion_rules = Bestiary.rules.motion.merged(design.get("motion_rules", {}), true)
 	profile = design.motion
 	hover = profile.get("hover", {})
 	attack = design.attack
@@ -145,8 +145,8 @@ func _ready() -> void:
 	add_child(actor_art)
 	flash_material = ShaderMaterial.new()
 	flash_material.shader = HIT_FLASH
-	step_voice = EnemyAudio.voice(float(sound.get("step_gain_db", -11.0)))
-	attack_voice = EnemyAudio.voice(-3.0)
+	step_voice = EnemyAudio.voice(float(sound.get("step_gain_db", EnemyAudio.mix.step_gain_db)))
+	attack_voice = EnemyAudio.voice(EnemyAudio.mix.attack_gain_db)
 	add_child(step_voice)
 	add_child(attack_voice)
 
@@ -293,14 +293,14 @@ func _patrol() -> void:
 	if (position.x - patrol_center) * patrol_dir >= radius or not _can_walk(patrol_dir):
 		patrol_dir = -patrol_dir
 	if (position.x - patrol_center) * patrol_dir < radius and _can_walk(patrol_dir):
-		_move(patrol_dir * PATROL_SPEED)
+		_move(patrol_dir * float(motion_rules.patrol_speed))
 
 
 func _chase(offset: Vector2) -> void:
 	if absf(offset.x) > 8.0:
 		facing = signf(offset.x)
 	var reach := float(_attack_value("trigger_range"))
-	var height := 82.0 if _attack_value("mode") == "bolt" else 64.0
+	var height: float = motion_rules.bolt_attack_height if _attack_value("mode") == "bolt" else motion_rules.melee_attack_height
 	if is_on_floor() and absf(offset.x) <= reach and absf(offset.y) <= height:
 		_begin_windup()
 	else:
@@ -320,7 +320,7 @@ func _return_home() -> void:
 		_resume_patrol(home.x)
 		return
 	var direction := signf(offset.x) if absf(offset.x) > 9.0 else patrol_dir
-	_navigate(direction, float(profile.speed) * 0.85, offset.y < -35.0,
+	_navigate(direction, float(profile.speed) * float(motion_rules.return_speed_multiplier), offset.y < -35.0,
 		offset.y > 35.0)
 
 
@@ -448,7 +448,7 @@ func _locomotion_cell() -> Vector2i:
 
 func _running_gait() -> bool:
 	var desired := absf(requested_speed)
-	return state in [State.CHASE, State.RETURN] and desired > PATROL_SPEED and absf(velocity.x) > minf(52.0, desired * 0.7)
+	return state in [State.CHASE, State.RETURN] and desired > float(motion_rules.patrol_speed) and absf(velocity.x) > minf(52.0, desired * 0.7)
 
 
 func _gait_stride() -> float:

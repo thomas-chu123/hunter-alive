@@ -10,7 +10,11 @@
     "landing_probe_step": 0.065,
     "jump_retry_delay": 0.22,
     "jump_cooldown": 0.35,
-    "fall_reset_depth": 250
+    "fall_reset_depth": 250,
+    "patrol_speed": 45,
+    "bolt_attack_height": 82,
+    "melee_attack_height": 64,
+    "return_speed_multiplier": 0.85
   },
   "combat": {
     "disarm_recovery": 0.5,

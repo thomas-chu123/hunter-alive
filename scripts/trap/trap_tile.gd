@@ -6,24 +6,18 @@ signal sound_played(cue: StringName)
 const Hunter := preload("res://scripts/character/ruin_hunter.gd")
 const Art := preload("res://scripts/trap/trap_art.gd")
 const Frame := Art.Frame
-const SOUNDS := {
-	&"spikes": preload("res://assets/audio/traps/spikes.wav"),
-	&"swing": preload("res://assets/audio/traps/swing.wav"),
-	&"blast": preload("res://assets/audio/traps/blast.wav"),
-	&"fireball": preload("res://assets/audio/traps/fireball.wav"),
-	&"poison": preload("res://assets/audio/traps/poison.wav"),
-	&"roll": preload("res://assets/audio/traps/roll.wav"),
-	&"portal": preload("res://assets/audio/traps/portal.wav"),
-	&"shock": preload("res://assets/audio/traps/shock.wav"),
-}
+const Config := preload("res://scripts/game/config_table.gd")
+static var settings := Config.read("traps")
+static var audio_settings := Config.read("sound")
+static var SOUNDS := Config.resources(audio_settings.trap_clips)
 const HUNTER_GROUP := &"trap_hunter"
 const PORTAL_GROUP := &"trap_destination"
 const TERRAIN_MASK := 1
-const BOULDER_RADIUS := 22.0
-const FIRE_SIZE := Vector2(44, 20)
-const PORTAL_SIZE := Vector2(62, 82)
-const POISON_DURATION := 1.75
-const BLAST_DURATION := 0.40
+static var BOULDER_RADIUS: float = settings.boulder.radius
+static var FIRE_SIZE := Config.vector(settings.fireball.size)
+static var PORTAL_SIZE := Config.vector(settings.portal_size)
+static var POISON_DURATION: float = settings.poison_duration
+static var BLAST_DURATION: float = settings.fireball.blast_duration
 
 enum Kind {
 	CEILING_SPIKES, WALL_SPIKES, PENDULUM, LAVA,
@@ -33,7 +27,9 @@ enum Kind {
 
 @export var kind: Kind
 @export_enum("Left:-1", "Right:1") var direction := 1
-@export_range(2.0, 12.0, 0.1, "suffix:s") var cycle_seconds := 4.0
+@export var cycle_profile := ""
+## Zero inherits the cycle from traps.json.
+@export_range(0.0, 12.0, 0.1, "suffix:s") var cycle_seconds := 0.0
 
 var _hunter: Hunter
 var _sound: AudioStreamPlayer2D
@@ -52,15 +48,17 @@ var _portal_occupied := false
 
 
 func _ready() -> void:
+	if cycle_seconds <= 0:
+		cycle_seconds = settings.cycle_seconds.get(cycle_profile, settings.default_cycle_seconds)
 	$Preview.hide()
 	if kind in [Kind.PORTAL_B, Kind.RANDOM_LANDING]:
 		add_to_group(PORTAL_GROUP)
 	_next_cycle = _period()
 	if kind not in [Kind.PORTAL_B, Kind.RANDOM_LANDING]:
 		_sound = AudioStreamPlayer2D.new()
-		_sound.volume_db = -6.0
-		_sound.max_distance = 440.0
-		_sound.attenuation = 2.0
+		_sound.volume_db = audio_settings.trap_voice.gain_db
+		_sound.max_distance = audio_settings.trap_voice.distance
+		_sound.attenuation = audio_settings.trap_voice.attenuation
 		add_child(_sound)
 	if kind == Kind.BOULDER:
 		_rolling_sound = SOUNDS[&"roll"].duplicate()
@@ -95,7 +93,7 @@ func _physics_process(delta: float) -> void:
 
 	match kind:
 		Kind.CEILING_SPIKES:
-			if previous_phase < 0.32 and _phase >= 0.32:
+			if previous_phase < settings.ceiling_spikes.drop_seconds and _phase >= settings.ceiling_spikes.drop_seconds:
 				_play(&"spikes", _ceiling_teeth())
 			if _ceiling_extension() > 0.35:
 				_hurt_box(_ceiling_teeth(), Vector2(62, 23 * _ceiling_extension()))
@@ -106,7 +104,7 @@ func _physics_process(delta: float) -> void:
 			var wind_period := _period() / 2.0
 			if floori(previous_time / wind_period) != floori(_time / wind_period):
 				_play(&"swing", _mace_position())
-			_hurt_circle(_mace_position(), 23)
+			_hurt_circle(_mace_position(), settings.pendulum.hit_radius)
 		Kind.LAVA:
 			_hurt_box(Vector2(0, -5), Vector2(91, 18), "lava")
 			if _geyser_height() > 8:
@@ -128,7 +126,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _period() -> float:
-	return 5.0 if kind == Kind.CEILING_SPIKES else cycle_seconds
+	return cycle_seconds
 
 
 func _activate() -> void:
@@ -164,12 +162,12 @@ func _update_fireball(delta: float) -> void:
 	if _blast_age < BLAST_DURATION:
 		_blast_age += delta
 		if _blast_age < BLAST_DURATION:
-			_hurt_circle(_blast_position, 36, "lava")
+			_hurt_circle(_blast_position, settings.fireball.blast_radius, "lava")
 	if _projectile_age == INF:
 		return
 
 	_projectile_age += delta
-	var next := _projectile_position + Vector2(direction * 295.0 * delta, 0)
+	var next := _projectile_position + Vector2(direction * float(settings.fireball.speed) * delta, 0)
 	var tip := Vector2(direction * FIRE_SIZE.x / 2.0, 0)
 	var ray := PhysicsRayQueryParameters2D.create(to_global(_projectile_position),
 		to_global(next + tip), TERRAIN_MASK)
@@ -179,14 +177,14 @@ func _update_fireball(delta: float) -> void:
 		next = to_local(wall.position) - tip
 	_projectile_position = next
 	var touches_hunter := _touches_box(_projectile_position, FIRE_SIZE)
-	var lifetime := 0.76 if kind == Kind.EXPLODING_FIREBALL else 1.1
+	var lifetime: float = settings.fireball.exploding_lifetime if kind == Kind.EXPLODING_FIREBALL else settings.fireball.lifetime
 	if touches_hunter or not wall.is_empty() or _projectile_age >= lifetime:
 		_projectile_age = INF
 		if kind == Kind.EXPLODING_FIREBALL:
 			_blast_position = _projectile_position
 			_blast_age = 0.0
 			_play(&"blast", _blast_position)
-			_hurt_circle(_blast_position, 36, "lava")
+			_hurt_circle(_blast_position, settings.fireball.blast_radius, "lava")
 		elif touches_hunter:
 			_hurt(_projectile_position, "lava")
 
@@ -195,14 +193,14 @@ func _update_boulder(delta: float) -> void:
 	if not is_instance_valid(_boulder):
 		return
 	_projectile_age += delta
-	_boulder_fall_speed = minf(_boulder_fall_speed + 1000.0 * delta, 640)
+	_boulder_fall_speed = minf(_boulder_fall_speed + float(settings.boulder.gravity) * delta, settings.boulder.max_fall_speed)
 	if _boulder.move_and_collide(Vector2(0, _boulder_fall_speed * delta)):
 		_boulder_fall_speed = 0.0
-	var wall := _boulder.move_and_collide(Vector2(direction * 177.0 * delta, 0))
+	var wall := _boulder.move_and_collide(Vector2(direction * float(settings.boulder.speed) * delta, 0))
 	_sound.position = _boulder.position
 	_hurt_circle(_boulder.position, BOULDER_RADIUS)
 	boulder_rolled.emit(_boulder.global_position, BOULDER_RADIUS)
-	if wall or _projectile_age >= 2.2:
+	if wall or _projectile_age >= float(settings.boulder.lifetime):
 		_stop_boulder()
 
 
@@ -286,7 +284,7 @@ func _hurt(center: Vector2, effect: String) -> bool:
 	var parent := _hunter.get_parent() as Node2D
 	var source := to_global(center)
 	var source_x := parent.to_local(source).x if parent else source.x
-	_hunter.hurt(source_x, 1, effect)
+	_hunter.hurt(source_x, settings.damage, effect)
 	return _hunter.health < health
 
 
@@ -299,11 +297,13 @@ func _play(cue: StringName, at := Vector2.ZERO) -> void:
 
 
 func _ceiling_drop() -> float:
-	return 102.0 * minf(smoothstep(0, 0.32, _phase), 1.0 - smoothstep(1.23, 1.65, _phase))
+	return float(settings.ceiling_spikes.drop_distance) * minf(smoothstep(0, settings.ceiling_spikes.drop_seconds, _phase),
+		1.0 - smoothstep(settings.ceiling_spikes.retract_end, settings.ceiling_spikes.reset_end, _phase))
 
 
 func _ceiling_extension() -> float:
-	return smoothstep(0.32, 0.46, _phase) * (1.0 - smoothstep(1.03, 1.23, _phase))
+	return smoothstep(settings.ceiling_spikes.drop_seconds, settings.ceiling_spikes.extend_end, _phase) * (
+		1.0 - smoothstep(settings.ceiling_spikes.retract_start, settings.ceiling_spikes.retract_end, _phase))
 
 
 func _ceiling_teeth() -> Vector2:
@@ -311,7 +311,8 @@ func _ceiling_teeth() -> Vector2:
 
 
 func _wall_extension() -> float:
-	return smoothstep(0.0, 0.14, _phase) * (1.0 - smoothstep(0.84, 1.12, _phase))
+	return smoothstep(0.0, settings.wall_spikes.extend_end, _phase) * (
+		1.0 - smoothstep(settings.wall_spikes.retract_start, settings.wall_spikes.retract_end, _phase))
 
 
 func _wall_teeth() -> Vector2:
@@ -319,12 +320,13 @@ func _wall_teeth() -> Vector2:
 
 
 func _mace_position() -> Vector2:
-	var swing := sin(_time * TAU / _period()) * 0.79
-	return Vector2(sin(swing), cos(swing)) * 110
+	var swing := sin(_time * TAU / _period()) * float(settings.pendulum.angle_radians)
+	return Vector2(sin(swing), cos(swing)) * float(settings.pendulum.length)
 
 
 func _geyser_height() -> float:
-	return 83.0 * smoothstep(0.0, 0.24, _phase) * (1.0 - smoothstep(0.64, 1.04, _phase))
+	return float(settings.geyser.height) * smoothstep(0.0, settings.geyser.rise_seconds, _phase) * (
+		1.0 - smoothstep(settings.geyser.recede_start, settings.geyser.recede_end, _phase))
 
 
 func _cloud_opacity() -> float:
@@ -389,7 +391,7 @@ func _draw_launcher() -> void:
 		var pulse := 0.5 + 0.5 * sin(_time * 22.0)
 		draw_arc(Vector2.ZERO, 18, 0, TAU, 24, Color(1.0, 0.70, 0.32, 0.55 + 0.45 * pulse), 3.0)
 	elif is_instance_valid(_boulder):
-		draw_set_transform(_boulder.position, direction * _projectile_age * 177.0 / BOULDER_RADIUS)
+		draw_set_transform(_boulder.position, direction * _projectile_age * float(settings.boulder.speed) / BOULDER_RADIUS)
 		Art.paint(self, Frame.BOULDER, Vector2.ZERO, Vector2.ONE * BOULDER_RADIUS * 2)
 		draw_set_transform(Vector2.ZERO)
 	elif _projectile_age < INF and kind in [Kind.FIREBALL, Kind.EXPLODING_FIREBALL]:

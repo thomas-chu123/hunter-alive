@@ -1,25 +1,14 @@
 extends Node
 
-const TITLE := 4
-const FINALE := "res://assets/audio/music/the_hunter_finale.ogg"
-const TRACKS := [
-	"res://assets/audio/music/the_hunter_temple.ogg",
-	"res://assets/audio/music/the_hunter_corridor.ogg",
-	FINALE,
-	FINALE,
-	"res://assets/audio/music/the_hunter_title.ogg",
-]
-const FIRST_BOSS := 5
-const BOSS_TRACKS := [
-	"res://assets/audio/music/boss_temple.mp3",
-	"res://assets/audio/music/boss_corridor.mp3",
-	"res://assets/audio/music/boss_court.mp3",
-	"res://assets/audio/music/boss_caldera.mp3",
-	"res://assets/audio/music/boss_caldera_final.mp3",
-]
-const TRACK_VOLUME := -5.0
-const FADE_TIME := 0.95
-const SILENT_DB := -60.0
+const Campaign := preload("res://scripts/game/campaign.gd")
+static var settings := Campaign.Config.read("music")
+static var TRACKS: Array = Campaign.IDS.map(func(id: String) -> String: return settings.regions[id].theme) + [settings.title]
+static var TITLE := TRACKS.size() - 1
+static var FIRST_BOSS := TRACKS.size()
+static var BOSS_TRACKS: Array = Campaign.IDS.map(func(id: String) -> String: return settings.regions[id].boss) + ([] if settings.final_boss.is_empty() else [settings.final_boss])
+static var TRACK_VOLUME: float = settings.volume_db
+static var FADE_TIME: float = settings.fade_seconds
+static var SILENT_DB: float = settings.silent_db
 
 var current_region := -1
 var voices: Array[AudioStreamPlayer] = []
@@ -40,7 +29,7 @@ func play_region(region: int) -> void:
 
 func play_boss(region: int, final_phase: bool = false) -> void:
 	var track := FIRST_BOSS + region
-	if final_phase and ResourceLoader.exists(BOSS_TRACKS[-1]):
+	if final_phase and not settings.final_boss.is_empty() and ResourceLoader.exists(settings.final_boss):
 		track = FIRST_BOSS + BOSS_TRACKS.size() - 1
 	_play_track(track)
 

@@ -1,19 +1,10 @@
 extends RefCounted
 
-const DATA_DIR := "res://data"
+const Config := preload("res://scripts/game/config_table.gd")
 
-static var creatures: Dictionary = _read_table("monsters")
-static var loot: Dictionary = _read_table("monster_loot")
-static var rules: Dictionary = _read_table("monster_rules")
-
-
-static func _read_table(name: String) -> Dictionary:
-	var path := "%s/%s.json" % [DATA_DIR, name]
-	var document := JSON.new()
-	if document.parse(FileAccess.get_file_as_string(path)) != OK or not document.data is Dictionary:
-		push_error("Invalid monster data table: %s" % path)
-		return {}
-	return document.data
+static var creatures: Dictionary = Config.read("monsters")
+static var loot: Dictionary = Config.read("monster_loot")
+static var rules: Dictionary = Config.read("monster_rules")
 
 
 static func soul(id: String) -> Dictionary:

@@ -1,0 +1,67 @@
+{
+  "default_cycle_seconds": 4,
+  "cycle_seconds": {
+    "boulder": 4.5,
+    "ceiling_spikes": 5.0,
+    "electric": 4.0,
+    "lava": 4.0,
+    "left_fireball": 2.8,
+    "left_wall_spikes": 3.0,
+    "pendulum": 3.2,
+    "poison": 4.1,
+    "portal_a": 4.0,
+    "portal_b": 4.0,
+    "random_landing": 4.0,
+    "random_portal": 4.0,
+    "right_exploding_fireball": 3.4,
+    "right_wall_spikes": 3.6
+  },
+  "damage": 1,
+  "boulder": {
+    "radius": 22,
+    "speed": 177,
+    "gravity": 1000,
+    "max_fall_speed": 640,
+    "lifetime": 2.2
+  },
+  "fireball": {
+    "size": [
+      44,
+      20
+    ],
+    "speed": 295,
+    "lifetime": 1.1,
+    "exploding_lifetime": 0.76,
+    "blast_duration": 0.4,
+    "blast_radius": 36
+  },
+  "portal_size": [
+    62,
+    82
+  ],
+  "poison_duration": 1.75,
+  "ceiling_spikes": {
+    "drop_distance": 102,
+    "drop_seconds": 0.32,
+    "extend_end": 0.46,
+    "retract_start": 1.03,
+    "retract_end": 1.23,
+    "reset_end": 1.65
+  },
+  "wall_spikes": {
+    "extend_end": 0.14,
+    "retract_start": 0.84,
+    "retract_end": 1.12
+  },
+  "pendulum": {
+    "length": 110,
+    "angle_radians": 0.79,
+    "hit_radius": 23
+  },
+  "geyser": {
+    "height": 83,
+    "rise_seconds": 0.24,
+    "recede_start": 0.64,
+    "recede_end": 1.04
+  }
+}

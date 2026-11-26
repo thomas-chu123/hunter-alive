@@ -1,0 +1,274 @@
+{
+  "starting_weapons": [
+    "hunter_knife",
+    "hunter_bow"
+  ],
+  "items": {
+    "linen_hood": {
+      "name": "營火布兜",
+      "slot": "頭部",
+      "description": "最大體力增加 1。",
+      "icon": "res://assets/items/armor/linen_hood.png",
+      "bonus_health": 1
+    },
+    "scaleveil_hood": {
+      "name": "鱗紗兜帽",
+      "slot": "頭部",
+      "description": "石鐘蛾的鱗粉緩速時間減半。",
+      "icon": "res://assets/items/armor/scaleveil_hood.png",
+      "pollen_multiplier": 0.5
+    },
+    "moss_vest": {
+      "name": "苔織獵衣",
+      "slot": "身體",
+      "description": "每次營火休息後，抵消一次接觸傷害。",
+      "icon": "res://assets/items/armor/moss_vest.png"
+    },
+    "hunter_wraps": {
+      "name": "獵人纏手",
+      "slot": "手部",
+      "description": "短刀與木刃的攻擊恢復時間縮短。",
+      "icon": "res://assets/items/armor/hunter_wraps.png",
+      "knife_period": 0.23
+    },
+    "hunter_knife": {
+      "name": "短刀／木刃",
+      "slot": "武器",
+      "description": "快速近身攻擊。繳械拾取木刃後提升傷害。",
+      "icon": "res://assets/items/weapon/hunter_knife.png",
+      "period": 0.29,
+      "damage": 2,
+      "reach": 51
+    },
+    "hunter_bow": {
+      "name": "獵弓",
+      "slot": "武器",
+      "description": "沿水平方向射出箭矢。",
+      "icon": "res://assets/items/weapon/hunter_bow.png",
+      "period": 0.39,
+      "damage": 1,
+      "projectile": "arrow"
+    },
+    "ember_staff": {
+      "name": "餘火魔法杖",
+      "slot": "武器",
+      "description": "消耗 1 點法力，朝面向水平發射火球，碰到敵人或地形時爆炸。",
+      "icon": "res://assets/items/weapon/ember_staff.svg",
+      "period": 0.54,
+      "damage": 3,
+      "projectile": "ember"
+    }
+  },
+  "weapons": {
+    "root_blade": {
+      "name": "樹靈木刃",
+      "description": "較重的樹靈刃，單擊傷害高於短刀。",
+      "damage": 3,
+      "period": 0.35,
+      "reach": 61.0,
+      "style": "melee",
+      "icon": "res://assets/items/weapon/root_blade.png"
+    },
+    "fang_dagger": {
+      "name": "蛛牙短刃",
+      "description": "對同一目標連續三次命中時額外造成 1 點傷害。",
+      "damage": 2,
+      "period": 0.23,
+      "reach": 43.0,
+      "style": "combo",
+      "icon": "res://assets/items/weapon/fang_dagger.tres",
+      "combo_hits": 3
+    },
+    "sluice_spear": {
+      "name": "水閘長矛",
+      "description": "沿水平方向刺出，能從較遠的距離攻擊。",
+      "damage": 3,
+      "period": 0.45,
+      "reach": 111.0,
+      "style": "melee",
+      "icon": "res://assets/items/weapon/sluice_spear.tres"
+    },
+    "tide_hammer": {
+      "name": "潮石槌",
+      "description": "蓄力重擊能強制讓水門螺打開外殼。",
+      "damage": 5,
+      "period": 0.76,
+      "reach": 62.0,
+      "style": "melee",
+      "icon": "res://assets/items/weapon/tide_hammer.tres"
+    },
+    "thorn_bow": {
+      "name": "荊骨獵弓",
+      "description": "箭矢可穿過第一個敵人，命中第二個目標。",
+      "damage": 2,
+      "period": 0.51,
+      "reach": 0.0,
+      "style": "bow",
+      "icon": "res://assets/items/weapon/thorn_bow.tres",
+      "projectile": "arrow",
+      "pierce": 1
+    },
+    "scribe_staff": {
+      "name": "碑文魔法杖",
+      "description": "消耗 1 點法力，在前方留下延遲生效的地面符印。",
+      "damage": 4,
+      "period": 0.74,
+      "reach": 0.0,
+      "style": "spell",
+      "icon": "res://assets/items/weapon/scribe_staff.tres",
+      "glyph": {
+        "forward_distance": 129,
+        "min_x": 54,
+        "max_x": 3230,
+        "ground_probe": 280,
+        "delay": 0.46,
+        "hitbox": [
+          -54,
+          -64,
+          108,
+          69
+        ]
+      }
+    },
+    "gate_halberd": {
+      "name": "石門長戟",
+      "description": "橫掃能同時命中最多兩個近身目標。",
+      "damage": 4,
+      "period": 0.64,
+      "reach": 86.0,
+      "style": "sweep",
+      "icon": "res://assets/items/weapon/gate_halberd.tres",
+      "max_targets": 2
+    }
+  },
+  "armor": {
+    "sealed_cap": {
+      "name": "防潮皮帽",
+      "slot": "頭部",
+      "description": "水束擊退減少 45%，並能隔絕陷阱毒霧。",
+      "icon": "res://assets/items/armor/sealed_cap.png",
+      "knockback_multiplier": 0.55
+    },
+    "copper_helm": {
+      "name": "鳴銅盔",
+      "slot": "頭部",
+      "description": "鳴蟬震波的受擊硬直減半。",
+      "icon": "res://assets/items/armor/copper_helm.png",
+      "hurt_multiplier": 0.5
+    },
+    "ash_cowl": {
+      "name": "餘火頭巾",
+      "slot": "頭部",
+      "description": "地面符記的傷害由 2 降至 1。",
+      "icon": "res://assets/items/armor/ash_cowl.png",
+      "rune_reduction": 1
+    },
+    "wing_cape": {
+      "name": "翼膜披肩",
+      "slot": "身體",
+      "description": "蜥翼啟用時，滑翔下降速度降低 15%。",
+      "icon": "res://assets/items/armor/wing_cape.png",
+      "glide_fall_multiplier": 0.85
+    },
+    "reed_coat": {
+      "name": "蘆纖外袍",
+      "slot": "身體",
+      "description": "吸蛭吸附造成的傷害間隔從 0.9 秒延到 1.5 秒。",
+      "icon": "res://assets/items/armor/reed_coat.png",
+      "leech_interval": 1.5
+    },
+    "silt_shell": {
+      "name": "泥殼胸甲",
+      "slot": "身體",
+      "description": "泥浪緩速時間減半。",
+      "icon": "res://assets/items/armor/silt_shell.png",
+      "mud_multiplier": 0.5
+    },
+    "earthen_armor": {
+      "name": "沉陶護甲",
+      "slot": "身體",
+      "description": "離開營火後可格擋一次傷害。",
+      "icon": "res://assets/items/armor/earthen_armor.png"
+    },
+    "stonegrip_gloves": {
+      "name": "壓石手套",
+      "slot": "手部",
+      "description": "翻腹甲蟲受到近戰命中時，向後滑退。",
+      "icon": "res://assets/items/armor/stonegrip_gloves.png"
+    },
+    "hardroot_bracers": {
+      "name": "硬根護腕",
+      "slot": "手部",
+      "description": "空中近戰擊退力增加 25%。",
+      "icon": "res://assets/items/armor/hardroot_bracers.png",
+      "air_push": 85
+    },
+    "bowstring_gloves": {
+      "name": "繃弦護手",
+      "slot": "手部",
+      "description": "獵弓與荊骨獵弓的攻擊週期縮短 15%。",
+      "icon": "res://assets/items/armor/bowstring_gloves.png",
+      "period_multiplier": 0.85
+    },
+    "rune_gloves": {
+      "name": "餘燼法手",
+      "slot": "手部",
+      "description": "兩種魔法杖的施放週期縮短 15%。",
+      "icon": "res://assets/items/armor/rune_gloves.png",
+      "period_multiplier": 0.85
+    },
+    "cliff_boots": {
+      "name": "碎崖獵靴",
+      "slot": "腿部",
+      "description": "重落地的硬直時間減半。",
+      "icon": "res://assets/items/armor/cliff_boots.png",
+      "landing_multiplier": 0.5
+    },
+    "eel_greaves": {
+      "name": "鰻鱗護腿",
+      "slot": "腿部",
+      "description": "在迴廊淺水地段移動速度提高 20%。",
+      "icon": "res://assets/items/armor/eel_greaves.png",
+      "water_speed_multiplier": 1.2
+    },
+    "sluice_boots": {
+      "name": "防滑石靴",
+      "slot": "腿部",
+      "description": "在迴廊淺水地段抵消一半水流推力。",
+      "icon": "res://assets/items/armor/sluice_boots.png",
+      "current_multiplier": 0.5
+    },
+    "cinder_greaves": {
+      "name": "熱碑護脛",
+      "slot": "腿部",
+      "description": "碎陶散片造成的受擊硬直減半。",
+      "icon": "res://assets/items/armor/cinder_greaves.png",
+      "hurt_multiplier": 0.5
+    },
+    "ram_boots": {
+      "name": "踏階長靴",
+      "slot": "腿部",
+      "description": "墓階角獸衝撞造成的擊退減少 45%。",
+      "icon": "res://assets/items/armor/ram_boots.png",
+      "knockback_multiplier": 0.55
+    }
+  },
+  "staff_mana_cost": 1,
+  "melee_hitbox": {
+    "top_offset": -17,
+    "height": 42
+  },
+  "projectiles": {
+    "arrow": {
+      "speed": 850,
+      "lifetime": 0.55,
+      "height": 8
+    },
+    "ember": {
+      "speed": 710,
+      "lifetime": 0.44,
+      "height": 12,
+      "cast_start_offset": 15
+    }
+  }
+}

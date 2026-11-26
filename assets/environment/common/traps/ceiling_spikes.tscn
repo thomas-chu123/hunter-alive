@@ -10,7 +10,7 @@ filter_clip = true
 
 [node name="CeilingSpikes" type="Node2D" unique_id=1993429400]
 script = ExtResource("1")
-cycle_seconds = 5.0
+cycle_profile = "ceiling_spikes"
 
 [node name="Preview" type="Node2D" parent="." unique_id=597124686]
 
