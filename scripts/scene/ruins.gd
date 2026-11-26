@@ -18,6 +18,7 @@ const Armory := preload("res://scripts/game/ruin_armory.gd")
 const Campaign := preload("res://scripts/game/campaign.gd")
 const FloorVisibility := preload("res://scripts/scene/ruin_floor_visibility.gd")
 const NpcTileMap := preload("res://scripts/scene/npc_tile_map.gd")
+const NPC_DIALOGUE_BALLOON := preload("res://scenes/ui/npc_dialogue_balloon.tscn")
 const NPC_DIALOGUE := preload("res://data/dialogue/villagers.dialogue")
 const NPC_GIFT := "stonegrip_gloves"
 const NPC_SHOP_ITEM := "scaleveil_hood"
@@ -788,7 +789,8 @@ func _open_npc_dialogue(cue: String) -> void:
 	if hunter.health <= 0 or is_instance_valid(npc_balloon) or not NPC_DIALOGUE.cues.has(cue):
 		return
 	_set_world_locked(true)
-	npc_balloon = Engine.get_singleton("DialogueManager").show_dialogue_balloon(NPC_DIALOGUE, cue, [self])
+	npc_balloon = Engine.get_singleton("DialogueManager").show_dialogue_balloon_scene(
+		NPC_DIALOGUE_BALLOON, NPC_DIALOGUE, cue, [self])
 	npc_balloon.tree_exited.connect(_close_npc_dialogue, CONNECT_ONE_SHOT)
 
 

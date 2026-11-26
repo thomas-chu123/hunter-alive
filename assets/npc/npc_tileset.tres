@@ -2,6 +2,66 @@
 
 [ext_resource type="Texture2D" uid="uid://1o5hqjbf68jc" path="res://assets/npc/villagers.png" id="1"]
 
+[sub_resource type="TileMapPattern" id="martha"]
+resource_name = "瑪莎｜酒館老闆娘"
+tile_data = PackedInt32Array(0, 0, 0)
+
+[sub_resource type="TileMapPattern" id="bruno"]
+resource_name = "布魯諾｜鐵匠"
+tile_data = PackedInt32Array(0, 65536, 0)
+
+[sub_resource type="TileMapPattern" id="bella"]
+resource_name = "蓓拉｜麵包師"
+tile_data = PackedInt32Array(0, 0, 2)
+
+[sub_resource type="TileMapPattern" id="sean"]
+resource_name = "席恩｜漁夫"
+tile_data = PackedInt32Array(0, 65536, 2)
+
+[sub_resource type="TileMapPattern" id="tara"]
+resource_name = "塔拉｜木匠"
+tile_data = PackedInt32Array(0, 131072, 2)
+
+[sub_resource type="TileMapPattern" id="luin"]
+resource_name = "露茵｜裁縫師"
+tile_data = PackedInt32Array(0, 196608, 2)
+
+[sub_resource type="TileMapPattern" id="glen"]
+resource_name = "葛蘭｜馬伕"
+tile_data = PackedInt32Array(0, 262144, 2)
+
+[sub_resource type="TileMapPattern" id="finn"]
+resource_name = "芬恩｜旅行商人"
+tile_data = PackedInt32Array(0, 131072, 0)
+
+[sub_resource type="TileMapPattern" id="eve"]
+resource_name = "伊芙｜草藥師"
+tile_data = PackedInt32Array(0, 196608, 0)
+
+[sub_resource type="TileMapPattern" id="ron"]
+resource_name = "羅恩｜城門守衛"
+tile_data = PackedInt32Array(0, 262144, 0)
+
+[sub_resource type="TileMapPattern" id="otto"]
+resource_name = "奧托｜礦工"
+tile_data = PackedInt32Array(0, 0, 1)
+
+[sub_resource type="TileMapPattern" id="lia"]
+resource_name = "莉亞｜修女"
+tile_data = PackedInt32Array(0, 65536, 1)
+
+[sub_resource type="TileMapPattern" id="ed"]
+resource_name = "艾德｜圖書管理員"
+tile_data = PackedInt32Array(0, 131072, 1)
+
+[sub_resource type="TileMapPattern" id="nora"]
+resource_name = "諾菈｜森林嚮導"
+tile_data = PackedInt32Array(0, 196608, 1)
+
+[sub_resource type="TileMapPattern" id="pip"]
+resource_name = "皮普｜跑腿信差"
+tile_data = PackedInt32Array(0, 262144, 1)
+
 [sub_resource type="TileSetAtlasSource" id="Villagers"]
 texture = ExtResource("1")
 texture_region_size = Vector2i(80, 80)
@@ -73,3 +133,18 @@ custom_data_layer_0/type = 4
 custom_data_layer_1/name = "npc_name"
 custom_data_layer_1/type = 4
 sources/0 = SubResource("Villagers")
+pattern_0 = SubResource("martha")
+pattern_1 = SubResource("bruno")
+pattern_2 = SubResource("finn")
+pattern_3 = SubResource("eve")
+pattern_4 = SubResource("ron")
+pattern_5 = SubResource("otto")
+pattern_6 = SubResource("lia")
+pattern_7 = SubResource("ed")
+pattern_8 = SubResource("nora")
+pattern_9 = SubResource("pip")
+pattern_10 = SubResource("bella")
+pattern_11 = SubResource("sean")
+pattern_12 = SubResource("tara")
+pattern_13 = SubResource("luin")
+pattern_14 = SubResource("glen")
