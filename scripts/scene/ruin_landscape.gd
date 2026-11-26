@@ -120,7 +120,8 @@ func _process(delta: float) -> void:
 
 func _draw_effects() -> void:
 	for portal in portals:
-		_draw_portal(to_local(portal.global_position))
+		if is_instance_valid(portal) and not portal.is_in_group("interactive_door"):
+			_draw_portal(to_local(portal.global_position))
 	for campfire in campfires:
 		_draw_shrine(to_local(campfire.global_position))
 	if not cache_open:

@@ -30,15 +30,31 @@
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/landing_tiles/Ferry260High.tscn" id="Ferry260High"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/landing_tiles/Ferry300.tscn" id="Ferry300"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/floating_slab.tscn" id="floating_slab"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/iron_door_left.tscn" id="iron_door_left"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/iron_door_right.tscn" id="iron_door_right"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/iron_door_stop_left.tscn" id="iron_door_stop_left"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/iron_door_stop_right.tscn" id="iron_door_stop_right"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/iron_ladder.tscn" id="iron_ladder"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/landing_tiles/LandingLamp.tscn" id="LandingLamp"]
 [ext_resource type="PackedScene" uid="uid://p0wk3o4bh8a8" path="res://assets/environment/common/props/landing_tiles/Lift240.tscn" id="Lift240"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/scene_exit_door_left.tscn" id="scene_exit_door_left"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/scene_exit_door_right.tscn" id="scene_exit_door_right"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/scene_exit_door_stop_left.tscn" id="scene_exit_door_stop_left"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/scene_exit_door_stop_right.tscn" id="scene_exit_door_stop_right"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/stone_door_left.tscn" id="stone_door_left"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/stone_door_right.tscn" id="stone_door_right"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/stone_door_stop_left.tscn" id="stone_door_stop_left"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/stone_door_stop_right.tscn" id="stone_door_stop_right"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/stone_ferry.tscn" id="stone_ferry"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/treasure/GoldChest.tscn" id="treasure_1"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/treasure/SilverChest.tscn" id="treasure_2"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/treasure/CopperChest.tscn" id="treasure_3"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/treasure/IronChest.tscn" id="treasure_4"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/treasure/DefaultChest.tscn" id="treasure_5"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/wooden_door_left.tscn" id="wooden_door_left"]
+[ext_resource type="PackedScene" uid="uid://j1vmlsbmek35" path="res://assets/environment/common/props/doors/wooden_door_right.tscn" id="wooden_door_right"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/wooden_door_stop_left.tscn" id="wooden_door_stop_left"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/wooden_door_stop_right.tscn" id="wooden_door_stop_right"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/wooden_ladder.tscn" id="wooden_ladder"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/wooden_stairs.tscn" id="wooden_stairs"]
 
@@ -101,6 +117,28 @@ scenes/3/scene = ExtResource("treasure_3")
 scenes/4/scene = ExtResource("treasure_4")
 scenes/5/scene = ExtResource("treasure_5")
 
+[sub_resource type="TileSetScenesCollectionSource" id="Doors"]
+resource_name = "Doors"
+scenes/1/scene = ExtResource("wooden_door_right")
+scenes/2/scene = ExtResource("iron_door_right")
+scenes/3/scene = ExtResource("stone_door_right")
+scenes/4/scene = ExtResource("scene_exit_door_right")
+scenes/5/scene = ExtResource("wooden_door_left")
+scenes/6/scene = ExtResource("iron_door_left")
+scenes/7/scene = ExtResource("stone_door_left")
+scenes/8/scene = ExtResource("scene_exit_door_left")
+
+[sub_resource type="TileSetScenesCollectionSource" id="DoorStops"]
+resource_name = "Door Stops"
+scenes/1/scene = ExtResource("wooden_door_stop_right")
+scenes/2/scene = ExtResource("iron_door_stop_right")
+scenes/3/scene = ExtResource("stone_door_stop_right")
+scenes/4/scene = ExtResource("scene_exit_door_stop_right")
+scenes/5/scene = ExtResource("wooden_door_stop_left")
+scenes/6/scene = ExtResource("iron_door_stop_left")
+scenes/7/scene = ExtResource("stone_door_stop_left")
+scenes/8/scene = ExtResource("scene_exit_door_stop_left")
+
 [resource]
 resource_name = "Props"
 tile_size = Vector2i(20, 20)
@@ -110,3 +148,5 @@ sources/2 = SubResource("Collection2")
 sources/3 = SubResource("Traversal")
 sources/4 = SubResource("Landings")
 sources/5 = SubResource("Treasure")
+sources/6 = SubResource("Doors")
+sources/7 = SubResource("DoorStops")

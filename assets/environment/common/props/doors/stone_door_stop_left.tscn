@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/stone_door_stop_right.tscn" id="stop"]
+
+[node name="StoneDoorStopLeft" instance=ExtResource("stop")]
+
+[node name="Post" parent="." index="0"]
+flip_h = true

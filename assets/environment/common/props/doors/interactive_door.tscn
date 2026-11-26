@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://assets/environment/common/props/doors/interactive_door.gd" id="door"]
+
+[sub_resource type="RectangleShape2D" id="Slab"]
+size = Vector2(16, 76)
+
+[sub_resource type="OccluderPolygon2D" id="SlabShadow"]
+polygon = PackedVector2Array(-8, -76, 8, -76, 8, 0, -8, 0)
+
+[sub_resource type="CanvasItemMaterial" id="SightMaterial"]
+light_mode = 1
+
+[node name="InteractiveDoor" type="Node2D" groups=["interactive_door"]]
+script = ExtResource("door")
+
+[node name="Leaf" type="Sprite2D" parent="."]
+scale = Vector2(0.125, 1)
+offset = Vector2(0, -38)
+
+[node name="Frame" type="Sprite2D" parent="."]
+position = Vector2(-8, -88)
+centered = false
+
+[node name="Body" type="StaticBody2D" parent="."]
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="Body"]
+position = Vector2(0, -38)
+shape = SubResource("Slab")
+
+[node name="Occluder" type="LightOccluder2D" parent="."]
+occluder = SubResource("SlabShadow")
+
+[node name="Sight" type="Polygon2D" parent="."]
+visible = false
+z_index = 20
+material = SubResource("SightMaterial")
+color = Color(0.025, 0.027, 0.038, 1)

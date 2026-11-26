@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/iron_door_right.tscn" id="door"]
+
+[node name="IronDoorLeft" instance=ExtResource("door")]
+opening_side = -1
+
+[node name="Leaf" parent="." index="0"]
+flip_h = true
+
+[node name="Frame" parent="." index="1"]
+flip_h = true

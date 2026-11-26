@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/interactive_door.tscn" id="door"]
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/doors/doors.png" id="art"]
+
+[sub_resource type="AtlasTexture" id="Frame"]
+atlas = ExtResource("art")
+region = Rect2(0, 88, 16, 88)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Leaf"]
+atlas = ExtResource("art")
+region = Rect2(64, 88, 48, 76)
+filter_clip = true
+
+[node name="IronDoorRight" instance=ExtResource("door")]
+door_name = "鐵門"
+travel_time = 0.47
+
+[node name="Leaf" parent="." index="0"]
+texture = SubResource("Leaf")
+
+[node name="Frame" parent="." index="1"]
+texture = SubResource("Frame")

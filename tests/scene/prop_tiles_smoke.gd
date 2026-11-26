@@ -87,7 +87,7 @@ func check_landing_tiles() -> void:
 
 func check_tile_sources() -> void:
 	var sources := {
-		"Props": {0: ["Props", 12], 1: ["Weapons", 3], 2: ["Armor", 8], 3: ["Traversal", 6], 4: ["Landings", 7], 5: ["Treasure", 5]},
+		"Props": {0: ["Props", 12], 1: ["Weapons", 3], 2: ["Armor", 8], 3: ["Traversal", 6], 4: ["Landings", 7], 5: ["Treasure", 5], 6: ["Doors", 8], 7: ["Door Stops", 8]},
 		"BackgroundProps": {0: ["BackgroundProps", 8], 1: ["Woodland", 10]},
 		"ObstacleProps": {0: ["ObstacleProps", 3]},
 		"Traps": {0: ["Mechanical", 5], 1: ["Elemental", 5], 2: ["Portals", 4], 3: ["Environment Effects", 3]},

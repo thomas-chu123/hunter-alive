@@ -50,6 +50,8 @@ func run() -> void:
 				await check_boss(level)
 			player.position = exit.global_position + Vector2(0, -1)
 			level._interact()
+			if exit is Level.Door:
+				await exit.motion.finished
 			if region == Campaign.Region.VOLCANO and stage == Campaign.BOSS_STAGE:
 				check(level.completed and level.end_screen.visible, "final portal shows the ending")
 				check(Save.read().state.get("boss_felled", false), "final victory persists")

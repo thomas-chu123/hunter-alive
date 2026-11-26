@@ -89,6 +89,9 @@ var prop_climbing := false
 var at_climb_top := false
 var climb_jump_lock := false
 var jump_grace := 0.0
+var door_action := false
+var door_action_progress := 0.0
+var door_action_opening := true
 
 
 func _init() -> void:
@@ -109,7 +112,7 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if is_physics_processing() and health > 0 and event.is_action_pressed("hunt_attack"):
+	if is_physics_processing() and health > 0 and not door_action and event.is_action_pressed("hunt_attack"):
 		attack_buffer_left = ATTACK_BUFFER
 
 
@@ -139,6 +142,11 @@ func _physics_process(delta: float) -> void:
 		if leech_tick <= 0:
 			hurt(position.x - facing, 1, "leech")
 			leech_tick = Armory.WEAR.reed_coat.leech_interval if gear.get("身體") == "reed_coat" else tuning.leech_interval
+	if door_action:
+		velocity.x = 0.0
+		velocity.y = minf(velocity.y + GRAVITY * delta, tuning.fall_speed_limit)
+		move_and_slide()
+		return
 	var grounded := is_on_floor()
 	var direction := Input.get_axis("hunt_left", "hunt_right")
 	var vertical := Input.get_axis("hunt_climb_up", "hunt_crouch")
@@ -453,6 +461,7 @@ func selected_weapon() -> String:
 
 
 func respawn(at: Vector2) -> void:
+	end_door_action()
 	position = at
 	_update_crouch(false, true)
 	landing_left = 0.0
@@ -480,6 +489,25 @@ func show_electric_hit() -> void:
 	queue_redraw()
 
 
+func begin_door_action(direction: float, opening: bool) -> void:
+	if not is_zero_approx(direction):
+		facing = direction
+	door_action = true
+	door_action_opening = opening
+	attack_buffer_left = 0.0
+	set_door_action_progress(0.0)
+
+
+func set_door_action_progress(progress: float) -> void:
+	door_action_progress = progress
+	queue_redraw()
+
+
+func end_door_action() -> void:
+	door_action = false
+	queue_redraw()
+
+
 func _draw() -> void:
 	_draw_hunter()
 	if electric_hit_left > 0.0:
@@ -493,6 +521,9 @@ func _draw_hunter() -> void:
 		return
 
 	var weapon := selected_weapon()
+	if door_action and hurt_left <= 0.0:
+		_draw_door_action(weapon)
+		return
 	if (wall_holding or (prop_climbing and not at_climb_top)) and hurt_left <= 0.0:
 		var climb_frame := int(animation_time * 12.0) % HunterAnimation.FRAME_COUNT
 		if prop_climbing and is_zero_approx(velocity.y):
@@ -554,6 +585,22 @@ func _draw_hunter() -> void:
 		HunterAnimation.draw_frame(self, action, frame, facing)
 	else:
 		HunterSprites.draw_motion(self, weapon, action, frame, facing)
+
+
+func _draw_door_action(weapon: String) -> void:
+	var reach := sin(door_action_progress * PI)
+	var effort := sin(door_action_progress * TAU) * 3.0
+	var lean := (effort if door_action_opening else -effort) * reach
+	if weapon == "unarmed":
+		HunterAnimation.draw_frame(self, "idle", 0, facing, -reach)
+	else:
+		HunterSprites.draw_motion(self, weapon, "idle", 0, facing, -reach)
+	var shoulder := Vector2(6.0 * facing, -35.0)
+	var elbow := Vector2((12.0 + lean) * facing, -29.0 - reach * 4.0)
+	var hand := Vector2((14.0 + 18.0 * reach + lean) * facing, -25.0 - reach * 13.0)
+	draw_polyline(PackedVector2Array([shoulder, elbow, hand]), Color("#282621"), 7.0, true)
+	draw_polyline(PackedVector2Array([shoulder, elbow, hand]), Color("#807057"), 4.0, true)
+	draw_circle(hand, 3.0, Color("#b69a79"), true)
 
 
 func _timed_frame(remaining: float, duration: float) -> int:

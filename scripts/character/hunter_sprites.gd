@@ -34,11 +34,11 @@ static func attack_action(weapon: String, crouching: bool, step: int) -> String:
 	return action
 
 
-static func draw_motion(canvas: Node2D, weapon: String, action: String, frame: int, facing: float) -> void:
+static func draw_motion(canvas: Node2D, weapon: String, action: String, frame: int, facing: float, bob: float = 0.0) -> void:
 	for atlas: String in MOTION_ATLASES:
 		var row: int = MOTION_ATLASES[atlas].find(action)
 		if row >= 0:
-			_draw(canvas, weapon, atlas, row * COLUMNS + frame, facing, MOTION_SIZE, MOTION_ORIGIN)
+			_draw(canvas, weapon, atlas, row * COLUMNS + frame, facing, MOTION_SIZE, MOTION_ORIGIN, bob)
 			return
 
 
@@ -54,7 +54,7 @@ static func draw_attack(canvas: Node2D, weapon: String, progress: float, facing:
 
 
 static func _draw(canvas: Node2D, weapon: String, atlas: String, frame: int, facing: float,
-		cell_size: Vector2i, origin: Vector2) -> void:
+		cell_size: Vector2i, origin: Vector2, bob: float = 0.0) -> void:
 	if _equipped_weapon != weapon:
 		_sheets.clear()
 		_equipped_weapon = weapon
@@ -63,6 +63,6 @@ static func _draw(canvas: Node2D, weapon: String, atlas: String, frame: int, fac
 	var texture := _sheets[atlas]
 	var cell := Vector2i(frame % COLUMNS, floori(float(frame) / COLUMNS))
 	var region := Rect2(Vector2(cell * cell_size), Vector2(cell_size))
-	canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2(facing, 1.0))
+	canvas.draw_set_transform(Vector2(0.0, bob), 0.0, Vector2(facing, 1.0))
 	canvas.draw_texture_rect_region(texture, Rect2(-origin / SCALE, region.size / SCALE), region)
 	canvas.draw_set_transform(Vector2.ZERO)

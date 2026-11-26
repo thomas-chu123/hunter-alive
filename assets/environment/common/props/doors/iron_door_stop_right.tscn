@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/doors/doors.png" id="art"]
+
+[sub_resource type="AtlasTexture" id="Post"]
+atlas = ExtResource("art")
+region = Rect2(0, 118, 16, 20)
+filter_clip = true
+
+[node name="IronDoorStopRight" type="Node2D"]
+
+[node name="Post" type="Sprite2D" parent="."]
+position = Vector2(-8, -6)
+texture = SubResource("Post")
+centered = false

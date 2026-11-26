@@ -1,5 +1,6 @@
 extends Node2D
 
+const Door := preload("res://assets/environment/common/props/doors/interactive_door.gd")
 const Hunter := preload("res://scripts/character/ruin_hunter.gd")
 const Monster := preload("res://scripts/character/ruin_monster.gd")
 const EnemyEffects := preload("res://scripts/effects/ruin_enemy_effects.gd")
@@ -240,7 +241,11 @@ func _process(delta: float) -> void:
 	notice_left = maxf(0.0, notice_left - delta)
 	notice_label.visible = notice_left > 0 and not completed
 	if not completed:
+		_update_door_sight()
 		_update_hud()
+		var door := _find_door()
+		if door != null:
+			_update_door_prompt(door)
 	enemy_projectile_layer.queue_redraw()
 	queue_redraw()
 
@@ -703,6 +708,12 @@ func _equip_next_soul() -> void:
 
 
 func _interact() -> void:
+	if hunter.door_action:
+		return
+	var door := _find_door()
+	if door != null:
+		_interact_with_door(door)
+		return
 	var chest := _near_equipment_chest()
 	if chest != null:
 		if _bag_full():
@@ -723,28 +734,8 @@ func _interact() -> void:
 			if not obtained_equipment.has(id):
 				_grant_equipment(id)
 		_set_camp_open(true)
-	elif _near_prop(landscape.portals):
-		if stage > 0:
-			_advance_stage()
-			return
-		match region:
-			Campaign.Region.TEMPLE:
-				if guardian_felled:
-					_finish()
-				else:
-					_notice("石門上的枝紋在發光。還有一名守門者活著。", 3.0)
-			Campaign.Region.CORRIDOR:
-				if lantern_found:
-					_queue_region(Campaign.Region.COURT)
-				else:
-					_notice("先取得潮火提燈，才能照出出口。", 3.0)
-			Campaign.Region.COURT:
-				if keeper_felled:
-					_finish()
-					if CampSave.write(_checkpoint_state()) != OK:
-						end_prompt.text = "E　返回開始頁面（進度未能保存）"
-				else:
-					_notice("主祭壇被封印者封鎖。", 3.0)
+	elif _near_legacy_exit():
+		_use_exit()
 	elif _near_cache() and not landscape.cache_open:
 		var configured: Array = reward_rules.cache_equipment_by_region.get(Campaign.IDS[region], [])
 		var pending := configured.filter(func(id: String) -> bool: return not obtained_equipment.has(id))
@@ -764,10 +755,121 @@ func _interact() -> void:
 			_notice("從石匣取得 %d 份工坊素材。" % amount, 4.0)
 
 
+func _find_door() -> Door:
+	var nearest: Door
+	var distance := INF
+	for door: Door in get_tree().get_nodes_in_group("interactive_door"):
+		if not is_ancestor_of(door) or not door.can_reach(hunter):
+			continue
+		var separation := hunter.global_position.distance_squared_to(door.global_position)
+		if separation < distance:
+			nearest = door
+			distance = separation
+	return nearest
+
+
+func _update_door_sight() -> void:
+	var eye := hunter.to_global(Vector2(0, -36))
+	for door: Door in get_tree().get_nodes_in_group("interactive_door"):
+		if is_ancestor_of(door):
+			door.update_sight(eye)
+
+
+func _update_door_prompt(door: Door) -> void:
+	if door.motion != null:
+		prompt_label.text = "%s移動中…" % door.door_name
+	elif door.scene_exit and not _exit_unlocked():
+		prompt_label.text = "%s已封鎖" % door.door_name
+	elif door.scene_exit:
+		prompt_label.text = "E　開門並前往下一關" if not door.opened else "E　前往下一關"
+	else:
+		prompt_label.text = ("E　關閉%s" if door.opened else "E　開啟%s") % door.door_name
+
+
+func _doorway_clear(door: Door) -> bool:
+	var slab := Rect2(door.global_position - Vector2(Door.HALF_WIDTH, Door.HEIGHT),
+		Vector2(Door.HALF_WIDTH * 2.0, Door.HEIGHT))
+	var hunter_bounds := hunter.collider.global_transform * hunter.collider.shape.get_rect()
+	if slab.intersects(hunter_bounds):
+		return false
+	for monster: Monster in enemies:
+		if monster.health > 0 and slab.intersects(global_transform * monster.body_hitbox()):
+			return false
+	return true
+
+
+func _interact_with_door(door: Door) -> void:
+	if door.motion != null or hunter.health <= 0 or hunter.attack_left > 0.0 or hunter.hurt_left > 0.0:
+		return
+	if door.scene_exit:
+		if not _exit_unlocked() or door.opened:
+			_use_exit()
+			return
+	var motion := door.toggle(hunter, _doorway_clear)
+	if motion == null:
+		_notice("門口有人，無法關門。", 1.5)
+	elif door.scene_exit:
+		motion.tween_callback(_leave_through_door.bind(door))
+
+
+func _leave_through_door(door: Door) -> void:
+	if (hunter.health > 0 and not restarting and not completed and door.can_reach(hunter)
+			and not camp_menu.visible and not gear_menu.visible and not pause_menu.visible):
+		_use_exit()
+
+
+func _exit_unlocked() -> bool:
+	if stage > 0:
+		return landscape.portal_open
+	match region:
+		Campaign.Region.TEMPLE:
+			return guardian_felled
+		Campaign.Region.CORRIDOR:
+			return lantern_found
+		Campaign.Region.COURT:
+			return keeper_felled
+	return false
+
+
+func _use_exit() -> void:
+	if stage > 0:
+		_advance_stage()
+		return
+	match region:
+		Campaign.Region.TEMPLE:
+			if guardian_felled:
+				_finish()
+			else:
+				_notice("石門上的枝紋在發光。還有一名守門者活著。", 3.0)
+		Campaign.Region.CORRIDOR:
+			if lantern_found:
+				_queue_region(Campaign.Region.COURT)
+			else:
+				_notice("先取得潮火提燈，才能照出出口。", 3.0)
+		Campaign.Region.COURT:
+			if keeper_felled:
+				_finish()
+				if CampSave.write(_checkpoint_state()) != OK:
+					end_prompt.text = "E　返回開始頁面（進度未能保存）"
+			else:
+				_notice("主祭壇被封印者封鎖。", 3.0)
+
+
+func _near_legacy_exit() -> bool:
+	for portal in landscape.portals:
+		if is_instance_valid(portal) and not portal is Door and _in_prop_range(portal):
+			return true
+	return false
+
+
+func _in_prop_range(prop: Node2D) -> bool:
+	var separation := hunter.global_position - prop.global_position
+	return absf(separation.x) < interaction.prop_half_width and absf(separation.y) < interaction.prop_half_height
+
+
 func _near_prop(props: Array[Node2D]) -> bool:
 	for prop in props:
-		var separation := hunter.global_position - prop.global_position
-		if absf(separation.x) < interaction.prop_half_width and absf(separation.y) < interaction.prop_half_height:
+		if _in_prop_range(prop):
 			return true
 	return false
 
@@ -1571,7 +1673,7 @@ func _update_hud() -> void:
 	prompt_label.text = ""
 	if _near_prop(landscape.campfires):
 		prompt_label.text = "E　打開營火與工坊選單"
-	elif _near_prop(landscape.portals):
+	elif _near_legacy_exit():
 		prompt_label.text = "E　查看石門"
 	elif _near_cache() and not landscape.cache_open:
 		prompt_label.text = "E　查看觀景台上的石匣"
@@ -1592,7 +1694,7 @@ func _update_stage_hud() -> void:
 	prompt_label.text = ""
 	if _near_prop(landscape.campfires):
 		prompt_label.text = "E　打開營火與工坊選單"
-	elif _near_prop(landscape.portals):
+	elif _near_legacy_exit():
 		if not landscape.portal_open:
 			prompt_label.text = "首領仍在，出口封鎖"
 		elif stage == Campaign.BOSS_STAGE:
@@ -1628,7 +1730,7 @@ func _update_region_hud() -> void:
 	prompt_label.text = ""
 	if _near_prop(landscape.campfires):
 		prompt_label.text = "E　打開營火與工坊選單"
-	elif _near_prop(landscape.portals):
+	elif _near_legacy_exit():
 		prompt_label.text = "E　查看排水出口" if region == Campaign.Region.CORRIDOR else "E　調查主祭壇"
 	elif (_near_cache() and not landscape.cache_open) or not _near_treasure().is_empty():
 		prompt_label.text = "E　打開石匣"
