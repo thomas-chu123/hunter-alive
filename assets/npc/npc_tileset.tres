@@ -1,0 +1,75 @@
+[gd_resource type="TileSet" format=3 uid="uid://duoltqhmdb57y"]
+
+[ext_resource type="Texture2D" uid="uid://1o5hqjbf68jc" path="res://assets/npc/villagers.png" id="1"]
+
+[sub_resource type="TileSetAtlasSource" id="Villagers"]
+texture = ExtResource("1")
+texture_region_size = Vector2i(80, 80)
+0:0/0 = 0
+0:0/0/texture_origin = Vector2i(0, 40)
+0:0/0/custom_data_0 = "martha"
+0:0/0/custom_data_1 = "瑪莎｜酒館老闆娘"
+1:0/0 = 0
+1:0/0/texture_origin = Vector2i(0, 40)
+1:0/0/custom_data_0 = "bruno"
+1:0/0/custom_data_1 = "布魯諾｜鐵匠"
+2:0/0 = 0
+2:0/0/texture_origin = Vector2i(0, 40)
+2:0/0/custom_data_0 = "finn"
+2:0/0/custom_data_1 = "芬恩｜旅行商人"
+3:0/0 = 0
+3:0/0/texture_origin = Vector2i(0, 40)
+3:0/0/custom_data_0 = "eve"
+3:0/0/custom_data_1 = "伊芙｜草藥師"
+4:0/0 = 0
+4:0/0/texture_origin = Vector2i(0, 40)
+4:0/0/custom_data_0 = "ron"
+4:0/0/custom_data_1 = "羅恩｜城門守衛"
+0:1/0 = 0
+0:1/0/texture_origin = Vector2i(0, 40)
+0:1/0/custom_data_0 = "otto"
+0:1/0/custom_data_1 = "奧托｜礦工"
+1:1/0 = 0
+1:1/0/texture_origin = Vector2i(0, 40)
+1:1/0/custom_data_0 = "lia"
+1:1/0/custom_data_1 = "莉亞｜修女"
+2:1/0 = 0
+2:1/0/texture_origin = Vector2i(0, 40)
+2:1/0/custom_data_0 = "ed"
+2:1/0/custom_data_1 = "艾德｜圖書管理員"
+3:1/0 = 0
+3:1/0/texture_origin = Vector2i(0, 40)
+3:1/0/custom_data_0 = "nora"
+3:1/0/custom_data_1 = "諾菈｜森林嚮導"
+4:1/0 = 0
+4:1/0/texture_origin = Vector2i(0, 40)
+4:1/0/custom_data_0 = "pip"
+4:1/0/custom_data_1 = "皮普｜跑腿信差"
+0:2/0 = 0
+0:2/0/texture_origin = Vector2i(0, 40)
+0:2/0/custom_data_0 = "bella"
+0:2/0/custom_data_1 = "蓓拉｜麵包師"
+1:2/0 = 0
+1:2/0/texture_origin = Vector2i(0, 40)
+1:2/0/custom_data_0 = "sean"
+1:2/0/custom_data_1 = "席恩｜漁夫"
+2:2/0 = 0
+2:2/0/texture_origin = Vector2i(0, 40)
+2:2/0/custom_data_0 = "tara"
+2:2/0/custom_data_1 = "塔拉｜木匠"
+3:2/0 = 0
+3:2/0/texture_origin = Vector2i(0, 40)
+3:2/0/custom_data_0 = "luin"
+3:2/0/custom_data_1 = "露茵｜裁縫師"
+4:2/0 = 0
+4:2/0/texture_origin = Vector2i(0, 40)
+4:2/0/custom_data_0 = "glen"
+4:2/0/custom_data_1 = "葛蘭｜馬伕"
+
+[resource]
+tile_size = Vector2i(20, 20)
+custom_data_layer_0/name = "dialogue_cue"
+custom_data_layer_0/type = 4
+custom_data_layer_1/name = "npc_name"
+custom_data_layer_1/type = 4
+sources/0 = SubResource("Villagers")

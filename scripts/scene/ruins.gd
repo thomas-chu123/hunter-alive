@@ -17,6 +17,13 @@ const Progression := preload("res://scripts/game/ruin_progression.gd")
 const Armory := preload("res://scripts/game/ruin_armory.gd")
 const Campaign := preload("res://scripts/game/campaign.gd")
 const FloorVisibility := preload("res://scripts/scene/ruin_floor_visibility.gd")
+const NpcTileMap := preload("res://scripts/scene/npc_tile_map.gd")
+const NPC_DIALOGUE := preload("res://data/dialogue/villagers.dialogue")
+const NPC_GIFT := "stonegrip_gloves"
+const NPC_SHOP_ITEM := "scaleveil_hood"
+const NPC_SHOP_PRICE := 8
+const LETTER_REWARD := 8
+enum LetterQuest { AVAILABLE, CARRYING, DELIVERED }
 const SOFT_LIGHT := preload("res://assets/environment/common/props/soft_light.tres")
 static var stage_rules := Campaign.Config.read("stage_rules")
 static var interaction: Dictionary = stage_rules.interaction
@@ -104,6 +111,11 @@ var notice_label: Label
 var end_screen: CenterContainer
 var camp_menu: CenterContainer
 var camp_closed_frame := -1
+@onready var npc_layer := get_node_or_null("Landscape/NPC") as NpcTileMap
+var npc_balloon: Node
+var npc_gift_claimed := false
+var letter_quest := LetterQuest.AVAILABLE
+var npc_feedback := ""
 var camp_stock: Label
 var camp_rest: Button
 var camp_knife: Button
@@ -244,14 +256,19 @@ func _process(delta: float) -> void:
 		_update_door_sight()
 		_update_hud()
 		var door := _find_door()
-		if door != null:
+		var npc := _near_npc(door)
+		if npc != null:
+			prompt_label.text = "E　交談　%s" % npc.get_custom_data("npc_name")
+		elif door != null:
 			_update_door_prompt(door)
+		if is_instance_valid(npc_balloon):
+			prompt_label.text = ""
 	enemy_projectile_layer.queue_redraw()
 	queue_redraw()
 
 
 func _physics_process(delta: float) -> void:
-	if completed or transitioning or restarting or camp_menu.visible or gear_menu.visible or pause_menu.visible:
+	if completed or transitioning or restarting or camp_menu.visible or gear_menu.visible or pause_menu.visible or is_instance_valid(npc_balloon):
 		return
 	if hunter.position.y > 790:
 		_on_hunter_defeated()
@@ -267,7 +284,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if destroy_dialog.visible:
+	if is_instance_valid(npc_balloon) or destroy_dialog.visible:
 		return
 	if gear_menu.visible and event is InputEventKey and event.pressed:
 		var key: Key = event.physical_keycode if event.physical_keycode != KEY_NONE else event.keycode
@@ -711,6 +728,10 @@ func _interact() -> void:
 	if hunter.door_action:
 		return
 	var door := _find_door()
+	var npc := _near_npc(door)
+	if npc != null:
+		_open_npc_dialogue(npc.get_custom_data("dialogue_cue"))
+		return
 	if door != null:
 		_interact_with_door(door)
 		return
@@ -753,6 +774,78 @@ func _interact() -> void:
 			_notice("取得%s和 %d 份素材。按 I 看裝備。" % ["、".join(rewards), amount], 4.0)
 		else:
 			_notice("從石匣取得 %d 份工坊素材。" % amount, 4.0)
+
+
+func _near_npc(door: Door) -> TileData:
+	if npc_layer == null or _near_prop(landscape.campfires) or _near_equipment_chest() != null:
+		return null
+	# Give NPCs beside a doorway a shorter reach so the door stays usable.
+	var radius := 24.0 if door != null else NpcTileMap.TALK_RADIUS
+	return npc_layer.nearest_to(hunter.global_position, radius)
+
+
+func _open_npc_dialogue(cue: String) -> void:
+	if hunter.health <= 0 or is_instance_valid(npc_balloon) or not NPC_DIALOGUE.cues.has(cue):
+		return
+	_set_world_locked(true)
+	npc_balloon = Engine.get_singleton("DialogueManager").show_dialogue_balloon(NPC_DIALOGUE, cue, [self])
+	npc_balloon.tree_exited.connect(_close_npc_dialogue, CONNECT_ONE_SHOT)
+
+
+func _close_npc_dialogue() -> void:
+	npc_balloon = null
+	if is_inside_tree() and is_instance_valid(hunter) and not (restarting or transitioning or completed):
+		_set_world_locked(false)
+		camp_closed_frame = Engine.get_physics_frames() + 1
+
+
+func npc_claim_gift() -> void:
+	if npc_gift_claimed:
+		npc_feedback = "護手已經交給你了。路上小心。"
+	elif _grant_equipment(NPC_GIFT, 1, true):
+		npc_gift_claimed = true
+		npc_feedback = "拿去吧。壓石手套已放進背包，按 I 可以查看。"
+	else:
+		npc_feedback = "你的背包滿了。騰出空間後再回來吧。"
+
+
+func npc_buy_hood() -> void:
+	if soul_balance < NPC_SHOP_PRICE:
+		npc_feedback = "魂幣不夠。攢到 8 枚再來吧。"
+	elif _grant_equipment(NPC_SHOP_ITEM, 1, true):
+		soul_balance -= NPC_SHOP_PRICE
+		npc_feedback = "成交。鱗紗兜帽已放進背包。"
+	else:
+		npc_feedback = "背包沒有空位。我先替你留著。"
+
+
+func npc_accept_letter() -> void:
+	match letter_quest:
+		LetterQuest.AVAILABLE:
+			letter_quest = LetterQuest.CARRYING
+			npc_feedback = "信就交給你了。艾德會在這條路的東邊等。"
+		LetterQuest.CARRYING:
+			npc_feedback = "信在你手上喔，記得交給艾德。"
+		LetterQuest.DELIVERED:
+			npc_feedback = "艾德已經收到信了。謝謝你！"
+
+
+func npc_deliver_letter() -> void:
+	match letter_quest:
+		LetterQuest.AVAILABLE:
+			npc_feedback = "先去找皮普拿信吧。"
+		LetterQuest.CARRYING:
+			letter_quest = LetterQuest.DELIVERED
+			soul_balance += LETTER_REWARD
+			npc_feedback = "我收到信了。這 8 枚魂幣是你的跑腿費。"
+		LetterQuest.DELIVERED:
+			npc_feedback = "信已經放在書裡了。謝謝你跑這一趟。"
+
+
+func npc_heal() -> void:
+	var recovered := hunter.max_health() - hunter.health
+	hunter.health = hunter.max_health()
+	npc_feedback = "傷口包好了，恢復了 %d 點體力。" % recovered if recovered > 0 else "你的體力已經全滿了。"
 
 
 func _find_door() -> Door:
@@ -1394,6 +1487,8 @@ func _checkpoint_state() -> Dictionary:
 		"materials": materials,
 		"fangs": fangs,
 		"soul_balance": soul_balance,
+		"npc_gift_claimed": npc_gift_claimed,
+		"letter_quest": letter_quest,
 		"player_level": hunter.level,
 		"inventory": inventory,
 		"next_item_uid": next_item_uid,
@@ -1425,6 +1520,8 @@ func _cache_key() -> int:
 
 func _restore_camp(state: Dictionary) -> void:
 	soul_balance = maxi(0, int(state.get("soul_balance", 0)))
+	npc_gift_claimed = bool(state.get("npc_gift_claimed", false))
+	letter_quest = clampi(int(state.get("letter_quest", LetterQuest.AVAILABLE)), LetterQuest.AVAILABLE, LetterQuest.DELIVERED) as LetterQuest
 	hunter.level = clampi(int(state.get("player_level", 0)), 0, Progression.MAX_LEVEL)
 	materials = maxi(0, state.get("materials", 0))
 	fangs = maxi(0, state.get("fangs", 0))
@@ -1649,6 +1746,8 @@ func _update_hud() -> void:
 	mana_status.get_parent().visible = hunter.staff_unlocked
 	mana_status.text = "%d/%d" % [hunter.mana, Hunter.MAX_MANA]
 	var flags := PackedStringArray()
+	if letter_quest == LetterQuest.CARRYING:
+		flags.append("送信委託：把皮普的信交給艾德")
 	if _bag_full():
 		flags.append("背包已滿")
 	if hunter.pollen_left > 0:

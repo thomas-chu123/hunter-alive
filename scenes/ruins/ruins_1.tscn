@@ -15,6 +15,8 @@
 [ext_resource type="Texture2D" uid="uid://bxsasr1d7kvg8" path="res://assets/environment/common/roomwalls/magical_terrain_grid.png" id="28_tjjxw"]
 [ext_resource type="Texture2D" uid="uid://b1dr7fn035fmf" path="res://assets/environment/common/roomwalls/industrial_scifi_grid.png" id="29_rhqed"]
 [ext_resource type="TileSet" uid="uid://b3csgm2gxuxpi" path="res://assets/environment/common/terrain/interior_fixtures_tileset.tres" id="fixtures"]
+[ext_resource type="Script" uid="uid://c24e6n2qhi4eq" path="res://scripts/scene/npc_tile_map.gd" id="npc_layer"]
+[ext_resource type="TileSet" uid="uid://duoltqhmdb57y" path="res://assets/npc/npc_tileset.tres" id="npc_tileset"]
 [ext_resource type="Script" uid="uid://dv2qvlf6cnqw4" path="res://scripts/scene/temple_vault.gd" id="vault"]
 
 [sub_resource type="TileMapPattern" id="MossFloor"]
@@ -5269,7 +5271,7 @@ pattern_36 = SubResource("Wall28")
 pattern_37 = SubResource("Wall29")
 pattern_38 = SubResource("Wall30")
 
-[node name="Ruins" unique_id=1114005150 instance=ExtResource("1")]
+[node name="Ruins2" unique_id=1114005150 instance=ExtResource("1")]
 script = ExtResource("vault")
 stage = 1
 
@@ -5289,13 +5291,13 @@ tile_set = SubResource("TileSet_5765t")
 visible = false
 
 [node name="Traps" parent="Landscape" parent_id_path=PackedInt32Array(825624333) index="3"]
-tile_map_data = PackedByteArray("AABYAOr/AAAAAAAAAgBRAAMAAQAAAAAADgBQAA4AAAAAAAAAAgBOABoAAQAAAAAACAAqABsAAgAAAAAACgAwABkAAAAAAAAACQBQAPb/AQAAAAAACAASABEAAAAAAAAABAANAA8AAgAAAAAACwA=")
+tile_map_data = PackedByteArray("AABYAOr/AAAAAAAAAgBRAAMAAQAAAAAADgBQAA4AAAAAAAAAAgBOABoAAQAAAAAACAAqABsAAgAAAAAACgAwABkAAAAAAAAACQBQAPb/AQAAAAAACAANAA8AAgAAAAAACwAYABAAAAAAAAAABAA=")
 
 [node name="Props" parent="Landscape" parent_id_path=PackedInt32Array(825624333) index="5" unique_id=1294869388]
 tile_map_data = PackedByteArray("AAB2AOv/BgAAAAAACAAcABUAAwAAAAAAAgBiAA8AAwAAAAAAAwBiAAkAAwAAAAAAAwBeAA8AAwAAAAAAAQAvAAMAAwAAAAAAAgAvAP3/AwAAAAAAAgBfAPf/AwAAAAAAAwBfAPH/AwAAAAAAAwBbAPf/AwAAAAAAAQAXAAsABAAAAAAAAwBkAA4ABAAAAAAAAQA4AAEABAAAAAAABgBdAP//BAAAAAAAAwAxAAIABAAAAAAAAQBEAPX/BAAAAAAABgAqAPP/BAAAAAAAAwBhAPb/BAAAAAAAAQBMAOn/BAAAAAAABgBaAOf/BAAAAAAAAwALABsAAAAAAAAAAQCCAAMAAgAAAAAAFABwAAMAAAAAAAAADABuABMAAgAAAAAAGwB5ABsAAgAAAAAAFgArAAEAAwAAAAAAAQAZAAMAAAAAAAAAAgAcABsAAwAAAAAAAgAoAAYABAAAAAAABgAfABIABAAAAAAAAQAuABMAAwAAAAAAAQAqABYAAwAAAAAAAQAfABsABQAAAAAAAQAXABsABQAAAAAAAQAjABsABgAAAAAABgBGABsABgAAAAAAAwASABsABgAAAAAAAQASABcABwAAAAAAAQASABYABwAAAAAAAQASABUABwAAAAAAAQASABQABwAAAAAAAQASABMABwAAAAAAAQASABIABwAAAAAAAQASABEABwAAAAAAAQASABAABwAAAAAAAQAjABcABwAAAAAAAgAjABYABwAAAAAAAgAjABUABwAAAAAAAgAjABQABwAAAAAAAgAjABMABwAAAAAAAgAjABIABwAAAAAAAgAjABEABwAAAAAAAgAjABAABwAAAAAAAgA=")
 
 [node name="Monster" parent="Landscape" parent_id_path=PackedInt32Array(825624333) index="6"]
-tile_map_data = PackedByteArray("AAAoAPb/AAAAAAAABwAiAAEAAAAAAAAACAB5AAEAAAAAAAAACgB2AA4AAAAAAAAABwBnAO//AAAAAAAABAA9AOn/AAAAAAAADwAUABoAAAAAAAAAAQAkAA4AAAAAAAAAAQA6ABkAAAAAAAAAAgBBABkAAAAAAAAACAA=")
+tile_map_data = PackedByteArray("AAAoAPb/AAAAAAAABwAiAAEAAAAAAAAACAB5AAEAAAAAAAAACgB2AA4AAAAAAAAABwBnAO//AAAAAAAABAA9AOn/AAAAAAAADwAkAA4AAAAAAAAAAQA6ABkAAAAAAAAAAgBBABkAAAAAAAAACAAaABoAAAAAAAAAAQA=")
 
 [node name="RoomWalls" type="TileMapLayer" parent="Landscape" parent_id_path=PackedInt32Array(825624333) index="7" unique_id=1865857317]
 z_index = -3
@@ -5308,3 +5310,11 @@ z_index = -2
 tile_map_data = PackedByteArray("AAAMABgAAgAIAAgAAABzAOr/AgAAAAAAAAB5AOj/AgAIAAgAAAByAPb/AgAIAAgAAAB4APT/AgAIAAgAAAAuABQAAgAIAAAAAACBAAAAAgAIAAgAAAB0ABgAAgAIAAAAAABbABkABgAAAAAAAABiABgACgAHAAAAAABnABkABgAOAAAAAAB8ABkAAgAAAAgAAAA=")
 tile_set = ExtResource("fixtures")
 collision_enabled = false
+
+[node name="NPC" type="TileMapLayer" parent="Landscape" parent_id_path=PackedInt32Array(825624333) index="9" unique_id=671502578]
+editor_description = "Paint NPCs with their feet on the floor grid line. Each tile selects a Dialogue Manager cue."
+position = Vector2(0, -10)
+tile_map_data = PackedByteArray("AAAEABsAAAAAAAAAAABJABsAAAACAAAAAAAmABsAAAABAAEAAAA=")
+tile_set = ExtResource("npc_tileset")
+collision_enabled = false
+script = ExtResource("npc_layer")
