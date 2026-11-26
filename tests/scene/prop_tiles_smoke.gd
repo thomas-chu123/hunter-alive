@@ -87,8 +87,8 @@ func check_landing_tiles() -> void:
 
 func check_tile_sources() -> void:
 	var sources := {
-		"Props": {0: ["Props", 12], 1: ["Weapons", 3], 2: ["Armor", 8], 3: ["Traversal", 6], 4: ["Landings", 7]},
-		"BackgroundProps": {0: ["BackgroundProps", 8]},
+		"Props": {0: ["Props", 12], 1: ["Weapons", 3], 2: ["Armor", 8], 3: ["Traversal", 6], 4: ["Landings", 7], 5: ["Treasure", 5]},
+		"BackgroundProps": {0: ["BackgroundProps", 8], 1: ["Woodland", 10]},
 		"ObstacleProps": {0: ["ObstacleProps", 3]},
 		"Traps": {0: ["Mechanical", 5], 1: ["Elemental", 5], 2: ["Portals", 4], 3: ["Environment Effects", 3]},
 	}
@@ -108,8 +108,12 @@ func check_tile_sources() -> void:
 				var prop := packed.instantiate()
 				if prop is Ruins.Landscape.EquipmentChest:
 					var item_id: String = prop.equipment_id
-					check(layer_name == "Props" and ((source_id == 1 and Armory.WEAPONS.has(item_id))
-						or (source_id == 2 and Armory.WEAR.has(item_id))), "%s is categorized by equipment type" % item_id)
+					if prop.loot_rank > 0:
+						check(layer_name == "Props" and source_id == 5 and item_id.is_empty(),
+							"%s is categorized as random treasure" % prop.name)
+					else:
+						check(layer_name == "Props" and ((source_id == 1 and Armory.WEAPONS.has(item_id))
+							or (source_id == 2 and Armory.WEAR.has(item_id))), "%s is categorized by equipment type" % item_id)
 				prop.free()
 
 

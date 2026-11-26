@@ -34,6 +34,11 @@
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/landing_tiles/LandingLamp.tscn" id="LandingLamp"]
 [ext_resource type="PackedScene" uid="uid://p0wk3o4bh8a8" path="res://assets/environment/common/props/landing_tiles/Lift240.tscn" id="Lift240"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/stone_ferry.tscn" id="stone_ferry"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/treasure/GoldChest.tscn" id="treasure_1"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/treasure/SilverChest.tscn" id="treasure_2"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/treasure/CopperChest.tscn" id="treasure_3"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/treasure/IronChest.tscn" id="treasure_4"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/treasure/DefaultChest.tscn" id="treasure_5"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/wooden_ladder.tscn" id="wooden_ladder"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/traversal/wooden_stairs.tscn" id="wooden_stairs"]
 
@@ -88,6 +93,14 @@ scenes/5/scene = ExtResource("Ferry300")
 scenes/6/scene = ExtResource("Ferry180")
 scenes/7/scene = ExtResource("Ferry260")
 
+[sub_resource type="TileSetScenesCollectionSource" id="Treasure"]
+resource_name = "Treasure"
+scenes/1/scene = ExtResource("treasure_1")
+scenes/2/scene = ExtResource("treasure_2")
+scenes/3/scene = ExtResource("treasure_3")
+scenes/4/scene = ExtResource("treasure_4")
+scenes/5/scene = ExtResource("treasure_5")
+
 [resource]
 resource_name = "Props"
 tile_size = Vector2i(20, 20)
@@ -96,3 +109,4 @@ sources/1 = SubResource("Collection1")
 sources/2 = SubResource("Collection2")
 sources/3 = SubResource("Traversal")
 sources/4 = SubResource("Landings")
+sources/5 = SubResource("Treasure")

@@ -1,6 +1,7 @@
 extends "res://assets/environment/common/props/reliquary.gd"
 
 @export var equipment_id: String
+@export_range(0, 5) var loot_rank := 0
 
 
 func _draw() -> void:

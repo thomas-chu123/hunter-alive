@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://bh4mcu6f1fy6f"]
+
+[ext_resource type="Texture2D" uid="uid://d2xdnqipr4516" path="res://assets/environment/common/props/woodland_plants.png" id="atlas"]
+
+[sub_resource type="AtlasTexture" id="plant"]
+atlas = ExtResource("atlas")
+region = Rect2(384, 128, 128, 128)
+filter_clip = true
+
+[node name="OysterMushrooms" type="Node2D" unique_id=15950312]
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1639737792]
+position = Vector2(0, -17.4)
+scale = Vector2(0.29, 0.29)
+texture = SubResource("plant")

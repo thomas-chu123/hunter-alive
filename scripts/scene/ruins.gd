@@ -61,6 +61,7 @@ var forge_fang: Button
 var owned_equipment: Array[String] = []
 var inventory: Array[Dictionary] = []
 var obtained_equipment: Dictionary = {}
+var opened_treasure: Dictionary = {}
 var armor_equipped: Dictionary = {}
 var preferred_weapons: Dictionary = {}
 var next_item_uid := 1
@@ -702,12 +703,21 @@ func _equip_next_soul() -> void:
 
 
 func _interact() -> void:
-	var loot := _near_treasure()
-	if not loot.is_empty():
-		if _grant_equipment(loot):
-			_notice("石匣內有%s。按 I 看裝備。" % _ranked_gear_name(loot, 1), 4.0)
-		else:
+	var chest := _near_equipment_chest()
+	if chest != null:
+		if _bag_full():
 			_warn_full_bag()
+			return
+		var random_loot := chest.loot_rank > 0
+		var loot := chest.equipment_id
+		var rank := maxi(1, chest.loot_rank)
+		if random_loot:
+			loot = loot_catalog[loot_rng.randi_range(0, loot_catalog.size() - 1)]
+		if _grant_equipment(loot, rank, random_loot):
+			if random_loot:
+				opened_treasure[_treasure_key(chest)] = true
+				chest.set_opened(true)
+			_notice("寶箱內有%s。按 I 看裝備。" % _ranked_gear_name(loot, rank), 4.0)
 	elif _near_prop(landscape.campfires):
 		for id: String in reward_rules.camp_equipment:
 			if not obtained_equipment.has(id):
@@ -763,10 +773,24 @@ func _near_prop(props: Array[Node2D]) -> bool:
 
 
 func _near_treasure() -> String:
+	var chest := _near_equipment_chest()
+	return chest.equipment_id if chest != null else ""
+
+
+func _near_equipment_chest() -> Landscape.EquipmentChest:
+	var nearest: Landscape.EquipmentChest
+	var radius: float = interaction.chest_radius
 	for chest in landscape.equipment_chests:
-		if not obtained_equipment.has(chest.equipment_id) and hunter.global_position.distance_to(chest.global_position) < interaction.chest_radius:
-			return chest.equipment_id
-	return ""
+		var distance := hunter.global_position.distance_to(chest.global_position)
+		if not chest.opened and distance < radius:
+			nearest = chest
+			radius = distance
+	return nearest
+
+
+func _treasure_key(chest: Landscape.EquipmentChest) -> String:
+	var cell := Vector2i(landscape.to_local(chest.global_position))
+	return "%d:%d:%d:%d" % [stage, region, cell.x, cell.y]
 
 
 func _near_cache() -> bool:
@@ -1272,6 +1296,7 @@ func _checkpoint_state() -> Dictionary:
 		"inventory": inventory,
 		"next_item_uid": next_item_uid,
 		"obtained_equipment": obtained_equipment,
+		"opened_treasure": opened_treasure,
 		"armor_equipped": armor_equipped,
 		"preferred_weapons": preferred_weapons,
 		"souls": collected_souls,
@@ -1309,6 +1334,7 @@ func _restore_camp(state: Dictionary) -> void:
 	if collected_souls.has(equipped):
 		hunter.equipped_soul = equipped
 	_restore_inventory(state)
+	opened_treasure = state.get("opened_treasure", {}).duplicate()
 	var previous_weapon: String = state.get("weapon", "hunter_bow" if state.get("with_bow", false) else "hunter_knife")
 	if not state.has("inventory") and hunter.stolen_blade and previous_weapon == "hunter_knife" and not state.get("owned_equipment", []).has("root_blade"):
 		previous_weapon = "root_blade"
@@ -1573,7 +1599,9 @@ func _update_stage_hud() -> void:
 			prompt_label.text = "E　完成戰役" if region == Campaign.Region.VOLCANO else "E　前往下一區"
 		else:
 			prompt_label.text = "E　挑戰首領" if stage == Campaign.BOSS_STAGE - 1 else "E　前往下一關"
-	elif (_near_cache() and not landscape.cache_open) or not _near_treasure().is_empty():
+	elif _near_equipment_chest() != null:
+		prompt_label.text = "E　打開寶箱"
+	elif _near_cache() and not landscape.cache_open:
 		prompt_label.text = "E　打開石匣"
 	else:
 		prompt_label.text = _monster_hint()
@@ -1649,7 +1677,10 @@ func _remove_inventory_item(uid: int) -> void:
 
 func _sync_equipment(desired_weapon: String = "") -> void:
 	for chest in landscape.equipment_chests:
-		chest.set_opened(obtained_equipment.has(chest.equipment_id))
+		if chest.loot_rank > 0:
+			chest.set_opened(opened_treasure.has(_treasure_key(chest)))
+		else:
+			chest.set_opened(obtained_equipment.has(chest.equipment_id))
 	var weapon := desired_weapon if not desired_weapon.is_empty() else hunter.selected_weapon()
 	var known := {}
 	hunter.unlocked_weapons.clear()

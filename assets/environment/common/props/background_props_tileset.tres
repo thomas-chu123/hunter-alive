@@ -8,6 +8,16 @@
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/obsidian_pillar_130.tscn" id="17"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/obsidian_pillar_150.tscn" id="18"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/variants/obsidian_pillar_170.tscn" id="19"]
+[ext_resource type="PackedScene" uid="uid://chdsr02os1mcy" path="res://assets/environment/common/props/woodland/Fern.tscn" id="plant_1"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/woodland/Ivy.tscn" id="plant_2"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/woodland/TallGrass.tscn" id="plant_3"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/woodland/Lavender.tscn" id="plant_4"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/woodland/Hosta.tscn" id="plant_5"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/woodland/Daisies.tscn" id="plant_6"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/woodland/FlyAgaric.tscn" id="plant_7"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/woodland/Chanterelles.tscn" id="plant_8"]
+[ext_resource type="PackedScene" uid="uid://bh4mcu6f1fy6f" path="res://assets/environment/common/props/woodland/OysterMushrooms.tscn" id="plant_9"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/woodland/Bolete.tscn" id="plant_10"]
 
 [sub_resource type="TileSetScenesCollectionSource" id="Collection0"]
 resource_name = "BackgroundProps"
@@ -20,7 +30,21 @@ scenes/17/scene = ExtResource("17")
 scenes/18/scene = ExtResource("18")
 scenes/19/scene = ExtResource("19")
 
+[sub_resource type="TileSetScenesCollectionSource" id="Woodland"]
+resource_name = "Woodland"
+scenes/1/scene = ExtResource("plant_1")
+scenes/2/scene = ExtResource("plant_2")
+scenes/3/scene = ExtResource("plant_3")
+scenes/4/scene = ExtResource("plant_4")
+scenes/5/scene = ExtResource("plant_5")
+scenes/6/scene = ExtResource("plant_6")
+scenes/7/scene = ExtResource("plant_7")
+scenes/8/scene = ExtResource("plant_8")
+scenes/9/scene = ExtResource("plant_9")
+scenes/10/scene = ExtResource("plant_10")
+
 [resource]
 resource_name = "BackgroundProps"
 tile_size = Vector2i(20, 20)
 sources/0 = SubResource("Collection0")
+sources/1 = SubResource("Woodland")

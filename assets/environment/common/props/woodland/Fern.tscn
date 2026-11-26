@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://chdsr02os1mcy"]
+
+[ext_resource type="Texture2D" uid="uid://d2xdnqipr4516" path="res://assets/environment/common/props/woodland_plants.png" id="atlas"]
+
+[sub_resource type="AtlasTexture" id="plant"]
+atlas = ExtResource("atlas")
+region = Rect2(0, 0, 128, 128)
+filter_clip = true
+
+[node name="Fern" type="Node2D" unique_id=1166596586]
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1087323487]
+position = Vector2(0, -24)
+scale = Vector2(0.4, 0.4)
+texture = SubResource("plant")
