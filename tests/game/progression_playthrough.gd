@@ -46,7 +46,7 @@ func run() -> void:
 		quit(1)
 		return
 	var loot_id: String = random_drop.kind
-	check(random_drop.rank == 5, "gold drop keeps its +5 quality on the floor")
+	check(random_drop.rank == 1, "default hare drop keeps its +1 quality on the floor")
 	level.hunter.position.x = random_drop.at.x
 	await frames(30)
 	check(not find_rolled_drop().is_empty() and level.inventory.size() == 10 and level.soul_balance in [1, 2],
@@ -89,8 +89,13 @@ func run() -> void:
 	check(level._inventory_item(destroy_uid).is_empty() and level.inventory.size() == 9, "confirmed destruction frees one backpack slot")
 	await key(KEY_I)
 	await frames(38)
-	check(find_rolled_drop().is_empty() and level.inventory.size() == 10 and find_uid(loot_id, 5) != 0,
-		"the blocked gold drop can be picked up after freeing a slot")
+	check(find_rolled_drop().is_empty() and level.inventory.size() == 10 and find_uid(loot_id, 1) != 0,
+		"the blocked equipment drop can be picked up after freeing a slot")
+	# The workshop only accepts unequipped copies for salvage.
+	await key(KEY_I)
+	await select_gear(level.gear_uids.find(wood_knife))
+	await click(level.gear_apply)
+	await key(KEY_I)
 	await view(60)
 	var soul_reward := level.soul_balance
 	level.soul_balance += 120
@@ -159,11 +164,9 @@ func run() -> void:
 
 
 func verify_tables() -> void:
-	var counts := [0, 0, 0, 0, 0, 0]
-	for n in range(80000):
-		counts[Progression.drop_rank((n + 0.5) / 80000.0)] += 1
-	check(counts == [49000, 16000, 8000, 4000, 2000, 1000],
-		"disjoint rank chances are 20%, 10%, 5%, 2.5%, 1.25%")
+	for tier in range(1, 6):
+		check(Progression.drop_rank(0.38749, tier) == tier and Progression.drop_rank(0.3875, tier) == 0,
+			"tier %d equipment drops at the configured chance" % tier)
 	var lower: int = Bestiary.creatures.spider.soul_reward[0]
 	var boss: Dictionary = Bestiary.creatures.seal_keeper
 	check(Bestiary.creatures.size() == 21 and Equipment.catalog_ids().size() == 30
@@ -216,7 +219,7 @@ func spawn_loot_encounter() -> Node:
 	for seed in range(10000):
 		rng.seed = seed
 		rng.randi_range(1, 2)
-		if Progression.drop_rank(rng.randf()) == 5:
+		if Progression.drop_rank(rng.randf(), monster.tier) > 0:
 			level.loot_rng.seed = seed
 			break
 	return monster

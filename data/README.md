@@ -3,7 +3,7 @@
 | 檔案 | 內容 |
 |---|---|
 | `monsters.json` | 以怪物 ID 對應生命、移動、攻擊、受擊、音效、姿勢檔、碰撞框與遭遇提示。 |
-| `monster_loot.json` | 以怪物 ID 對應擊倒與繳械的掉落、隨機武器防具的品階機率，以及任務物品設定。 |
+| `monster_loot.json` | 以怪物 ID 對應擊倒與繳械的掉落、隨機武器防具的掉落機率，以及任務物品設定。 |
 | `monster_rules.json` | 共用移動、攻擊節奏、預設碰撞框及姿勢圖尺寸。 |
 | `campaign.json` | 四區的 ID、名稱、入口、頭目等級加成與倍率、關卡寬度、出生偏移、鏡頭、環境光及火盆間距。 |
 | `hunter.json` | 獵人移動、體力與法力、動作時間及異常狀態。 |
@@ -25,6 +25,10 @@
 單一區域可在 `campaign.json` 的區域項目加入 `presentation`，只填要覆寫的欄位。單一物種可在 `monsters.json` 加入 `motion_rules` 覆寫 `monster_rules.json` 的移動規則。密室規則位於 `stage_rules.json` 的 `stages.ruins_1`。
 
 `effects.json` 的事件依序播放各層：`wave` 為震波、`burst` 為光芒、`scar` 為斬痕、`flash` 為全螢幕閃光。每層的 `duration` 使用正秒數；`color` 使用 0 到 1 的 RGBA，省略時繼承觸發事件的顏色。
+
+怪物的 `monsters.json` 內 `level` 與 `health` 是各物種的基礎數值。`monster_rules.json` 的 `tiers` 定義五階與外框色；每升一階加 5 級、10 HP。頭目在品階加成後套用區域頭目加成。怪物掉出的裝備沿用品階，魂與素材維持原規則。`monster_loot.json` 的 `random_equipment.chance` 控制額外隨機裝備掉率，預設 38.75%。
+
+在 Godot 的 `Landscape > Monster` 圖層，於 TileMap 面板選擇「預設、鐵、銅、銀、金」來源，再選物種並繪製。來源 0 對應原有的 1 階圖塊。五個來源共用物種場景與縮圖，遊戲中才會顯示品階外框。金蜘蛛為 Lv.21／HP 45，掉出裝備即為 5 階。
 
 在 Godot 選取關卡的 `Landscape > Monster`，用 TileMap 面板新增、移動或擦除怪物。遭遇提示以圖塊上的出生位置為準。載入存檔時，若 `defeat_flag` 已成立，該怪物會略過生成。
 

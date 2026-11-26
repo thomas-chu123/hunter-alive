@@ -73,6 +73,7 @@ var boss_felled := false
 var boss_panel: PanelContainer
 var boss_health: ProgressBar
 var boss_caption: Label
+var unclaimed_blade_rank := 1
 var unclaimed_blade_x := -1.0
 var lantern_found := false
 var keeper_felled := false
@@ -310,12 +311,13 @@ func _spawn_enemies() -> void:
 		if stage == 0 and not defeat_flag.is_empty() and bool(get(defeat_flag)):
 			continue
 		var spawn := to_local(marker.global_position)
-		_add_monster(species, spawn.x, spawn.y)
+		var cell := monster_layer.local_to_map(monster_layer.to_local(marker.global_position))
+		_add_monster(species, spawn.x, spawn.y, Bestiary.tile_tier(monster_layer.get_cell_source_id(cell)))
 
 
-func _add_monster(species: String, x: float, y: float = Landscape.FLOOR_Y) -> void:
+func _add_monster(species: String, x: float, y: float = Landscape.FLOOR_Y, tier: int = 0) -> void:
 	var monster := Monster.new()
-	monster.configure(species, Vector2(x, y), hunter)
+	monster.configure(species, Vector2(x, y), hunter, tier)
 	var combat: Dictionary = monster.design.get("combat", {})
 	var unarmed_if: String = combat.get("unarmed_if", "")
 	if not unarmed_if.is_empty() and bool(get(unarmed_if)):
@@ -533,16 +535,16 @@ func _on_monster_felled(monster: Monster) -> void:
 	var y := monster.position.y
 	var rules: Dictionary = Bestiary.loot.monsters.get(monster.species, {})
 	for rule in rules.get("before_defeat", []):
-		_apply_drop_rule(rule, x, 1.0, y)
+		_apply_drop_rule(rule, x, 1.0, y, monster.tier)
 	var reward := loot_rng.randi_range(int(monster.soul_reward[0]), int(monster.soul_reward[1]))
 	var soul_currency: Dictionary = Bestiary.loot.soul_currency
 	_drop(soul_currency.item, x + float(soul_currency.offset), reward, 1, false, y)
-	var rank := Progression.drop_rank(loot_rng.randf())
+	var rank := Progression.drop_rank(loot_rng.randf(), monster.tier)
 	if rank > 0:
 		var item := loot_catalog[loot_rng.randi_range(0, loot_catalog.size() - 1)]
 		_drop(item, x + float(Bestiary.loot.random_equipment.offset), 1, rank, true, y)
 	for rule in rules.get("defeat", []):
-		_apply_drop_rule(rule, x, 1.0, y)
+		_apply_drop_rule(rule, x, 1.0, y, monster.tier)
 	var flag: String = rules.get("defeat_flag", "")
 	if not flag.is_empty():
 		set(flag, true)
@@ -559,7 +561,7 @@ func _on_monster_felled(monster: Monster) -> void:
 		_notice("首領已倒下，出口開啟。", 4.0)
 
 
-func _apply_drop_rule(rule: Dictionary, x: float, facing: float = 1.0, source_y := NAN) -> bool:
+func _apply_drop_rule(rule: Dictionary, x: float, facing: float = 1.0, source_y := NAN, tier := 1) -> bool:
 	var chance: float = rule.get("chance", 1.0)
 	if chance < 1.0 and rng.randf() >= chance:
 		return false
@@ -580,7 +582,9 @@ func _apply_drop_rule(rule: Dictionary, x: float, facing: float = 1.0, source_y 
 			if hunter.stolen_blade or _has_drop(item):
 				return false
 			unclaimed_blade_x = at
-	_drop(item, at, int(rule.get("amount", 1)), int(rule.get("rank", 1)), false, source_y)
+			unclaimed_blade_rank = tier
+	var rank := tier if item == Bestiary.loot.guardian_blade.item or not Equipment.item(item).is_empty() else 1
+	_drop(item, at, int(rule.get("amount", 1)), rank, false, source_y)
 	return true
 
 
@@ -600,10 +604,10 @@ func _on_monster_disarmed(monster: Monster) -> void:
 	var notice: String = rules.get("disarm_notice", "")
 	var disarm_rules: Array = rules.get("disarm", [])
 	for rule in disarm_rules:
-		if _apply_drop_rule(rule, monster.position.x, monster.facing, monster.position.y) and not notice.is_empty():
+		if _apply_drop_rule(rule, monster.position.x, monster.facing, monster.position.y, monster.tier) and not notice.is_empty():
 			if rule.get("policy", "") == "guardian_blade":
 				var weapon: String = Bestiary.loot.guardian_blade.grants
-				_notice(notice % _ranked_gear_name(weapon, 1), float(rules.get("disarm_notice_seconds", 3.0)))
+				_notice(notice % _ranked_gear_name(weapon, monster.tier), float(rules.get("disarm_notice_seconds", 3.0)))
 			else:
 				_notice(notice, float(rules.get("disarm_notice_seconds", 3.0)))
 	if disarm_rules.is_empty() and not notice.is_empty():
@@ -1284,6 +1288,7 @@ func _checkpoint_state() -> Dictionary:
 	}
 	if bool(get(Bestiary.loot.guardian_blade.defeat_flag)) and unclaimed_blade_x >= 0.0:
 		state["blade_x"] = unclaimed_blade_x
+		state["blade_rank"] = unclaimed_blade_rank
 	return state
 
 
@@ -1317,10 +1322,11 @@ func _restore_camp(state: Dictionary) -> void:
 	boss_felled = stage == Campaign.BOSS_STAGE and state.get("boss_felled", false)
 	cache_flags = state.get("cache_flags", {Campaign.Region.TEMPLE: state.get("cache_open", false)})
 	landscape.cache_open = cache_flags.get(_cache_key(), false)
+	unclaimed_blade_rank = clampi(int(state.get("blade_rank", 1)), 1, Progression.MAX_RANK)
 	unclaimed_blade_x = state.get("blade_x", -1.0)
 	var blade: Dictionary = Bestiary.loot.guardian_blade
 	if (stage == 0 or stage == Campaign.BOSS_STAGE) and Campaign.IDS[region] == blade.region and bool(get(blade.defeat_flag)) and not hunter.stolen_blade and unclaimed_blade_x >= 0.0:
-		_drop(blade.item, unclaimed_blade_x)
+		_drop(blade.item, unclaimed_blade_x, 1, unclaimed_blade_rank)
 
 
 func _forge_fang_dagger() -> void:

@@ -30,14 +30,8 @@ static func salvage_value(rank: int) -> int:
 	return int(settings.salvage_per_rank) * rank
 
 
-static func drop_rank(roll: float) -> int:
-	var edge := 0.0
-	var rates: Array = Bestiary.loot.random_equipment.rank_rates
-	for index in range(rates.size()):
-		edge += float(rates[index])
-		if roll < edge:
-			return index + 1
-	return 0
+static func drop_rank(roll: float, tier: int) -> int:
+	return tier if roll < float(Bestiary.loot.random_equipment.chance) else 0
 
 
 static func armor_percent(points: int) -> int:

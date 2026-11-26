@@ -52,5 +52,43 @@
       197
     ],
     "frame_scale": 0.8
+  },
+  "tiers": {
+    "default_tier": 1,
+    "level_per_step": 5,
+    "health_per_step": 10,
+    "outline_width_px": 2,
+    "variants": [
+      {
+        "tier": 1,
+        "tile_source_id": 0,
+        "name": "預設",
+        "outline": null
+      },
+      {
+        "tier": 2,
+        "tile_source_id": 1,
+        "name": "鐵",
+        "outline": "#81909C"
+      },
+      {
+        "tier": 3,
+        "tile_source_id": 2,
+        "name": "銅",
+        "outline": "#BF7746"
+      },
+      {
+        "tier": 4,
+        "tile_source_id": 3,
+        "name": "銀",
+        "outline": "#DCE6EF"
+      },
+      {
+        "tier": 5,
+        "tile_source_id": 4,
+        "name": "金",
+        "outline": "#FFD45A"
+      }
+    ]
   }
 }

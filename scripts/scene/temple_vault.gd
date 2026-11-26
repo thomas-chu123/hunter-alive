@@ -16,6 +16,7 @@ var collapsed := false
 var passage_open := false
 var drained := false
 var river_depth : float = vault.normal_depth
+var nest_tier := 0
 var nest_position := Vector2.INF
 var guardian: Monster
 var nest_awake := false
@@ -195,11 +196,12 @@ func _spawn_enemies() -> void:
 		props.set_cell(props.local_to_map(props.to_local(to_global(nest_position))), 0, Vector2i.ZERO, 12)
 
 
-func _add_monster(species: String, x: float, y: float = Landscape.FLOOR_Y) -> void:
+func _add_monster(species: String, x: float, y: float = Landscape.FLOOR_Y, tier: int = 0) -> void:
 	if species == "root_mole" and not nest_awake:
 		nest_position = Vector2(x, y)
+		nest_tier = tier
 		return
-	super(species, x, y)
+	super(species, x, y, tier)
 	if species == "lizard":
 		lizard = enemies.back()
 	elif species == "dust_hare" and y > 500:
@@ -212,7 +214,7 @@ func _update_nest() -> void:
 	nest_awake = true
 	var props: TileMapLayer = $Landscape/BackgroundProps
 	props.erase_cell(props.local_to_map(props.to_local(to_global(nest_position))))
-	_add_monster("root_mole", nest_position.x, nest_position.y)
+	_add_monster("root_mole", nest_position.x, nest_position.y, nest_tier)
 	guardian = enemies.back()
 	var mole := guardian
 	if stone_kill:

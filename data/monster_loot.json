@@ -1,12 +1,6 @@
 {
   "random_equipment": {
-    "rank_rates": [
-      0.2,
-      0.1,
-      0.05,
-      0.025,
-      0.0125
-    ],
+    "chance": 0.3875,
     "offset": 22
   },
   "material_default": {

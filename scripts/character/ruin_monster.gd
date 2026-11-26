@@ -15,6 +15,7 @@ enum State { PATROL, NOTICE, CHASE, WINDUP, STRIKE, RECOVER, RETURN, STAGGER }
 enum AttackPose { IDLE = -1, ANTICIPATION, RELEASE, RECOVERY }
 enum HitResult { BLOCKED, DAMAGED, DISARMED }
 
+var tier: int
 var species: String
 var target: CharacterBody2D
 var home := Vector2.ZERO
@@ -90,7 +91,7 @@ var stretch_x := 1.0
 var sprint_lean := 0.0
 
 
-func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
+func configure(kind: String, at: Vector2, hunter: CharacterBody2D, spawn_tier: int = 0) -> void:
 	species = kind
 	position = at
 	home = at
@@ -104,8 +105,10 @@ func configure(kind: String, at: Vector2, hunter: CharacterBody2D) -> void:
 	animation = design.get("animation", {})
 	sound = design.sound
 	hit_reaction = design.hit_reaction
-	max_health = int(design.health)
-	level = int(design.level)
+	tier = spawn_tier if not Bestiary.tier_profile(spawn_tier).is_empty() else int(Bestiary.rules.tiers.default_tier)
+	var steps := tier - 1
+	max_health = int(design.health) + steps * int(Bestiary.rules.tiers.health_per_step)
+	level = int(design.level) + steps * int(Bestiary.rules.tiers.level_per_step)
 	soul_reward = design.soul_reward
 	motion_rules = Bestiary.rules.motion.merged(design.get("motion_rules", {}), true)
 	profile = design.motion
@@ -142,7 +145,24 @@ func _ready() -> void:
 	actor_art.scale = Vector2.ONE * boss_scale
 	actor_art.show_behind_parent = true
 	actor_art.draw.connect(_draw_actor)
-	add_child(actor_art)
+	var outline: Variant = Bestiary.tier_profile(tier).outline
+	if outline == null:
+		add_child(actor_art)
+	else:
+		var group := CanvasGroup.new()
+		group.name = "TierOutline"
+		group.show_behind_parent = true
+		var width: float = Bestiary.rules.tiers.outline_width_px
+		group.fit_margin = width + 1.0
+		group.clear_margin = width + 1.0
+		var material := ShaderMaterial.new()
+		material.shader = preload("res://scripts/effects/monster_outline.gdshader")
+		material.set_shader_parameter("outline_color", Color(str(outline)))
+		material.set_shader_parameter("width_px", width)
+		group.material = material
+		add_child(group)
+		actor_art.show_behind_parent = false
+		group.add_child(actor_art)
 	flash_material = ShaderMaterial.new()
 	flash_material.shader = HIT_FLASH
 	step_voice = EnemyAudio.voice(float(sound.get("step_gain_db", EnemyAudio.mix.step_gain_db)))

@@ -2,33 +2,12 @@
 
 [ext_resource type="PackedScene" uid="uid://c6fs0k5em18i0" path="res://scenes/ruins/ruins.tscn" id="1"]
 [ext_resource type="Texture2D" uid="uid://b6c6rrg5imjea" path="res://assets/environment/common/terrain/terrain_grid.png" id="3_400ly"]
-[ext_resource type="PackedScene" uid="uid://kjce33kmau7e" path="res://assets/monster/spider/spider.tscn" id="3_auicx"]
-[ext_resource type="PackedScene" path="res://assets/monster/root_mole/root_mole.tscn" id="4_45p5m"]
 [ext_resource type="Texture2D" uid="uid://7mb7rbg4y3lk" path="res://assets/environment/common/terrain/natural_rock.png" id="4_rpg0m"]
-[ext_resource type="PackedScene" path="res://assets/monster/reed_leech/reed_leech.tscn" id="5_ndyox"]
 [ext_resource type="Texture2D" uid="uid://ddwl88l00e2fk" path="res://assets/environment/common/terrain/biome_natural.png" id="5_xhfv2"]
-[ext_resource type="PackedScene" path="res://assets/monster/silt_ray/silt_ray.tscn" id="6_cvxrk"]
 [ext_resource type="Texture2D" uid="uid://boqeqmvyo6qo6" path="res://assets/environment/common/terrain/biome_caves.png" id="6_xut47"]
 [ext_resource type="Texture2D" uid="uid://4nfa32vt0w7q" path="res://assets/environment/common/terrain/biome_extreme.png" id="7_0b54p"]
-[ext_resource type="PackedScene" path="res://assets/monster/sluice_snail/sluice_snail.tscn" id="7_um5ck"]
-[ext_resource type="PackedScene" path="res://assets/monster/tide_salamander/tide_salamander.tscn" id="8_iqnua"]
 [ext_resource type="Texture2D" uid="uid://7kgwsgacw5y2" path="res://assets/environment/common/terrain/biome_constructed.png" id="8_kylds"]
-[ext_resource type="PackedScene" path="res://assets/monster/thorn_archer/thorn_archer.tscn" id="9_l4slr"]
 [ext_resource type="Texture2D" uid="uid://bnqf6nmhbo6n4" path="res://assets/environment/common/terrain/biome_fantasy.png" id="9_qk3vq"]
-[ext_resource type="PackedScene" path="res://assets/monster/shield_heron/shield_heron.tscn" id="10_400ly"]
-[ext_resource type="PackedScene" path="res://assets/monster/key_jackal/key_jackal.tscn" id="11_rpg0m"]
-[ext_resource type="PackedScene" path="res://assets/monster/ash_scribe/ash_scribe.tscn" id="12_xhfv2"]
-[ext_resource type="PackedScene" path="res://assets/monster/shard_warden/shard_warden.tscn" id="13_xut47"]
-[ext_resource type="PackedScene" path="res://assets/monster/lizard/lizard.tscn" id="14_0b54p"]
-[ext_resource type="PackedScene" path="res://assets/monster/copper_cicada/copper_cicada.tscn" id="15_kylds"]
-[ext_resource type="PackedScene" path="res://assets/monster/burial_ram/burial_ram.tscn" id="16_qk3vq"]
-[ext_resource type="PackedScene" path="res://assets/monster/treant/treant.tscn" id="17_mffdi"]
-[ext_resource type="PackedScene" path="res://assets/monster/bell_moth/bell_moth.tscn" id="18_56twp"]
-[ext_resource type="PackedScene" uid="uid://bssdo46vyorew" path="res://assets/monster/lantern_crab/lantern_crab.tscn" id="19_4ytpv"]
-[ext_resource type="PackedScene" path="res://assets/monster/seal_keeper/seal_keeper.tscn" id="20_8utj8"]
-[ext_resource type="PackedScene" path="res://assets/monster/shale_beetle/shale_beetle.tscn" id="21_ivngi"]
-[ext_resource type="PackedScene" path="res://assets/monster/dust_hare/dust_hare.tscn" id="22_yf4uq"]
-[ext_resource type="PackedScene" path="res://assets/monster/mirror_eel/mirror_eel.tscn" id="23_16d7t"]
 [ext_resource type="Texture2D" uid="uid://beah6kxxk71mh" path="res://assets/environment/common/terrain/interior_surfaces.png" id="24_5765t"]
 [ext_resource type="Texture2D" uid="uid://bd8qv220u1ps6" path="res://assets/environment/common/roomwalls/town_architecture_grid.png" id="25_hgm5h"]
 [ext_resource type="Texture2D" uid="uid://csjsm7xahtd8m" path="res://assets/environment/common/roomwalls/dungeon_horror_grid.png" id="26_7ymd4"]
@@ -4727,35 +4706,6 @@ pattern_49 = SubResource("Biome28")
 pattern_50 = SubResource("Biome29")
 pattern_51 = SubResource("Biome30")
 
-[sub_resource type="TileSetScenesCollectionSource" id="TileSetScenesCollectionSource_gnwi1"]
-resource_name = "Monster"
-scenes/1/scene = ExtResource("3_auicx")
-scenes/2/scene = ExtResource("14_0b54p")
-scenes/3/scene = ExtResource("17_mffdi")
-scenes/4/scene = ExtResource("18_56twp")
-scenes/5/scene = ExtResource("19_4ytpv")
-scenes/6/scene = ExtResource("20_8utj8")
-scenes/7/scene = ExtResource("21_ivngi")
-scenes/8/scene = ExtResource("22_yf4uq")
-scenes/9/scene = ExtResource("23_16d7t")
-scenes/10/scene = ExtResource("4_45p5m")
-scenes/11/scene = ExtResource("5_ndyox")
-scenes/12/scene = ExtResource("6_cvxrk")
-scenes/13/scene = ExtResource("7_um5ck")
-scenes/14/scene = ExtResource("8_iqnua")
-scenes/15/scene = ExtResource("9_l4slr")
-scenes/16/scene = ExtResource("10_400ly")
-scenes/17/scene = ExtResource("11_rpg0m")
-scenes/18/scene = ExtResource("12_xhfv2")
-scenes/19/scene = ExtResource("13_xut47")
-scenes/20/scene = ExtResource("15_kylds")
-scenes/21/scene = ExtResource("16_qk3vq")
-
-[sub_resource type="TileSet" id="TileSet_fksi4"]
-resource_name = "Monster"
-tile_size = Vector2i(20, 20)
-sources/0 = SubResource("TileSetScenesCollectionSource_gnwi1")
-
 [sub_resource type="TileMapPattern" id="StoneWall"]
 resource_name = "Interior stone wall"
 tile_data = PackedInt32Array(0, 1, 0, 1, 65537, 0, 2, 131073, 0, 65536, 1, 1, 65537, 65537, 1, 65538, 131073, 1, 131072, 1, 2, 131073, 65537, 2, 131074, 131073, 2)
@@ -5324,8 +5274,8 @@ script = ExtResource("vault")
 stage = 1
 
 [node name="Temple" parent="Backdrop" parent_id_path=PackedInt32Array(1115833901) index="0" unique_id=904466127]
-position = Vector2(7, -959.00006)
-scale = Vector2(1.5698986, 1.686584)
+position = Vector2(27.690952, -1197.8801)
+scale = Vector2(1.7579982, 1.9261827)
 offset = Vector2(-110, 110)
 
 [node name="BackgroundProps" parent="Landscape" parent_id_path=PackedInt32Array(825624333) index="0" unique_id=340268336]
@@ -5345,8 +5295,7 @@ tile_map_data = PackedByteArray("AABYAOr/AAAAAAAAAgBRAAMAAQAAAAAADgBQAA4AAAAAAAA
 tile_map_data = PackedByteArray("AAB2AOv/AAAAAAAABgAqAAMAAAAAAAAAAgAcABsAAwAAAAAAAgAcABUAAwAAAAAAAgAYABsAAwAAAAAAAQBiAA8AAwAAAAAAAwBiAAkAAwAAAAAAAwBeAA8AAwAAAAAAAQAvAAMAAwAAAAAAAgAvAP3/AwAAAAAAAgArAAMAAwAAAAAAAQBfAPf/AwAAAAAAAwBfAPH/AwAAAAAAAwBbAPf/AwAAAAAAAQAeABoABAAAAAAAAQAoAA0ABAAAAAAABgAXAAsABAAAAAAAAwBkAA4ABAAAAAAAAQA4AAEABAAAAAAABgBdAP//BAAAAAAAAwAxAAIABAAAAAAAAQBEAPX/BAAAAAAABgAqAPP/BAAAAAAAAwBhAPb/BAAAAAAAAQBMAOn/BAAAAAAABgBaAOf/BAAAAAAAAwALABsAAAAAAAAAAQCCAAMAAgAAAAAAFABwAAMAAAAAAAAADABuABMAAgAAAAAAGwB5ABsAAgAAAAAAFgA=")
 
 [node name="Monster" parent="Landscape" parent_id_path=PackedInt32Array(825624333) index="6"]
-tile_map_data = PackedByteArray("AAAmAA8AAAAAAAAAAQAUABoAAAAAAAAAAQBBABkAAAAAAAAACAA5ABoAAAAAAAAAAgAoAPb/AAAAAAAABwAiAAEAAAAAAAAACAB5AAEAAAAAAAAACgB2AA4AAAAAAAAABwBnAO//AAAAAAAABAA9AOn/AAAAAAAADwA=")
-tile_set = SubResource("TileSet_fksi4")
+tile_map_data = PackedByteArray("AAAUABoAAAAAAAAAAQBBABkAAAAAAAAACAA5ABoAAAAAAAAAAgAoAPb/AAAAAAAABwAiAAEAAAAAAAAACAB5AAEAAAAAAAAACgB2AA4AAAAAAAAABwBnAO//AAAAAAAABAA9AOn/AAAAAAAADwAkAA4AAAAAAAAAAQAiABoABAAAAAAAAQAOABoAAwAAAAAAAgA=")
 
 [node name="RoomWalls" type="TileMapLayer" parent="Landscape" parent_id_path=PackedInt32Array(825624333) index="7" unique_id=1865857317]
 z_index = -3
