@@ -1674,7 +1674,9 @@ func _update_camp_menu() -> void:
 	var cost := Progression.level_cost(hunter.level)
 	camp_level_up.disabled = hunter.level >= Progression.MAX_LEVEL or soul_balance < cost
 	camp_level_up.text = "角色成長\n已達 Lv.%d" % Progression.MAX_LEVEL if hunter.level >= Progression.MAX_LEVEL else (
-		"Lv.%d → Lv.%d\n體力 +1  ·  %d 魂" % [hunter.level, hunter.level + 1, cost])
+		"Lv.%d → Lv.%d  ·  %d 魂\n體力 +1  ·  背包 +%d" % [
+			hunter.level, hunter.level + 1, cost,
+			Progression.bag_capacity(hunter.level + 1) - Progression.bag_capacity(hunter.level)])
 	var selected := _selected_camp_item()
 	if selected == 0:
 		selected = _equipped_uid("武器")
@@ -2001,14 +2003,15 @@ func _build_gear_menu(root: Control) -> void:
 	gear_list.add_theme_stylebox_override("panel", EquipmentTheme.frame())
 	gear_list.custom_minimum_size.y = 252
 	gear_list.icon_mode = ItemList.ICON_MODE_TOP
-	gear_list.fixed_icon_size = Vector2i(46, 46)
-	gear_list.max_columns = 3
-	gear_list.fixed_column_width = 124
+	gear_list.fixed_icon_size = Vector2i(40, 40)
+	gear_list.max_columns = 4
+	gear_list.fixed_column_width = 86
 	gear_list.same_column_width = true
 	gear_list.max_text_lines = 1
 	gear_list.add_theme_font_override("font", font)
 	gear_list.add_theme_font_size_override("font_size", 14)
-	gear_list.add_theme_constant_override("v_separation", 7)
+	gear_list.add_theme_constant_override("h_separation", 5)
+	gear_list.add_theme_constant_override("v_separation", 5)
 	var selected := StyleBoxFlat.new()
 	selected.bg_color = Color("#344640")
 	selected.border_color = Color("#bba272")

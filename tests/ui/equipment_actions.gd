@@ -14,7 +14,16 @@ func run() -> void:
 	await scene_changed
 	var ruins := current_scene as Ruins
 	ruins._grant_equipment("linen_hood")
+	for index in range(3):
+		ruins._grant_equipment("hunter_knife", 1, true)
 	await key(KEY_I)
+	await process_frame
+	var first := ruins.gear_list.get_item_rect(0)
+	var fourth := ruins.gear_list.get_item_rect(3)
+	var fifth := ruins.gear_list.get_item_rect(4)
+	check(first.has_area() and fourth.position.y == first.position.y and fourth.position.x > first.position.x
+		and fifth.position.y > first.position.y and fifth.position.x == first.position.x,
+		"four compact backpack tiles per row: %s, %s, %s" % [first, fourth, fifth])
 	var activations: Array[bool] = []
 	ruins.gear_apply.pressed.connect(func(): activations.append(true))
 	await click(ruins.gear_apply)

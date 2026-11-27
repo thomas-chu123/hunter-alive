@@ -105,7 +105,9 @@ func run() -> void:
 	await tap("hunt_interact")
 	await frames(5)
 	check(level.camp_menu.visible, "E opens the camp progression controls")
+	check(level.camp_level_up.text.contains("背包 +2"), "level-up preview shows two extra backpack slots")
 	await click(level.camp_level_up)
+	check(level.camp_stock.text.contains("背包 10/12"), "camp displays the increased capacity immediately")
 	check(level.hunter.level == 1 and level.hunter.max_health() == 7 and level.soul_balance == soul_reward + 110
 		and Progression.bag_capacity(level.hunter.level) == 12, "first level costs 10 souls, adds one HP and two slots")
 	await view(68)
