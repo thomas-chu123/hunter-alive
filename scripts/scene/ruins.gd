@@ -230,7 +230,18 @@ func _set_up_lighting() -> void:
 	var ambient := CanvasModulate.new()
 	ambient.name = "AmbientLight"
 	var rgb: Array = presentation.ambient_rgb
-	ambient.color = Color(rgb[0], rgb[1], rgb[2])
+	var base_color := Color(rgb[0], rgb[1], rgb[2])
+	var scene_id := scene_file_path.get_file().get_basename()
+	var rules: Dictionary = stage_rules.stages.get(scene_id, {})
+	var configured_brightness: Variant = rules.get("ambient_brightness", 33)
+	var brightness := 33.0
+	if configured_brightness is float or configured_brightness is int:
+		brightness = clampf(float(configured_brightness), 1.0, 100.0)
+	# Level 33 preserves the existing campaign or regional ambient color.
+	if brightness <= 33.0:
+		ambient.color = Color.BLACK.lerp(base_color, brightness / 33.0)
+	else:
+		ambient.color = base_color.lerp(Color.WHITE, (brightness - 33.0) / 67.0)
 	add_child(ambient)
 	# The parallax backdrop draws on its own canvas, outside the world lighting.
 	background.self_modulate = ambient.color

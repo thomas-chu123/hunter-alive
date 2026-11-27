@@ -25,7 +25,77 @@
       "clash_radius": 280,
       "clash_hit_margin": 14,
       "clash_cooldown": 2,
-      "clash_damage": 1
+      "clash_damage": 1,
+      "ambient_brightness": 33
+    },
+    "ruins": {
+      "ambient_brightness": 33
+    },
+    "ruins_2": {
+      "ambient_brightness": 33
+    },
+    "ruins_3": {
+      "ambient_brightness": 33
+    },
+    "ruins_4": {
+      "ambient_brightness": 33
+    },
+    "ruins_5": {
+      "ambient_brightness": 33
+    },
+    "flooded_corridor": {
+      "ambient_brightness": 33
+    },
+    "flooded_corridor_1": {
+      "ambient_brightness": 33
+    },
+    "flooded_corridor_2": {
+      "ambient_brightness": 33
+    },
+    "flooded_corridor_3": {
+      "ambient_brightness": 33
+    },
+    "flooded_corridor_4": {
+      "ambient_brightness": 33
+    },
+    "flooded_corridor_5": {
+      "ambient_brightness": 33
+    },
+    "buried_court": {
+      "ambient_brightness": 33
+    },
+    "buried_court_1": {
+      "ambient_brightness": 33
+    },
+    "buried_court_2": {
+      "ambient_brightness": 33
+    },
+    "buried_court_3": {
+      "ambient_brightness": 33
+    },
+    "buried_court_4": {
+      "ambient_brightness": 33
+    },
+    "buried_court_5": {
+      "ambient_brightness": 33
+    },
+    "volcanic_caldera": {
+      "ambient_brightness": 33
+    },
+    "volcanic_caldera_1": {
+      "ambient_brightness": 33
+    },
+    "volcanic_caldera_2": {
+      "ambient_brightness": 33
+    },
+    "volcanic_caldera_3": {
+      "ambient_brightness": 33
+    },
+    "volcanic_caldera_4": {
+      "ambient_brightness": 33
+    },
+    "volcanic_caldera_5": {
+      "ambient_brightness": 33
     }
   }
 }

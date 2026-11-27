@@ -20,9 +20,15 @@ func run() -> void:
 	Campaign.regions[0].presentation = {"stage_camera_top": -912, "brazier_min_gap": 211.0}
 	Vault.vault.normal_depth = 61.0
 	Vault.vault.drained_depth = 8.0
+	Vault.vault.ambient_brightness = 100
+	Ruins.stage_rules.stages.ruins.ambient_brightness = 1
 	change_scene_to_file(Campaign.scene_path({}))
 	await scene_changed
 	var level := current_scene as Vault
+	var vault_ambient := level.get_node("AmbientLight") as CanvasModulate
+	check(vault_ambient.color.is_equal_approx(Color.WHITE)
+		and level.background.self_modulate == vault_ambient.color,
+		"ruins_1 brightness 100 gives white ambient light and backdrop")
 	check(level.camera.limit_top == -912 and level.landscape.brazier_min_gap == 211.0,
 		"regional presentation overrides camera and brazier defaults")
 	check(level.river_depth == 61.0, "vault starts at configured water depth")
@@ -77,6 +83,12 @@ func run() -> void:
 	change_scene_to_file(Campaign.scene_path({"region": 0, "stage": 0}))
 	await scene_changed
 	var entry := current_scene as Ruins
+	var entry_ambient := entry.get_node("AmbientLight") as CanvasModulate
+	var rgb: Array = entry.presentation.ambient_rgb
+	var minimum_color := Color.BLACK.lerp(Color(rgb[0], rgb[1], rgb[2]), 1.0 / 33.0)
+	check(entry_ambient.color.is_equal_approx(minimum_color)
+		and entry.background.self_modulate == entry_ambient.color,
+		"ruins entry brightness 1 applies independently of ruins_1")
 	Ruins.reward_rules.cache_equipment_by_region.ruins = ["copper_helm", "ram_boots"]
 	Ruins.reward_rules.cache_materials = 11
 	entry.hunter.global_position = entry.landscape.reliquaries[0].global_position

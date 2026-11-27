@@ -37,11 +37,16 @@ func verify() -> void:
 	check(ProjectSettings.get_setting("application/run/main_scene") == Campaign.TITLE_SCENE
 		and ResourceLoader.exists(Campaign.TITLE_SCENE), "configured title matches the project startup scene")
 	check(ResourceLoader.exists(Campaign.TRAP_COURSE_SCENE), "configured trap course exists")
+	var stage_rules: Dictionary = Campaign.Config.read("campaign/stage_rules").stages
 	for i in Campaign.regions.size():
 		var region: Dictionary = Campaign.regions[i]
 		check(ResourceLoader.exists(Campaign.scene_path({"region": i, "stage": 0}))
 			and region.boss.level_bonus > 0 and region.boss.health_multiplier > 0, "region and boss: " + str(region.id))
 		var stages: Array = Campaign.scene_routes.regions[region.id].stages
+		for scene: String in [Campaign.scene_routes.regions[region.id].entry] + stages:
+			var brightness: Variant = stage_rules.get(scene.get_file().get_basename(), {}).get("ambient_brightness")
+			check((brightness is int or brightness is float) and brightness >= 1 and brightness <= 100,
+				"configured ambient brightness: " + scene)
 		check(stages.size() == Campaign.BOSS_STAGE, "configured stage count: " + str(region.id))
 		for stage in range(1, stages.size() + 1):
 			var path := Campaign.scene_path({"region": i, "stage": stage})

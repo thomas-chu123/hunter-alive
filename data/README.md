@@ -15,7 +15,7 @@
 | `audio/sound.json` | 怪物腳步與攻擊、陷阱音檔、武器合成音色及各類音量與音高。 |
 | `traps/traps.json` | 陷阱週期、傷害、落石、火球、爆炸、毒霧及傳送門參數。 |
 | `campaign/rewards.json` | 營火贈裝、各區石匣裝備、共用石匣素材數量。 |
-| `campaign/stage_rules.json` | 共用互動距離與各關的水位、地板崩落、石栓及遭遇條件。 |
+| `campaign/stage_rules.json` | 各場景的環境亮度、共用互動距離，以及關卡的水位、地板崩落、石栓與遭遇條件。 |
 | `effects/effects.json` | 元素與格擋顏色、受擊停頓、鏡頭震動、斬擊與火花時間，以及各種命中事件的效果組合。 |
 
 修改後重新啟動遊戲。時間使用秒，距離使用像素，音量使用 dB。向量使用 `[x, y]`。裝備說明為顯示文字，變更效果數值時請一併更新說明。品階顏色以品階為索引，第 0 格保留；提高上限時也要補齊顏色。
@@ -25,6 +25,12 @@
 調整弓箭或火球時，從裝備的 `projectile` 找到同檔 `projectiles` 的對應項目；速度乘上壽命為無碰撞時的射程。`scribe_staff.glyph.hitbox` 使用相對於符印落點的 `[x, y, 寬, 高]`。石匣的區域鍵沿用戰役 ID，裝備清單填入裝備 ID，每筆清單的 ID 應唯一。
 
 單一區域可在 `campaign/campaign.json` 的區域項目加入 `presentation`，只填要覆寫的欄位。單一物種可在 `characters/monsters.json` 加入 `motion_rules` 覆寫 `characters/monster_rules.json` 的移動規則。密室規則位於 `campaign/stage_rules.json` 的 `stages.ruins_1`。
+
+戰役入口與關卡各有一個 `ambient_brightness`。在 `campaign/stage_rules.json` 的 `stages` 下，以場景檔名（省略 `.tscn`）找到設定。例：`ruins` 是入口，`ruins_2` 是第二關。設為 20 可讓密林更暗，設為 75 可讓開闊地更亮。
+
+- **1** 接近全暗，**33** 保留戰役或區域原有的環境光，**100** 讓環境光調色達到純白。
+- 缺少設定或填入非數值時使用 33。超出範圍的數值取最近的端點。
+- 亮度會套用至場景和視差背景。HUD 使用獨立畫布。
 
 `effects/effects.json` 的事件依序播放各層：`wave` 為震波、`burst` 為光芒、`scar` 為斬痕、`flash` 為全螢幕閃光。每層的 `duration` 使用正秒數；`color` 使用 0 到 1 的 RGBA，省略時繼承觸發事件的顏色。
 
