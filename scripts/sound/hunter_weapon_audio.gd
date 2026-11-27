@@ -1,7 +1,7 @@
 extends RefCounted
 
 const Config := preload("res://scripts/game/config_table.gd")
-static var settings := Config.read("sound")
+static var settings := Config.read("audio/sound")
 static var SAMPLE_RATE: int = settings.sample_rate
 static var PROFILES: Dictionary = settings.weapon_profiles
 

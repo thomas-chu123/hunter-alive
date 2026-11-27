@@ -34,10 +34,24 @@ func verify() -> void:
 			"generated sample duration: " + id)
 	for path in Music.TRACKS + Music.BOSS_TRACKS:
 		check(load(path) is AudioStream, "music stream: " + str(path))
+	check(ProjectSettings.get_setting("application/run/main_scene") == Campaign.TITLE_SCENE
+		and ResourceLoader.exists(Campaign.TITLE_SCENE), "configured title matches the project startup scene")
+	check(ResourceLoader.exists(Campaign.TRAP_COURSE_SCENE), "configured trap course exists")
 	for i in Campaign.regions.size():
 		var region: Dictionary = Campaign.regions[i]
 		check(ResourceLoader.exists(Campaign.scene_path({"region": i, "stage": 0}))
 			and region.boss.level_bonus > 0 and region.boss.health_multiplier > 0, "region and boss: " + str(region.id))
+		var stages: Array = Campaign.scene_routes.regions[region.id].stages
+		check(stages.size() == Campaign.BOSS_STAGE, "configured stage count: " + str(region.id))
+		for stage in range(1, stages.size() + 1):
+			var path := Campaign.scene_path({"region": i, "stage": stage})
+			check(path == stages[stage - 1] and ResourceLoader.exists(path), "stage scene: " + path)
+			var expected := {}
+			if stage < stages.size():
+				expected = {"region": i, "stage": stage + 1}
+			elif i + 1 < Campaign.regions.size():
+				expected = {"region": i + 1, "stage": 1}
+			check(Campaign.next_stage(i, stage) == expected, "exit destination: " + path)
 	check(Progression.COLORS.size() > Progression.MAX_RANK, "each equipment rank has a frame color")
 	for profile: String in Trap.settings.cycle_seconds:
 		var packed := load("res://assets/environment/common/traps/%s.tscn" % profile) as PackedScene

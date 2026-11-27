@@ -11,7 +11,7 @@ static var COLORS := _element_colors()
 
 
 static func _element_colors() -> Dictionary:
-	var palette: Dictionary = Config.read("effects").element_colors.duplicate()
+	var palette: Dictionary = Config.read("effects/effects").element_colors.duplicate()
 	for element: String in palette:
 		palette[element] = Color(str(palette[element]))
 	return palette

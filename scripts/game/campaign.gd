@@ -2,13 +2,15 @@ extends RefCounted
 
 enum Region { TEMPLE, CORRIDOR, COURT, VOLCANO }
 
-const TITLE_SCENE := "res://scenes/title/title.tscn"
 const Config := preload("res://scripts/game/config_table.gd")
-static var settings := Config.read("campaign")
+static var settings := Config.read("campaign/campaign")
+static var scene_routes := Config.read("campaign/stage_change")
+static var TITLE_SCENE: String = scene_routes.title
+static var TRAP_COURSE_SCENE: String = scene_routes.trap_course
 static var BOSS_STAGE: int = settings.boss_stage
 static var regions: Array = settings.regions
 static var IDS := regions.map(func(region: Dictionary) -> String: return region.id)
-static var SCENES := regions.map(func(region: Dictionary) -> String: return region.scene)
+static var SCENES := IDS.map(func(id: String) -> String: return scene_routes.regions[id].entry)
 static var NAMES := regions.map(func(region: Dictionary) -> String: return region.name)
 
 
@@ -19,7 +21,16 @@ static func scene_path(checkpoint: Dictionary) -> String:
 	var stage: Variant = checkpoint.get("stage", 1)
 	if stage is int and stage == 0:
 		return SCENES[region]
-	if not stage is int or stage < 1 or stage > BOSS_STAGE:
+	var stages: Array = scene_routes.regions[IDS[region]].stages
+	if not stage is int or stage < 1 or stage > stages.size():
 		stage = 1
-	var id: String = IDS[region]
-	return "res://scenes/%s/%s_%d.tscn" % [id, id, stage]
+	return stages[stage - 1]
+
+
+static func next_stage(region: int, stage: int) -> Dictionary:
+	var stages: Array = scene_routes.regions[IDS[region]].stages
+	if stage < stages.size():
+		return {"region": region, "stage": stage + 1}
+	if region + 1 < IDS.size():
+		return {"region": region + 1, "stage": 1}
+	return {}

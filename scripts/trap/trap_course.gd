@@ -1,5 +1,6 @@
 extends Node2D
 
+const Campaign := preload("res://scripts/game/campaign.gd")
 const Hunter := preload("res://scripts/character/ruin_hunter.gd")
 const TRAP_SIGNS := {
 	Vector2(240, 242): "下降針刺",
@@ -39,7 +40,7 @@ func _process(_delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		get_tree().change_scene_to_file("res://scenes/title/title.tscn")
+		get_tree().change_scene_to_file(Campaign.TITLE_SCENE)
 	elif event is InputEventKey and event.physical_keycode == KEY_R and event.pressed and not event.echo:
 		_reset_hunter()
 

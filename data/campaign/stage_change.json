@@ -1,0 +1,46 @@
+{
+  "title": "res://scenes/title/title.tscn",
+  "trap_course": "res://scenes/trap_course/trap_course.tscn",
+  "regions": {
+    "ruins": {
+      "entry": "res://scenes/ruins/ruins.tscn",
+      "stages": [
+        "res://scenes/ruins/ruins_1.tscn",
+        "res://scenes/ruins/ruins_2.tscn",
+        "res://scenes/ruins/ruins_3.tscn",
+        "res://scenes/ruins/ruins_4.tscn",
+        "res://scenes/ruins/ruins_5.tscn"
+      ]
+    },
+    "flooded_corridor": {
+      "entry": "res://scenes/flooded_corridor/flooded_corridor.tscn",
+      "stages": [
+        "res://scenes/flooded_corridor/flooded_corridor_1.tscn",
+        "res://scenes/flooded_corridor/flooded_corridor_2.tscn",
+        "res://scenes/flooded_corridor/flooded_corridor_3.tscn",
+        "res://scenes/flooded_corridor/flooded_corridor_4.tscn",
+        "res://scenes/flooded_corridor/flooded_corridor_5.tscn"
+      ]
+    },
+    "buried_court": {
+      "entry": "res://scenes/buried_court/buried_court.tscn",
+      "stages": [
+        "res://scenes/buried_court/buried_court_1.tscn",
+        "res://scenes/buried_court/buried_court_2.tscn",
+        "res://scenes/buried_court/buried_court_3.tscn",
+        "res://scenes/buried_court/buried_court_4.tscn",
+        "res://scenes/buried_court/buried_court_5.tscn"
+      ]
+    },
+    "volcanic_caldera": {
+      "entry": "res://scenes/volcanic_caldera/volcanic_caldera.tscn",
+      "stages": [
+        "res://scenes/volcanic_caldera/volcanic_caldera_1.tscn",
+        "res://scenes/volcanic_caldera/volcanic_caldera_2.tscn",
+        "res://scenes/volcanic_caldera/volcanic_caldera_3.tscn",
+        "res://scenes/volcanic_caldera/volcanic_caldera_4.tscn",
+        "res://scenes/volcanic_caldera/volcanic_caldera_5.tscn"
+      ]
+    }
+  }
+}

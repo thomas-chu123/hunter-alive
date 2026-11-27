@@ -3,7 +3,7 @@ extends RefCounted
 const Bestiary := preload("res://scripts/character/ruin_bestiary.gd")
 
 const Config := preload("res://scripts/game/config_table.gd")
-static var settings := Config.read("progression")
+static var settings := Config.read("equipment/progression")
 static var MAX_RANK: int = settings.max_rank
 static var MAX_LEVEL: int = settings.max_level
 static var NAMES: Array = settings.rank_names

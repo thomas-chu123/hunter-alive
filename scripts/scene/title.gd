@@ -152,7 +152,7 @@ func _open_settings() -> void:
 
 
 func _open_trap_course() -> void:
-	get_tree().change_scene_to_file("res://scenes/trap_course/trap_course.tscn")
+	get_tree().change_scene_to_file(Campaign.TRAP_COURSE_SCENE)
 
 
 func _close_settings() -> void:

@@ -1,7 +1,7 @@
 extends Node
 
 const Campaign := preload("res://scripts/game/campaign.gd")
-static var settings := Campaign.Config.read("music")
+static var settings := Campaign.Config.read("audio/music")
 static var TRACKS: Array = Campaign.IDS.map(func(id: String) -> String: return settings.regions[id].theme) + [settings.title]
 static var TITLE := TRACKS.size() - 1
 static var FIRST_BOSS := TRACKS.size()

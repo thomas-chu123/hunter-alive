@@ -26,9 +26,9 @@ const NPC_SHOP_PRICE := 8
 const LETTER_REWARD := 8
 enum LetterQuest { AVAILABLE, CARRYING, DELIVERED }
 const SOFT_LIGHT := preload("res://assets/environment/common/props/soft_light.tres")
-static var stage_rules := Campaign.Config.read("stage_rules")
+static var stage_rules := Campaign.Config.read("campaign/stage_rules")
 static var interaction: Dictionary = stage_rules.interaction
-static var reward_rules := Campaign.Config.read("rewards")
+static var reward_rules := Campaign.Config.read("campaign/rewards")
 var presentation: Dictionary
 static var START := Campaign.Config.vector(Campaign.settings.fallback_spawn)
 static var STAGE_WIDTH: int = Campaign.settings.stage_width
@@ -1072,10 +1072,10 @@ func _sync_region_gate() -> void:
 func _advance_stage() -> void:
 	if not landscape.portal_open:
 		_notice("擊倒首領後，出口才會開啟。", 3.0)
-	elif stage < Campaign.BOSS_STAGE:
-		_queue_region(region, stage + 1)
-	elif region < Campaign.Region.VOLCANO:
-		_queue_region(region + 1, 1)
+		return
+	var destination := Campaign.next_stage(region, stage)
+	if not destination.is_empty():
+		_queue_region(destination.region, destination.stage)
 	elif CampSave.write(_checkpoint_state()) == OK:
 		_finish()
 	else:

@@ -2,7 +2,7 @@ extends Node2D
 
 const WeaponAudio := preload("res://scripts/sound/hunter_weapon_audio.gd")
 const Config := preload("res://scripts/game/config_table.gd")
-static var settings := Config.read("effects")
+static var settings := Config.read("effects/effects")
 static var GUARD_TINT := Color(str(settings.guard_color))
 static var DURATION: float = settings.durations.impact
 static var SLASH_DURATION: float = settings.durations.slash

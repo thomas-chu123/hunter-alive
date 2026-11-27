@@ -1,7 +1,7 @@
 extends SceneTree
 
 const CampSave := preload("res://scripts/game/camp_save.gd")
-const TITLE := "res://scenes/title/title.tscn"
+const Campaign := preload("res://scripts/game/campaign.gd")
 
 var failed := false
 
@@ -11,7 +11,7 @@ func _initialize() -> void:
 
 
 func run() -> void:
-	change_scene_to_file(TITLE)
+	change_scene_to_file(Campaign.TITLE_SCENE)
 	await scene_changed
 	var title = current_scene
 	var resume_only := "--resume" in OS.get_cmdline_user_args()
@@ -26,7 +26,8 @@ func run() -> void:
 		await press(title.new_game)
 		await scene_changed
 		var ruins = current_scene
-		check(ruins.name == "Ruins" and ruins.stage == 1, "New Game opens the first temple stage")
+		check(ruins.scene_file_path == Campaign.scene_path({}) and ruins.stage == 1,
+			"New Game opens the configured first temple stage")
 		ruins.materials = 7
 		ruins.collected_souls.append("lizard")
 		ruins.hunter.equipped_soul = "lizard"
