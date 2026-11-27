@@ -2,14 +2,14 @@
 
 [ext_resource type="Texture2D" path="res://assets/environment/common/props/doors/doors.png" id="art"]
 
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/doors/door_stop.tscn" id="stop"]
+
 [sub_resource type="AtlasTexture" id="Post"]
 atlas = ExtResource("art")
 region = Rect2(0, 206, 16, 20)
 filter_clip = true
 
-[node name="StoneDoorStopRight" type="Node2D"]
+[node name="StoneDoorStopRight" instance=ExtResource("stop")]
 
-[node name="Post" type="Sprite2D" parent="."]
-position = Vector2(-8, -6)
+[node name="Post" parent="." index="0"]
 texture = SubResource("Post")
-centered = false

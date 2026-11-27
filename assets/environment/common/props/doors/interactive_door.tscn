@@ -2,11 +2,13 @@
 
 [ext_resource type="Script" path="res://assets/environment/common/props/doors/interactive_door.gd" id="door"]
 
+[ext_resource type="Script" path="res://assets/environment/common/props/doors/door_sight.gd" id="sight"]
+
 [sub_resource type="RectangleShape2D" id="Slab"]
 size = Vector2(16, 76)
 
 [sub_resource type="OccluderPolygon2D" id="SlabShadow"]
-polygon = PackedVector2Array(-8, -76, 8, -76, 8, 0, -8, 0)
+polygon = PackedVector2Array(-8, -88, 8, -88, 8, 0, -8, 0)
 
 [sub_resource type="CanvasItemMaterial" id="SightMaterial"]
 light_mode = 1
@@ -37,3 +39,4 @@ visible = false
 z_index = 20
 material = SubResource("SightMaterial")
 color = Color(0.025, 0.027, 0.038, 1)
+script = ExtResource("sight")

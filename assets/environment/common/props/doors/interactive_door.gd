@@ -6,7 +6,7 @@ const LEAF_HALF_WIDTH := 24.0
 const CLOSED_LEAF_SCALE := 0.125
 const HEIGHT := 76.0
 const REACH := 58.0
-const SIGHT_DISTANCE := 4096.0
+const DoorSight := preload("res://assets/environment/common/props/doors/door_sight.gd")
 
 @export var door_name := "門"
 @export var scene_exit := false
@@ -16,7 +16,7 @@ const SIGHT_DISTANCE := 4096.0
 @onready var leaf: Sprite2D = $Leaf
 @onready var collision: CollisionShape2D = $Body/Collision
 @onready var occluder: LightOccluder2D = $Occluder
-@onready var sight: Polygon2D = $Sight
+@onready var sight: DoorSight = $Sight
 
 var opened := false
 var motion: Tween
@@ -75,22 +75,15 @@ func _finish_motion(hunter: Hunter, opening: bool, doorway_clear: Callable) -> v
 
 
 func update_sight(eye_world: Vector2) -> void:
-	var eye := to_local(eye_world)
-	sight.visible = not opened and absf(eye.x) > HALF_WIDTH
-	if not sight.visible:
+	if opened:
+		sight.hide()
 		return
-	var away := -signf(eye.x)
-	var edge := away * HALF_WIDTH
-	var top := Vector2(edge, -HEIGHT)
-	var bottom := Vector2(edge, 0)
-	# Keep the post and moving leaf visible in front of their own sight mask.
-	var visible_edge := maxf(HALF_WIDTH, away * leaf.position.x + LEAF_HALF_WIDTH * leaf.scale.x)
-	var start := (away * visible_edge - eye.x) / (edge - eye.x)
-	var finish := (away * SIGHT_DISTANCE - eye.x) / (edge - eye.x)
-	sight.polygon = PackedVector2Array([
-		eye.lerp(top, start), eye.lerp(bottom, start),
-		eye.lerp(bottom, finish), eye.lerp(top, finish),
-	])
+	var eye := to_local(eye_world)
+	var start_depth := 0.0
+	if motion != null:
+		# Leave clearance for the leaf while it sweeps across the doorway.
+		start_depth = maxf(0.0, -signf(eye.x) * leaf.position.x + LEAF_HALF_WIDTH * leaf.scale.x)
+	sight.project(eye_world, start_depth)
 
 
 func _exit_tree() -> void:

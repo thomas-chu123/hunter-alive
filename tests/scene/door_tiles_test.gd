@@ -22,6 +22,14 @@ func run() -> void:
 	for monster in level.enemies:
 		monster.set_physics_process(false)
 		monster.global_position = Vector2(-1000, -1000)
+	var stops := get_nodes_in_group("door_stop_sight")
+	check(not stops.is_empty(), "Ruins 1 paints door stops from Props")
+	if not stops.is_empty():
+		var stop := stops[0] as Door.DoorSight
+		level.hunter.global_position = stop.global_position + Vector2(-34, 40)
+		level._update_door_sight()
+		check(stop.visible and Geometry2D.is_point_in_polygon(Vector2(4, 4), stop.polygon),
+			"the level updates the placed door stop's rear sight mask")
 	var observer := level.enemies[0]
 	var doors: Array[Door] = []
 	for door: Door in get_nodes_in_group("interactive_door"):

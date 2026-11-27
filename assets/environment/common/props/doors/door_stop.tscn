@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://assets/environment/common/props/doors/door_sight.gd" id="sight"]
+
+[sub_resource type="OccluderPolygon2D" id="PostShadow"]
+polygon = PackedVector2Array(-8, -6, 8, -6, 8, 14, -8, 14)
+
+[sub_resource type="CanvasItemMaterial" id="SightMaterial"]
+light_mode = 1
+
+[node name="DoorStop" type="Node2D"]
+
+[node name="Post" type="Sprite2D" parent="."]
+position = Vector2(-8, -6)
+centered = false
+
+[node name="Occluder" type="LightOccluder2D" parent="."]
+occluder = SubResource("PostShadow")
+
+[node name="Sight" type="Polygon2D" parent="." groups=["door_stop_sight"]]
+visible = false
+z_index = 20
+material = SubResource("SightMaterial")
+color = Color(0.025, 0.027, 0.038, 1)
+script = ExtResource("sight")
+bounds = Rect2(-8, -6, 16, 20)

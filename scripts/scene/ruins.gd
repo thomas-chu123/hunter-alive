@@ -868,6 +868,9 @@ func _update_door_sight() -> void:
 	for door: Door in get_tree().get_nodes_in_group("interactive_door"):
 		if is_ancestor_of(door):
 			door.update_sight(eye)
+	for sight: Door.DoorSight in get_tree().get_nodes_in_group("door_stop_sight"):
+		if is_ancestor_of(sight):
+			sight.project(eye)
 
 
 func _update_door_prompt(door: Door) -> void:
