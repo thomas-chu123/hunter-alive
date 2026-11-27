@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cb2e02jbpr5sh" path="res://scripts/scene/ruins.gd" id="1_ruins"]
 [ext_resource type="Script" uid="uid://d2gjkqovhn8ya" path="res://scripts/scene/ruin_landscape.gd" id="2_landscape"]
-[ext_resource type="Texture2D" uid="uid://doypcuyf44pwf" path="res://assets/environment/common/backdrops/ancient_temple.png" id="backdrop"]
+[ext_resource type="Texture2D" uid="uid://doypcuyf44pwf" path="res://assets/background/ancient_temple.png" id="backdrop"]
 [ext_resource type="TileSet" uid="uid://cqgvshba3bclr" path="res://assets/environment/common/props/props_tileset.tres" id="props_tileset"]
 [ext_resource type="TileSet" path="res://assets/environment/common/props/background_props_tileset.tres" id="background_props_tileset"]
 [ext_resource type="TileSet" path="res://assets/environment/common/props/obstacle_props_tileset.tres" id="obstacle_props_tileset"]

@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/clay_forest/ForestFern.png" id="texture"]
+
+[node name="ForestFern" type="Node2D"]
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(-28.31360947, -34.43786982)
+scale = Vector2(0.1775147929, 0.1775147929)
+centered = false
+texture = ExtResource("texture")

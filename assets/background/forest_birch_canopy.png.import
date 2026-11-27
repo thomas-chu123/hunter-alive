@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b3if8xtdh41l8"
-path="res://.godot/imported/background.png-d1cd43571ff6e0d753847b30a024309a.ctex"
+uid="uid://6i0gc1kekdq5"
+path="res://.godot/imported/forest_birch_canopy.png-a9cef72883e45d38cc529cf9c0e1bdb2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/flooded_corridor/background.png"
-dest_files=["res://.godot/imported/background.png-d1cd43571ff6e0d753847b30a024309a.ctex"]
+source_file="res://assets/background/forest_birch_canopy.png"
+dest_files=["res://.godot/imported/forest_birch_canopy.png-a9cef72883e45d38cc529cf9c0e1bdb2.ctex"]
 
 [params]
 

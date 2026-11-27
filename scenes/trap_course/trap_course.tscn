@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/trap/trap_course.gd" id="1"]
 [ext_resource type="TileSet" path="res://assets/environment/common/terrain/terrain_tileset.tres" id="2"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/traps/trap_tilemap.tscn" id="3"]
-[ext_resource type="Texture2D" path="res://assets/environment/common/backdrops/ancient_temple.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/background/ancient_temple.png" id="4"]
 [ext_resource type="Script" path="res://scripts/character/ruin_hunter.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/ui/ruin_health_hearts.gd" id="6"]
 

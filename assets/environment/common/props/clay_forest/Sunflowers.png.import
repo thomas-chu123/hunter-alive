@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://doypcuyf44pwf"
-path="res://.godot/imported/ancient_temple.png-82652f0f445f1aecff02df6986c49916.ctex"
+uid="uid://cg4xcktrpbagm"
+path="res://.godot/imported/Sunflowers.png-72e4ed173b97197c18ff779a0a5e12e7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/common/backdrops/ancient_temple.png"
-dest_files=["res://.godot/imported/ancient_temple.png-82652f0f445f1aecff02df6986c49916.ctex"]
+source_file="res://assets/environment/common/props/clay_forest/Sunflowers.png"
+dest_files=["res://.godot/imported/Sunflowers.png-72e4ed173b97197c18ff779a0a5e12e7.ctex"]
 
 [params]
 

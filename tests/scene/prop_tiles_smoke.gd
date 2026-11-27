@@ -23,6 +23,7 @@ func _initialize() -> void:
 
 func run() -> void:
 	check_tile_sources()
+	check_clay_forest_tiles()
 	await check_landing_tiles()
 	check_brazier_art()
 	check_seeded_braziers()
@@ -88,7 +89,7 @@ func check_landing_tiles() -> void:
 func check_tile_sources() -> void:
 	var sources := {
 		"Props": {0: ["Props", 12], 1: ["Weapons", 3], 2: ["Armor", 8], 3: ["Traversal", 6], 4: ["Landings", 7], 5: ["Treasure", 5], 6: ["Doors", 8], 7: ["Door Stops", 8]},
-		"BackgroundProps": {0: ["BackgroundProps", 8], 1: ["Woodland", 10]},
+		"BackgroundProps": {0: ["BackgroundProps", 8], 1: ["Woodland", 10], 2: ["Clay Forest", 15]},
 		"ObstacleProps": {0: ["ObstacleProps", 3]},
 		"Traps": {0: ["Mechanical", 5], 1: ["Elemental", 5], 2: ["Portals", 4], 3: ["Environment Effects", 3]},
 	}
@@ -115,6 +116,28 @@ func check_tile_sources() -> void:
 						check(layer_name == "Props" and ((source_id == 1 and Armory.WEAPONS.has(item_id))
 							or (source_id == 2 and Armory.WEAR.has(item_id))), "%s is categorized by equipment type" % item_id)
 				prop.free()
+
+
+func check_clay_forest_tiles() -> void:
+	var layer := TileMapLayer.new()
+	layer.tile_set = TILESETS["BackgroundProps"]
+	root.add_child(layer)
+	var names := [
+		"Oak", "Pine", "Birch", "Maple", "Willow", "AncientTree", "DeadTree", "MagicTree",
+		"WildDaisies", "Bluebells", "RedPoppies", "Sunflowers", "Lavender", "ForestFern", "MagicFlowers",
+	]
+	for index in names.size():
+		layer.set_cell(Vector2i(index, 0), 2, Vector2i.ZERO, index + 1)
+	layer.update_internals()
+	check(layer.get_child_count() == names.size(), "painting Clay Forest instantiates all 15 scene tiles")
+	for prop: Node2D in layer.get_children():
+		var cell := layer.local_to_map(prop.position)
+		var sprite := prop.get_node_or_null("Sprite") as Sprite2D
+		var scene_name := prop.scene_file_path.get_file().get_basename()
+		check(cell.x >= 0 and cell.x < names.size() and scene_name == names[cell.x]
+			and prop.position == layer.map_to_local(cell) and sprite != null and sprite.texture != null
+			and prop.get_child_count() == 1, "Clay Forest tile %s is decorative and snaps to its cell" % scene_name)
+	layer.free()
 
 
 func check_props(level: Ruins, region: int) -> void:

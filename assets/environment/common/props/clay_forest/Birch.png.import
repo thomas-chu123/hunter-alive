@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d1cywvfm7lefw"
-path="res://.godot/imported/background.png-f0ae618bd61b5b21e02f476be82f0e42.ctex"
+uid="uid://bqun51jmneb23"
+path="res://.godot/imported/Birch.png-70859cba5bba1519130312c9bfea5510.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/volcanic_caldera/background.png"
-dest_files=["res://.godot/imported/background.png-f0ae618bd61b5b21e02f476be82f0e42.ctex"]
+source_file="res://assets/environment/common/props/clay_forest/Birch.png"
+dest_files=["res://.godot/imported/Birch.png-70859cba5bba1519130312c9bfea5510.ctex"]
 
 [params]
 

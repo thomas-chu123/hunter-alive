@@ -1,6 +1,6 @@
 [gd_scene format=4 uid="uid://cf7tp7eet5qy2"]
 
-[ext_resource type="Texture2D" uid="uid://b3if8xtdh41l8" path="res://assets/environment/flooded_corridor/background.png" id="background"]
+[ext_resource type="Texture2D" uid="uid://b3if8xtdh41l8" path="res://assets/background/flooded_corridor.png" id="background"]
 [ext_resource type="TileSet" uid="uid://ce1prgcgc64nt" path="res://assets/environment/common/props/background_props_tileset.tres" id="background_props_tileset"]
 [ext_resource type="Script" uid="uid://d2gjkqovhn8ya" path="res://scripts/scene/ruin_landscape.gd" id="landscape"]
 [ext_resource type="TileSet" uid="uid://c3tfllb30e4ed" path="res://assets/monster/monster_tileset.tres" id="monster_tileset"]

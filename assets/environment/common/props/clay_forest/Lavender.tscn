@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/clay_forest/Lavender.png" id="texture"]
+
+[node name="Lavender" type="Node2D"]
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(-28.88440860, -37.06989247)
+scale = Vector2(0.1881720430, 0.1881720430)
+centered = false
+texture = ExtResource("texture")

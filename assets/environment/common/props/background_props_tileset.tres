@@ -18,6 +18,21 @@
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/woodland/Chanterelles.tscn" id="plant_8"]
 [ext_resource type="PackedScene" uid="uid://bh4mcu6f1fy6f" path="res://assets/environment/common/props/woodland/OysterMushrooms.tscn" id="plant_9"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/props/woodland/Bolete.tscn" id="plant_10"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/Oak.tscn" id="clay_1"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/Pine.tscn" id="clay_2"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/Birch.tscn" id="clay_3"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/Maple.tscn" id="clay_4"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/Willow.tscn" id="clay_5"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/AncientTree.tscn" id="clay_6"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/DeadTree.tscn" id="clay_7"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/MagicTree.tscn" id="clay_8"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/WildDaisies.tscn" id="clay_9"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/Bluebells.tscn" id="clay_10"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/RedPoppies.tscn" id="clay_11"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/Sunflowers.tscn" id="clay_12"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/Lavender.tscn" id="clay_13"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/ForestFern.tscn" id="clay_14"]
+[ext_resource type="PackedScene" path="res://assets/environment/common/props/clay_forest/MagicFlowers.tscn" id="clay_15"]
 
 [sub_resource type="TileSetScenesCollectionSource" id="Collection0"]
 resource_name = "BackgroundProps"
@@ -43,8 +58,27 @@ scenes/8/scene = ExtResource("plant_8")
 scenes/9/scene = ExtResource("plant_9")
 scenes/10/scene = ExtResource("plant_10")
 
+[sub_resource type="TileSetScenesCollectionSource" id="ClayForest"]
+resource_name = "Clay Forest"
+scenes/1/scene = ExtResource("clay_1")
+scenes/2/scene = ExtResource("clay_2")
+scenes/3/scene = ExtResource("clay_3")
+scenes/4/scene = ExtResource("clay_4")
+scenes/5/scene = ExtResource("clay_5")
+scenes/6/scene = ExtResource("clay_6")
+scenes/7/scene = ExtResource("clay_7")
+scenes/8/scene = ExtResource("clay_8")
+scenes/9/scene = ExtResource("clay_9")
+scenes/10/scene = ExtResource("clay_10")
+scenes/11/scene = ExtResource("clay_11")
+scenes/12/scene = ExtResource("clay_12")
+scenes/13/scene = ExtResource("clay_13")
+scenes/14/scene = ExtResource("clay_14")
+scenes/15/scene = ExtResource("clay_15")
+
 [resource]
 resource_name = "BackgroundProps"
 tile_size = Vector2i(20, 20)
 sources/0 = SubResource("Collection0")
 sources/1 = SubResource("Woodland")
+sources/2 = SubResource("ClayForest")

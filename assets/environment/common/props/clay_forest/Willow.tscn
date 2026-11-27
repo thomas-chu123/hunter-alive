@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/clay_forest/Willow.png" id="texture"]
+
+[node name="Willow" type="Node2D"]
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(-105.16870416, -136.94865526)
+scale = Vector2(0.3276283619, 0.3276283619)
+centered = false
+texture = ExtResource("texture")

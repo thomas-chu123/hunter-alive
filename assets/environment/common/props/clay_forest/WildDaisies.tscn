@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/clay_forest/WildDaisies.png" id="texture"]
+
+[node name="WildDaisies" type="Node2D"]
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(-18.43298969, -24.86597938)
+scale = Vector2(0.1237113402, 0.1237113402)
+centered = false
+texture = ExtResource("texture")

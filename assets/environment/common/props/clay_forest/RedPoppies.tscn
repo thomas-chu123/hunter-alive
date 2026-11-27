@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/clay_forest/RedPoppies.png" id="texture"]
+
+[node name="RedPoppies" type="Node2D"]
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(-26.09113300, -33.97536946)
+scale = Vector2(0.1625615764, 0.1625615764)
+centered = false
+texture = ExtResource("texture")

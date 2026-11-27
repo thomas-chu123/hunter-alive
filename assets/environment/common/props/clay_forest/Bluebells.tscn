@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/clay_forest/Bluebells.png" id="texture"]
+
+[node name="Bluebells" type="Node2D"]
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(-29.24731183, -36.37634409)
+scale = Vector2(0.1827956989, 0.1827956989)
+centered = false
+texture = ExtResource("texture")

@@ -4,9 +4,7 @@
 
 | 路徑 | 內容 |
 |---|---|
-| `buried_court/` | 埋碑內庭專用背景 |
-| `flooded_corridor/` | 淹沒的迴廊專用背景 |
-| `common/backdrops/` | 主選單與崩塌神殿共用的背景 |
+| [`../background/`](../background/) | 主選單、關卡和森林用的背景圖 |
 | `common/props/` | 營火、斷柱、蕨類、石門與石匣的圖檔、場景及四類物件 TileSet |
 | `common/traps/` | [陷阱 TileSet、TileMap、圖集與編輯方式](common/traps/README.md) |
 | `common/terrain/` | 四個關卡共用的地形 TileSet 與遊戲使用的圖集 |

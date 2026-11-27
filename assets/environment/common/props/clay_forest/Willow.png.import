@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://qlhck6jdyx0"
-path="res://.godot/imported/background.png-dbe36054f1b25377db7a1aa0ea00ae7f.ctex"
+uid="uid://dps2qbx44s18x"
+path="res://.godot/imported/Willow.png-f7d80e3784d3184f1ccd8f4a7d62a4ab.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/environment/buried_court/background.png"
-dest_files=["res://.godot/imported/background.png-dbe36054f1b25377db7a1aa0ea00ae7f.ctex"]
+source_file="res://assets/environment/common/props/clay_forest/Willow.png"
+dest_files=["res://.godot/imported/Willow.png-f7d80e3784d3184f1ccd8f4a7d62a4ab.ctex"]
 
 [params]
 

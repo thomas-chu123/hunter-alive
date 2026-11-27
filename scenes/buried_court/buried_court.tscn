@@ -1,6 +1,6 @@
 [gd_scene format=4 uid="uid://diy37od1o1sxs"]
 
-[ext_resource type="Texture2D" uid="uid://qlhck6jdyx0" path="res://assets/environment/buried_court/background.png" id="background"]
+[ext_resource type="Texture2D" uid="uid://qlhck6jdyx0" path="res://assets/background/buried_court.png" id="background"]
 [ext_resource type="TileSet" uid="uid://ce1prgcgc64nt" path="res://assets/environment/common/props/background_props_tileset.tres" id="background_props_tileset"]
 [ext_resource type="PackedScene" path="res://assets/environment/common/traps/trap_tilemap.tscn" id="traps"]
 [ext_resource type="Script" uid="uid://d2gjkqovhn8ya" path="res://scripts/scene/ruin_landscape.gd" id="landscape"]

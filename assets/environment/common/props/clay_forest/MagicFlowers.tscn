@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/environment/common/props/clay_forest/MagicFlowers.png" id="texture"]
+
+[node name="MagicFlowers" type="Node2D"]
+
+[node name="Sprite" type="Sprite2D" parent="."]
+position = Vector2(-23.23563218, -29.13793103)
+scale = Vector2(0.1494252874, 0.1494252874)
+centered = false
+texture = ExtResource("texture")
