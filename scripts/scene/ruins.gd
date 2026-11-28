@@ -347,12 +347,13 @@ func _spawn_enemies() -> void:
 			continue
 		var spawn := to_local(marker.global_position)
 		var cell := monster_layer.local_to_map(monster_layer.to_local(marker.global_position))
-		_add_monster(species, spawn.x, spawn.y, Bestiary.tile_tier(monster_layer.get_cell_source_id(cell)))
+		var tier := Bestiary.tile_tier(monster_layer.get_cell_source_id(cell))
+		_add_monster(species, spawn.x, spawn.y, tier, marker.get_meta("monster_scale", 0.0))
 
 
-func _add_monster(species: String, x: float, y: float = Landscape.FLOOR_Y, tier: int = 0) -> void:
+func _add_monster(species: String, x: float, y: float = Landscape.FLOOR_Y, tier: int = 0, scale_override: Variant = null) -> void:
 	var monster := Monster.new()
-	monster.configure(species, Vector2(x, y), hunter, tier)
+	monster.configure(species, Vector2(x, y), hunter, tier, scale_override)
 	var combat: Dictionary = monster.design.get("combat", {})
 	var unarmed_if: String = combat.get("unarmed_if", "")
 	if not unarmed_if.is_empty() and bool(get(unarmed_if)):

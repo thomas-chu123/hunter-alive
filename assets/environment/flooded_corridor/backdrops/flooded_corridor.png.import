@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://da8si153jov27"
-path="res://.godot/imported/forest_magic_waterfall.png-cfa17650459062f563307e9463ec60cd.ctex"
+uid="uid://b3if8xtdh41l8"
+path="res://.godot/imported/flooded_corridor.png-5b4175a3b88da993f563bb49ca8dbc8e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/background/forest_magic_waterfall.png"
-dest_files=["res://.godot/imported/forest_magic_waterfall.png-cfa17650459062f563307e9463ec60cd.ctex"]
+source_file="res://assets/environment/flooded_corridor/backdrops/flooded_corridor.png"
+dest_files=["res://.godot/imported/flooded_corridor.png-5b4175a3b88da993f563bb49ca8dbc8e.ctex"]
 
 [params]
 

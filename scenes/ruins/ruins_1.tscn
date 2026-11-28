@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://c6fs0k5em18i0" path="res://scenes/ruins/ruins.tscn" id="1"]
 [ext_resource type="Texture2D" uid="uid://b6c6rrg5imjea" path="res://assets/environment/common/terrain/terrain_grid.png" id="3_400ly"]
-[ext_resource type="Texture2D" uid="uid://cnnkas8rrtd5n" path="res://assets/background/forest_sunlit_creek.png" id="3_tj4ft"]
+[ext_resource type="Texture2D" uid="uid://cnnkas8rrtd5n" path="res://assets/environment/ruins/backdrops/forest_sunlit_creek.png" id="3_tj4ft"]
 [ext_resource type="Texture2D" uid="uid://7mb7rbg4y3lk" path="res://assets/environment/common/terrain/natural_rock.png" id="4_rpg0m"]
 [ext_resource type="Texture2D" uid="uid://ddwl88l00e2fk" path="res://assets/environment/common/terrain/biome_natural.png" id="5_xhfv2"]
 [ext_resource type="Texture2D" uid="uid://boqeqmvyo6qo6" path="res://assets/environment/common/terrain/biome_caves.png" id="6_xut47"]
@@ -5299,7 +5299,7 @@ tile_map_data = PackedByteArray("AABYAOr/AAAAAAAAAgBRAAMAAQAAAAAADgBQAA4AAAAAAAA
 tile_map_data = PackedByteArray("AAB2AOv/BgAAAAAACAAcABUAAwAAAAAAAgBiAA8AAwAAAAAAAwBiAAkAAwAAAAAAAwBeAA8AAwAAAAAAAQAvAAMAAwAAAAAAAgAvAP3/AwAAAAAAAgBfAPf/AwAAAAAAAwBfAPH/AwAAAAAAAwBbAPf/AwAAAAAAAQAXAAsABAAAAAAAAwBkAA4ABAAAAAAAAQA4AAEABAAAAAAABgBdAP//BAAAAAAAAwAxAAIABAAAAAAAAQBEAPX/BAAAAAAABgAqAPP/BAAAAAAAAwBhAPb/BAAAAAAAAQBMAOn/BAAAAAAABgBaAOf/BAAAAAAAAwALABsAAAAAAAAAAQCCAAMAAgAAAAAAFABwAAMAAAAAAAAADABuABMAAgAAAAAAGwB5ABsAAgAAAAAAFgArAAEAAwAAAAAAAQAZAAMAAAAAAAAAAgAcABsAAwAAAAAAAgAoAAYABAAAAAAABgAfABIABAAAAAAAAQAuABMAAwAAAAAAAQAqABYAAwAAAAAAAQAfABsABQAAAAAAAQAXABsABQAAAAAAAQAjABsABgAAAAAABgBGABsABgAAAAAAAwASABsABgAAAAAAAQASABcABwAAAAAAAQASABYABwAAAAAAAQASABUABwAAAAAAAQASABQABwAAAAAAAQASABMABwAAAAAAAQASABIABwAAAAAAAQASABEABwAAAAAAAQASABAABwAAAAAAAQAjABcABwAAAAAAAgAjABYABwAAAAAAAgAjABUABwAAAAAAAgAjABQABwAAAAAAAgAjABMABwAAAAAAAgAjABIABwAAAAAAAgAjABEABwAAAAAAAgAjABAABwAAAAAAAgA=")
 
 [node name="Monster" parent="Landscape" parent_id_path=PackedInt32Array(825624333) index="6"]
-tile_map_data = PackedByteArray("AAAoAPb/AAAAAAAABwAiAAEAAAAAAAAACAB5AAEAAAAAAAAACgB2AA4AAAAAAAAABwBnAO//AAAAAAAABAA9AOn/AAAAAAAADwAkAA4AAAAAAAAAAQA6ABkAAAAAAAAAAgBBABkAAAAAAAAACAAaABoAAAAAAAAAAQA=")
+tile_map_data = PackedByteArray("AAAoAPb/AAAAAAAABwAiAAEAAAAAAAAACAB5AAEAAAAAAAAACgB2AA4AAAAAAAAABwBnAO//AAAAAAAABAA9AOn/AAAAAAAADwAkAA4AAAAAAAAAAQA6ABkAAAAAAAAAAgBBABkAAAAAAAAACAAaABoAAAAAAAAAAQAdAAsABQAAAAAAAQA=")
 
 [node name="RoomWalls" type="TileMapLayer" parent="Landscape" parent_id_path=PackedInt32Array(825624333) index="7" unique_id=1865857317]
 z_index = -3

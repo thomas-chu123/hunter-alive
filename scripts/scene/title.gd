@@ -25,7 +25,7 @@ func _ready() -> void:
 	font.font_names = PackedStringArray(["Noto Sans CJK TC", "Microsoft JhengHei", "sans-serif"])
 
 	var backdrop := TextureRect.new()
-	backdrop.texture = preload("res://assets/background/ancient_temple.png")
+	backdrop.texture = preload("res://assets/environment/common/backdrops/ancient_temple.png")
 	backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ctvg8x2hnvhrg"
-path="res://.godot/imported/forest_ancient_ruins.png-58a3d7e13be6f77ac15fde5f5d256794.ctex"
+uid="uid://cotxagjjnh4e8"
+path="res://.godot/imported/forest_magic_sky_isles.png-39b8f85daa240920ed1840e98a49e94a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/background/forest_ancient_ruins.png"
-dest_files=["res://.godot/imported/forest_ancient_ruins.png-58a3d7e13be6f77ac15fde5f5d256794.ctex"]
+source_file="res://assets/environment/common/backdrops/forest_magic_sky_isles.png"
+dest_files=["res://.godot/imported/forest_magic_sky_isles.png-39b8f85daa240920ed1840e98a49e94a.ctex"]
 
 [params]
 

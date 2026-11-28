@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/monster/shale_beetle/shale_beetle.tscn" id="base"]
+
+[node name="ShaleBeetleGiant" instance=ExtResource("base")]
+scale = Vector2(1.2, 1.2)
+metadata/monster_scale = 1.5

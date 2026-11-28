@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cotxagjjnh4e8"
-path="res://.godot/imported/forest_magic_sky_isles.png-df195dc76e29da9c00b00bd2a8212305.ctex"
+uid="uid://da8si153jov27"
+path="res://.godot/imported/forest_magic_waterfall.png-a1794232601405bbcf6d1e6aaad7f56f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/background/forest_magic_sky_isles.png"
-dest_files=["res://.godot/imported/forest_magic_sky_isles.png-df195dc76e29da9c00b00bd2a8212305.ctex"]
+source_file="res://assets/environment/common/backdrops/forest_magic_waterfall.png"
+dest_files=["res://.godot/imported/forest_magic_waterfall.png-a1794232601405bbcf6d1e6aaad7f56f.ctex"]
 
 [params]
 

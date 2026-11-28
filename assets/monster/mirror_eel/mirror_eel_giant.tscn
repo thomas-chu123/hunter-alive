@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/monster/mirror_eel/mirror_eel.tscn" id="base"]
+
+[node name="MirrorEelGiant" instance=ExtResource("base")]
+scale = Vector2(1.2, 1.2)
+metadata/monster_scale = 1.5

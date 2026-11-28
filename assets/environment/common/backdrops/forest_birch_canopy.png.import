@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cnnkas8rrtd5n"
-path="res://.godot/imported/forest_sunlit_creek.png-809787f21724de53cb7e6d3e2c30aa84.ctex"
+uid="uid://6i0gc1kekdq5"
+path="res://.godot/imported/forest_birch_canopy.png-266c0e12e6904ec47712a1dc704ae348.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/background/forest_sunlit_creek.png"
-dest_files=["res://.godot/imported/forest_sunlit_creek.png-809787f21724de53cb7e6d3e2c30aa84.ctex"]
+source_file="res://assets/environment/common/backdrops/forest_birch_canopy.png"
+dest_files=["res://.godot/imported/forest_birch_canopy.png-266c0e12e6904ec47712a1dc704ae348.ctex"]
 
 [params]
 

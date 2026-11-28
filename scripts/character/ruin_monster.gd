@@ -22,6 +22,7 @@ var home := Vector2.ZERO
 var health := 0
 var max_health := 0
 var boss_scale := 1.0
+var visual_scale := 1.0
 var level := 1
 var soul_reward: Array
 var attack_kind := ""
@@ -91,13 +92,15 @@ var stretch_x := 1.0
 var sprint_lean := 0.0
 
 
-func configure(kind: String, at: Vector2, hunter: CharacterBody2D, spawn_tier: int = 0) -> void:
+func configure(kind: String, at: Vector2, hunter: CharacterBody2D, spawn_tier: int = 0, scale_override: Variant = null) -> void:
 	species = kind
 	position = at
 	home = at
 	patrol_center = at.x
 	target = hunter
 	design = Bestiary.creatures[species]
+	visual_scale = _positive_scale(design.get("scale"), 1.0)
+	visual_scale = _positive_scale(scale_override, visual_scale)
 	combat = design.get("combat", {})
 	appearance = design.art
 	sprites = Art.load_poses(appearance)
@@ -117,6 +120,12 @@ func configure(kind: String, at: Vector2, hunter: CharacterBody2D, spawn_tier: i
 	attack_kind = attack.kind
 	health = max_health
 	armed = combat.get("starts_armed", false)
+
+
+func _positive_scale(value: Variant, fallback: float) -> float:
+	if (value is float or value is int) and is_finite(float(value)) and float(value) > 0.0:
+		return float(value)
+	return fallback
 
 
 func promote_to_boss(size_multiplier: float, level_bonus: int, health_multiplier: float) -> void:
@@ -142,7 +151,7 @@ func _ready() -> void:
 	feet.position.y = -shape.size.y / 2.0
 	add_child(feet)
 	actor_art = Node2D.new()
-	actor_art.scale = Vector2.ONE * boss_scale
+	actor_art.scale = Vector2.ONE * (boss_scale * visual_scale)
 	actor_art.show_behind_parent = true
 	actor_art.draw.connect(_draw_actor)
 	var outline: Variant = Bestiary.tier_profile(tier).outline

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d1cywvfm7lefw"
-path="res://.godot/imported/volcanic_caldera.png-0d07d1f5e4bd59446b55c8f0e3f5e55a.ctex"
+uid="uid://cnnkas8rrtd5n"
+path="res://.godot/imported/forest_sunlit_creek.png-bd5be1d2f4d6b5f599f763dd2624db13.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/background/volcanic_caldera.png"
-dest_files=["res://.godot/imported/volcanic_caldera.png-0d07d1f5e4bd59446b55c8f0e3f5e55a.ctex"]
+source_file="res://assets/environment/ruins/backdrops/forest_sunlit_creek.png"
+dest_files=["res://.godot/imported/forest_sunlit_creek.png-bd5be1d2f4d6b5f599f763dd2624db13.ctex"]
 
 [params]
 

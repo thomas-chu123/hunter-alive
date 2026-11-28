@@ -4,7 +4,9 @@
 
 | 路徑 | 內容 |
 |---|---|
-| [`../background/`](../background/) | 主選單、關卡和森林用的背景圖 |
+| [`common/backdrops/`](common/backdrops/) | 主選單與多個場景共用的古寺背景，以及備用森林背景 |
+| [`ruins/backdrops/`](ruins/backdrops/) | 神殿密室的林間溪流背景 |
+| 各區的 `backdrops/` | [暗水道](flooded_corridor/backdrops/)、[埋葬內庭](buried_court/backdrops/)與[火山熔爐](volcanic_caldera/backdrops/)的專用背景 |
 | `common/props/` | 營火、斷柱、蕨類、石門與石匣的圖檔、場景及四類物件 TileSet |
 | `common/traps/` | [陷阱 TileSet、TileMap、圖集與編輯方式](common/traps/README.md) |
 | `common/terrain/` | 四個關卡共用的地形 TileSet 與遊戲使用的圖集 |

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://qlhck6jdyx0"
-path="res://.godot/imported/buried_court.png-c53fc6c1d7f297945ccf8e7aa87da5fe.ctex"
+uid="uid://ctvg8x2hnvhrg"
+path="res://.godot/imported/forest_ancient_ruins.png-8a348324299f391dcf402512deb9bdbf.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/background/buried_court.png"
-dest_files=["res://.godot/imported/buried_court.png-c53fc6c1d7f297945ccf8e7aa87da5fe.ctex"]
+source_file="res://assets/environment/common/backdrops/forest_ancient_ruins.png"
+dest_files=["res://.godot/imported/forest_ancient_ruins.png-8a348324299f391dcf402512deb9bdbf.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://6i0gc1kekdq5"
-path="res://.godot/imported/forest_birch_canopy.png-a9cef72883e45d38cc529cf9c0e1bdb2.ctex"
+uid="uid://doypcuyf44pwf"
+path="res://.godot/imported/ancient_temple.png-7dfa48f1fbe24745de54328510bc854d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/background/forest_birch_canopy.png"
-dest_files=["res://.godot/imported/forest_birch_canopy.png-a9cef72883e45d38cc529cf9c0e1bdb2.ctex"]
+source_file="res://assets/environment/common/backdrops/ancient_temple.png"
+dest_files=["res://.godot/imported/ancient_temple.png-7dfa48f1fbe24745de54328510bc854d.ctex"]
 
 [params]
 

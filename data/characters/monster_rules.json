@@ -86,6 +86,7 @@
       {
         "tier": 5,
         "tile_source_id": 4,
+        "additional_tile_source_ids": [5],
         "name": "金",
         "outline": "#FFD45A"
       }

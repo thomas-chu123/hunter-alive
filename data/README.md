@@ -40,6 +40,10 @@
 
 在 Godot 選取關卡的 `Landscape > Monster`，用 TileMap 面板新增、移動或擦除怪物。遭遇提示以圖塊上的出生位置為準。載入存檔時，若 `defeat_flag` 已成立，該怪物會略過生成。
 
+要放大個別怪物，在 Monster 圖層的 TileMap 面板選「巨型」，再從全部 21 種巨型版本中選擇物種。巨型圖塊的外觀為 1.5 倍，等同金色 5 階怪物的 HP、等級、金色外框及掉落規則。要新增其他巨型圖塊，可從原物種的場景建立繼承場景，保留 `monster_species`，加入數值型的 `monster_scale` metadata，再把場景加入 Monster TileSet 的場景集合。場景的 `Sprite2D.scale` 控制編輯器預覽大小。
+
+要調整整個物種，在 `characters/monsters.json` 的物種條目加入 `"scale": 1.5`，與 `health` 同層。遊戲優先採用圖塊的有效倍率，其次採用物種倍率，最後預設為 1.0。倍率須為有限正數，只縮放角色動畫。頭目動畫會再乘上區域的 `boss.size`。
+
 擊倒和繳械分別讀取 `defeat`、`disarm`。掉落條目可設定 `item`、`amount`、`chance`、`offset` 與取得限制。機率使用 0 到 1。`materials` 可覆蓋一般素材規則，填 `null` 時該怪物略過一般素材掉落。
 
 四區場景分別位於 `scenes/ruins/`、`scenes/flooded_corridor/`、`scenes/buried_court/` 與 `scenes/volcanic_caldera/`。主選單位於 `scenes/title/`。存檔保留既有區域編號與進度旗標。

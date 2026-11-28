@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://doypcuyf44pwf"
-path="res://.godot/imported/ancient_temple.png-7dfa48f1fbe24745de54328510bc854d.ctex"
+uid="uid://qlhck6jdyx0"
+path="res://.godot/imported/buried_court.png-f7fc763c567f4bb77ac7dc348fb1ec68.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/background/ancient_temple.png"
-dest_files=["res://.godot/imported/ancient_temple.png-7dfa48f1fbe24745de54328510bc854d.ctex"]
+source_file="res://assets/environment/buried_court/backdrops/buried_court.png"
+dest_files=["res://.godot/imported/buried_court.png-f7fc763c567f4bb77ac7dc348fb1ec68.ctex"]
 
 [params]
 

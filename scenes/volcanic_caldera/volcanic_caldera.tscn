@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cb2e02jbpr5sh" path="res://scripts/scene/ruins.gd" id="1_ruins"]
 [ext_resource type="Script" uid="uid://d2gjkqovhn8ya" path="res://scripts/scene/ruin_landscape.gd" id="2_landscape"]
-[ext_resource type="Texture2D" path="res://assets/background/volcanic_caldera.png" id="background"]
+[ext_resource type="Texture2D" path="res://assets/environment/volcanic_caldera/backdrops/volcanic_caldera.png" id="background"]
 [ext_resource type="TileSet" uid="uid://con8hl5nkiqgu" path="res://assets/environment/common/terrain/terrain_tileset.tres" id="terrain_tileset"]
 [ext_resource type="TileSet" path="res://assets/environment/common/props/props_tileset.tres" id="props_tileset"]
 [ext_resource type="TileSet" path="res://assets/environment/common/props/background_props_tileset.tres" id="background_props_tileset"]

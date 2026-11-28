@@ -58,6 +58,8 @@ func run() -> void:
 		var count := tile_ids.size() if region == Campaign.Region.VOLCANO else 1
 		for index in count:
 			var cell := Vector2i(34 + index, 26 + index % 2)
+			while layer.get_cell_source_id(cell) != -1:
+				cell.y -= 1
 			var tile_id: int = tile_ids[index]
 			layer.set_cell(cell, 0, Vector2i.ZERO, tile_id)
 			placements[layer.position + layer.map_to_local(cell)] = species_by_tile[tile_id]
