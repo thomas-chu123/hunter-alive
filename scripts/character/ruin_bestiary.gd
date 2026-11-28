@@ -2,9 +2,9 @@ extends RefCounted
 
 const Config := preload("res://scripts/game/config_table.gd")
 
-static var creatures: Dictionary = Config.read("characters/monsters")
-static var loot: Dictionary = Config.read("characters/monster_loot")
-static var rules: Dictionary = Config.read("characters/monster_rules")
+static var creatures: Dictionary = Config.read("monsters/monsters")
+static var loot: Dictionary = Config.read("monsters/monster_loot")
+static var rules: Dictionary = Config.read("monsters/monster_rules")
 
 
 static func tile_tier(source_id: int) -> int:
